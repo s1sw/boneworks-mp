@@ -17,7 +17,6 @@ namespace MultiplayerMod
         private void ServerUpdate()
         {
             //ui.SetPlayerCount(players.Count);
-            uint size;
             while (SteamNetworking.IsP2PPacketAvailable(0))
             {
                 P2Packet? packet = SteamNetworking.ReadP2PPacket(0);
@@ -54,15 +53,19 @@ namespace MultiplayerMod
 
                                     foreach (var smallId in playerNames.Keys)
                                     {
-                                        OtherPlayerNameMessage opnm = new OtherPlayerNameMessage();
-                                        opnm.playerId = smallId;
-                                        opnm.name = playerNames[smallId];
+                                        OtherPlayerNameMessage opnm = new OtherPlayerNameMessage
+                                        {
+                                            playerId = smallId,
+                                            name = playerNames[smallId]
+                                        };
                                         SteamNetworking.SendP2PPacket(packet.Value.SteamId, opnm.MakeMsg().GetBytes(), -1, 0, P2PSend.Reliable);
                                     }
 
-                                    OtherPlayerNameMessage opnm2 = new OtherPlayerNameMessage();
-                                    opnm2.playerId = 0;
-                                    opnm2.name = SteamClient.Name;
+                                    OtherPlayerNameMessage opnm2 = new OtherPlayerNameMessage
+                                    {
+                                        playerId = 0,
+                                        name = SteamClient.Name
+                                    };
                                     SteamNetworking.SendP2PPacket(packet.Value.SteamId, opnm2.MakeMsg().GetBytes(), -1, 0, P2PSend.Reliable);
 
                                     playerNames.Add(newPlayerId, name);
@@ -99,6 +102,7 @@ namespace MultiplayerMod
                                     pr.head.transform.position = ppm.headPos;
                                     pr.handL.transform.position = ppm.lHandPos;
                                     pr.handR.transform.position = ppm.rHandPos;
+                                    pr.ford.transform.position = ppm.pelvisPos - new Vector3(0.0f, 0.3f, 0.0f);
                                     pr.pelvis.transform.position = ppm.pelvisPos;
                                     pr.footL.transform.position = ppm.lFootPos;
                                     pr.footR.transform.position = ppm.rFootPos;
@@ -112,21 +116,23 @@ namespace MultiplayerMod
 
                                     // Send to all other players
 
-                                    OtherPlayerPositionMessage relayOPPM = new OtherPlayerPositionMessage();
-                                    relayOPPM.headPos = ppm.headPos;
-                                    relayOPPM.lHandPos = ppm.lHandPos;
-                                    relayOPPM.rHandPos = ppm.rHandPos;
-                                    relayOPPM.pelvisPos = ppm.pelvisPos;
-                                    relayOPPM.lFootPos = ppm.lFootPos;
-                                    relayOPPM.rFootPos = ppm.rFootPos;
+                                    OtherPlayerPositionMessage relayOPPM = new OtherPlayerPositionMessage
+                                    {
+                                        headPos = ppm.headPos,
+                                        lHandPos = ppm.lHandPos,
+                                        rHandPos = ppm.rHandPos,
+                                        pelvisPos = ppm.pelvisPos,
+                                        lFootPos = ppm.lFootPos,
+                                        rFootPos = ppm.rFootPos,
 
-                                    relayOPPM.headRot = ppm.headRot;
-                                    relayOPPM.lHandRot = ppm.lHandRot;
-                                    relayOPPM.rHandRot = ppm.rHandRot;
-                                    relayOPPM.pelvisRot = ppm.pelvisRot;
-                                    relayOPPM.lFootRot = ppm.lFootRot;
-                                    relayOPPM.rFootRot = ppm.rFootRot;
-                                    relayOPPM.playerId = smallPlayerIds[packet.Value.SteamId];
+                                        headRot = ppm.headRot,
+                                        lHandRot = ppm.lHandRot,
+                                        rHandRot = ppm.rHandRot,
+                                        pelvisRot = ppm.pelvisRot,
+                                        lFootRot = ppm.lFootRot,
+                                        rFootRot = ppm.rFootRot,
+                                        playerId = smallPlayerIds[packet.Value.SteamId]
+                                    };
 
                                     ServerSendToAllExcept(relayOPPM, P2PSend.Unreliable, packet.Value.SteamId);
                                 }
@@ -142,21 +148,23 @@ namespace MultiplayerMod
 
             if (localHead != null)
             {
-                OtherPlayerPositionMessage oppm = new OtherPlayerPositionMessage();
-                oppm.playerId = 0;
-                oppm.headPos = localHead.transform.position;
-                oppm.lHandPos = localHandL.transform.position;
-                oppm.rHandPos = localHandR.transform.position;
-                oppm.pelvisPos = localPelvis.transform.position;
-                oppm.lFootPos = localFootL.transform.position;
-                oppm.rFootPos = localFootR.transform.position;
+                OtherPlayerPositionMessage oppm = new OtherPlayerPositionMessage
+                {
+                    playerId = 0,
+                    headPos = localHead.transform.position,
+                    lHandPos = localHandL.transform.position,
+                    rHandPos = localHandR.transform.position,
+                    pelvisPos = localPelvis.transform.position,
+                    lFootPos = localFootL.transform.position,
+                    rFootPos = localFootR.transform.position,
 
-                oppm.headRot = localHead.transform.rotation;
-                oppm.lHandRot = localHandL.transform.rotation;
-                oppm.rHandRot = localHandR.transform.rotation;
-                oppm.pelvisRot = localPelvis.transform.rotation;
-                oppm.lFootRot = localFootL.transform.rotation;
-                oppm.rFootRot = localFootR.transform.rotation;
+                    headRot = localHead.transform.rotation,
+                    lHandRot = localHandL.transform.rotation,
+                    rHandRot = localHandR.transform.rotation,
+                    pelvisRot = localPelvis.transform.rotation,
+                    lFootRot = localFootL.transform.rotation,
+                    rFootRot = localFootR.transform.rotation
+                };
 
                 ServerSendToAll(oppm, P2PSend.Unreliable);
             }
@@ -177,6 +185,24 @@ namespace MultiplayerMod
             localHead = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt");
             localFootR = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/r_Leg_HipSHJnt/r_Leg_KneeSHJnt/r_Leg_AnkleSHJnt");
             localFootL = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/l_Leg_HipSHJnt/l_Leg_KneeSHJnt/l_Leg_AnkleSHJnt");
+        }
+
+        private void StopServer()
+        {
+            playerObjects.Clear();
+            playerNames.Clear();
+            smallPlayerIds.Clear();
+            smallIdCounter = 1;
+            isServer = false;
+
+            P2PMessage shutdownMsg = new P2PMessage();
+            shutdownMsg.WriteByte((byte)MessageType.ServerShutdown);
+
+            foreach (SteamId p in players)
+            {
+                SteamNetworking.SendP2PPacket(p, shutdownMsg.GetBytes(), -1, 0, P2PSend.Reliable);
+                SteamNetworking.CloseP2PSessionWithUser(p);
+            }
         }
     }
 }

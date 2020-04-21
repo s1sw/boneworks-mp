@@ -19,7 +19,7 @@ namespace MultiplayerMod
 
     class MultiplayerUI
     {
-        private AssetBundle uiBundle;
+        private readonly AssetBundle uiBundle;
         private GameObject uiPrefab;
 
         private GameObject uiObj;
@@ -55,7 +55,7 @@ namespace MultiplayerMod
 
         public void Recreate()
         {
-            uiObj = GameObject.Instantiate(uiPrefab);
+            uiObj = GameObject.Instantiate(uiBundle.LoadAsset("Assets/Prefabs/Canvas.prefab").Cast<GameObject>());
             uiObj.GetComponent<Canvas>().worldCamera = Camera.current;
             UnityEngine.Object.DontDestroyOnLoad(uiObj);
 

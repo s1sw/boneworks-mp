@@ -90,12 +90,21 @@ namespace MultiplayerMod
             ik.references = bipedReferences;
             ik.solver.plantFeet = false;
             ik.fixTransforms = false;
+            
             ik.solver.leftLeg.positionWeight = 1.0f;
+            ik.solver.leftLeg.swivelOffset = 0.0f;
+            ik.solver.leftLeg.bendToTargetWeight = 0.0f;
+            ik.solver.leftLeg.legLengthMlp = 1.0f;
+
             ik.solver.rightLeg.positionWeight = 1.0f;
+            ik.solver.rightLeg.swivelOffset = 0.0f;
+            ik.solver.rightLeg.bendToTargetWeight = 0.0f;
+            ik.solver.rightLeg.legLengthMlp = 1.0f;
+
             ik.solver.hasChest = false;
             ik.solver.spine.chestGoalWeight = 0.0f;
-            ik.solver.spine.pelvisPositionWeight = 1.0f;
-            ik.solver.spine.pelvisRotationWeight = 1.0f;
+            ik.solver.spine.pelvisPositionWeight = 0.0f;
+            ik.solver.spine.pelvisRotationWeight = 0.0f;
 
             ik.solver.leftArm.positionWeight = 1.0f;
             ik.solver.leftArm.rotationWeight = 1.0f;
@@ -116,8 +125,8 @@ namespace MultiplayerMod
             ik.solver.rightArm.armLengthMlp = 1.0f;
 
             IKSolverVR.Locomotion l = ik.solver.locomotion;
-            l.weight = 1.0f;
-            l.blockingEnabled = true;
+            l.weight = 0.0f;
+            l.blockingEnabled = false;
             l.blockingLayers = LayerMask.NameToLayer("Default");
             l.footDistance = 0.3f;
             l.stepThreshold = 0.35f;
@@ -144,8 +153,8 @@ namespace MultiplayerMod
             ik.solver.rightArm.target = rHandTarget.transform;
             ik.solver.spine.pelvisTarget = pelvisTarget.transform;
             ik.solver.spine.headTarget = headTarget.transform;
-            ik.solver.leftLeg.target = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/FootLTarget");
-            ik.solver.rightLeg.target = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/FootRTarget");
+            ik.solver.leftLeg.target = lFootTarget.transform;
+            ik.solver.rightLeg.target = rFootTarget.transform;
 
             namePlate = new GameObject("Nameplate");
             TextMeshPro tm = namePlate.AddComponent<TextMeshPro>();
@@ -169,7 +178,7 @@ namespace MultiplayerMod
 
         public void UpdateNameplateFacing(Transform cameraTransform)
         {
-            namePlate.transform.position = head.transform.position + (Vector3.up * 0.75f);
+            namePlate.transform.position = head.transform.position + (Vector3.up * 0.3f);
             namePlate.transform.rotation = cameraTransform.rotation;
         }
 

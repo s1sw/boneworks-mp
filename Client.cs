@@ -28,8 +28,10 @@ namespace MultiplayerMod
 
             SteamNetworking.SendP2PPacket(serverId, msg.GetBytes());
 
-            PlayerNameMessage pnm = new PlayerNameMessage();
-            pnm.name = SteamClient.Name;
+            PlayerNameMessage pnm = new PlayerNameMessage
+            {
+                name = SteamClient.Name
+            };
             SendToServer(pnm, P2PSend.Reliable);
 
             localHandL = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/l_Arm_ClavicleSHJnt/l_AC_AuxSHJnt/l_Arm_ShoulderSHJnt/l_Arm_Elbow_CurveSHJnt/l_WristSHJnt/l_Hand_1SHJnt");
@@ -40,9 +42,19 @@ namespace MultiplayerMod
             localFootL = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/l_Leg_HipSHJnt/l_Leg_KneeSHJnt/l_Leg_AnkleSHJnt");
         }
 
+        private void Disconnect()
+        {
+            MelonModLogger.Log("Disconnecting...");
+            isClient = false;
+            serverId = 0;
+            playerObjects.Clear();
+            playerNames.Clear();
+
+            SteamNetworking.CloseP2PSessionWithUser(serverId);
+        }
+
         private void ClientUpdate()
         {
-            uint size;
             while (SteamNetworking.IsP2PPacketAvailable(0))
             {
                 P2Packet? packet = SteamNetworking.ReadP2PPacket(0);
@@ -64,6 +76,7 @@ namespace MultiplayerMod
                                 pr.handL.transform.position = oppm.lHandPos;
                                 pr.handR.transform.position = oppm.rHandPos;
                                 pr.pelvis.transform.position = oppm.pelvisPos;
+                                pr.ford.transform.position = oppm.pelvisPos - new Vector3(0.0f, 0.3f, 0.0f);
                                 pr.footL.transform.position = oppm.lFootPos;
                                 pr.footR.transform.position = oppm.rFootPos;
 
@@ -111,34 +124,35 @@ namespace MultiplayerMod
                                 break;
                             }
                     }
-
                 }
             }
 
             if (localHead != null)
             {
-                PlayerPositionMessage ppm = new PlayerPositionMessage();
-                ppm.headPos = localHead.transform.position;
-                ppm.lHandPos = localHandL.transform.position;
-                ppm.rHandPos = localHandR.transform.position;
-                ppm.pelvisPos = localPelvis.transform.position;
-                ppm.lFootPos = localFootL.transform.position;
-                ppm.rFootPos = localFootR.transform.position;
+                PlayerPositionMessage ppm = new PlayerPositionMessage
+                {
+                    headPos = localHead.transform.position,
+                    lHandPos = localHandL.transform.position,
+                    rHandPos = localHandR.transform.position,
+                    pelvisPos = localPelvis.transform.position,
+                    lFootPos = localFootL.transform.position,
+                    rFootPos = localFootR.transform.position,
 
-                ppm.headRot = localHead.transform.rotation;
-                ppm.lHandRot = localHandL.transform.rotation;
-                ppm.rHandRot = localHandR.transform.rotation;
-                ppm.pelvisRot = localPelvis.transform.rotation;
-                ppm.lFootRot = localFootL.transform.rotation;
-                ppm.rFootRot = localFootR.transform.rotation;
+                    headRot = localHead.transform.rotation,
+                    lHandRot = localHandL.transform.rotation,
+                    rHandRot = localHandR.transform.rotation,
+                    pelvisRot = localPelvis.transform.rotation,
+                    lFootRot = localFootL.transform.rotation,
+                    rFootRot = localFootR.transform.rotation
+                };
 
                 SendToServer(ppm, P2PSend.Unreliable);
-            }
 
-            foreach (PlayerRep pr in playerObjects.Values)
-            {
-                pr.UpdateNameplateFacing(Camera.current.transform);
-            }
+                foreach (PlayerRep pr in playerObjects.Values)
+                {
+                    pr.UpdateNameplateFacing(Camera.current.transform);
+                }
+            }   
         }
     }
 }

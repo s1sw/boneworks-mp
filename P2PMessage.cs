@@ -11,8 +11,8 @@ namespace MultiplayerMod
 {
     public class P2PMessage
     {
-        List<byte[]> byteChunks = new List<byte[]>();
-        byte[] rBytes;
+        readonly List<byte[]> byteChunks = new List<byte[]>();
+        readonly byte[] rBytes;
         int rPos = 0;
 
         public P2PMessage()
@@ -184,7 +184,6 @@ namespace MultiplayerMod
         {
             byte[] bArr = System.Text.Encoding.UTF8.GetBytes(str);
             WriteByte((byte)bArr.Length);
-            Console.WriteLine(bArr.Length);
             byteChunks.Add(bArr);
         }
 
@@ -235,10 +234,7 @@ namespace MultiplayerMod
 
         public string ReadUnicodeString()
         {
-            Console.WriteLine("rPos is " + rPos);
-            Console.WriteLine("length of rbytes is " + rBytes.Length);
             byte length = ReadByte();
-            Console.WriteLine("length of string is " + length.ToString());
             string ret = System.Text.Encoding.UTF8.GetString(rBytes, rPos, length);
             rPos += length;
 

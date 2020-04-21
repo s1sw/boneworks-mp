@@ -21,6 +21,8 @@ using UnityEngine.Animations;
 using System.Collections.Concurrent;
 using Utilties;
 using StressLevelZero.Utilities;
+//using DiscordRPC;
+//using DiscordRPC.Logging;
 
 namespace MultiplayerMod
 {
@@ -48,8 +50,9 @@ namespace MultiplayerMod
 
     public partial class MultiplayerMod : MelonMod
     {
+        // TODO: Enforce player limit
         private const int MAX_PLAYERS = 32;
-        private const byte PROTOCOL_VERSION = 19;
+        private const byte PROTOCOL_VERSION = 20;
 
         private bool isServer = false;
         private bool isClient = false;
@@ -67,6 +70,7 @@ namespace MultiplayerMod
         private readonly List<SteamId> players = new List<SteamId>();
         private byte smallIdCounter = 1;
         private MultiplayerUI ui;
+        //private DiscordRpcClient rpcClient;
 
         private PlayerRep GetPlayerRep(byte id, string name=null)
         {
@@ -94,7 +98,37 @@ namespace MultiplayerMod
             SteamNetworking.OnP2PConnectionFailed = OnP2PConnectionFailed;
             ui = new MultiplayerUI();
             PlayerRep.LoadFord();
+
+            //rpcClient = new DiscordRpcClient("701895326600265879", 0, new ConsoleLogger() { Level = LogLevel.Trace }, false);
+
+            //rpcClient.OnReady += (sender, e) =>
+            //{
+            //    MelonModLogger.Log("Initialised RPC as " + e.User.Username);
+
+            //    rpcClient.SetPresence(new RichPresence()
+            //    {
+            //        Details = "On " + SceneManager.GetActiveScene().name,
+            //        State = "Idle"
+            //    });
+            //};
+
+            //rpcClient.Initialize();
+
+            //rpcClient.OnJoinRequested += RpcClient_OnJoinRequested;
+            //rpcClient.OnJoin += RpcClient_OnJoin;
+            //rpcClient.Subscribe(DiscordRPC.EventType.JoinRequest);
         }
+
+        //private void RpcClient_OnJoin(object sender, DiscordRPC.Message.JoinMessage args)
+        //{
+        //    Connect(args.Secret);
+        //}
+
+        //private void RpcClient_OnJoinRequested(object sender, DiscordRPC.Message.JoinRequestMessage args)
+        //{
+        //    // TODO
+        //    rpcClient.Respond(args, true);
+        //}
 
         public override void OnLevelWasLoaded(int level)
         {
@@ -106,6 +140,12 @@ namespace MultiplayerMod
             localFootL = null;
 
             MelonModLogger.Log("Loaded scene " + level.ToString());
+
+            //rpcClient.SetPresence(new RichPresence()
+            //{
+            //    Details = "On " + SceneManager.GetActiveScene().name,
+            //    State = "Idle"
+            //});
             // Since the scene load destroys the player objects,
             // recreate them here!
             List<byte> ids = new List<byte>();
@@ -122,9 +162,20 @@ namespace MultiplayerMod
 
             if (isServer)
             {
-                SceneTransitionMessage stm = new SceneTransitionMessage();
-                stm.sceneByte = (byte)level;
+                SceneTransitionMessage stm = new SceneTransitionMessage
+                {
+                    sceneByte = (byte)level
+                };
                 ServerSendToAll(stm, P2PSend.Reliable);
+                StopServer();
+                StartServer();
+            }
+
+            if (isClient)
+            {
+                string id = serverId.ToString();
+                Disconnect();
+                Connect(id);
             }
         }
 
@@ -160,11 +211,7 @@ namespace MultiplayerMod
             {
                 MelonModLogger.LogError("You don't own the game on Steam.");
             }
-            else if (error == P2PSessionError.Timeout)
-            {
-                MelonModLogger.LogError("Connection with " + id + " timed out.");
-            }
-            else if (error == P2PSessionError.NotRunningApp)
+            else if (error == P2PSessionError.NotRunningApp || error == P2PSessionError.Timeout)
             {
                 // Probably a leaver
                 if (isServer && smallPlayerIds.ContainsKey(id))
@@ -208,22 +255,39 @@ namespace MultiplayerMod
 
         public override void OnUpdate()
         {
-            if (Input.GetKeyDown(KeyCode.C))
+            //rpcClient.Invoke();
+            if (!isClient && !isServer)
             {
-                SteamFriends.SetRichPresence("steam_display", "Playing multiplayer on " + SceneManager.GetActiveScene().name);
-                SteamFriends.SetRichPresence("connect", "--boneworks-multiplayer-id-connect " + serverId);
-                SteamFriends.SetRichPresence("steam_player_group", serverId.ToString());
-                Connect(ModPrefs.GetString("ConnectionInfo", "HostSteamID"));
-                //ui.SetState(MultiplayerUIState.Client);
-            }
+                if (Input.GetKeyDown(KeyCode.C))
+                {
+                    SteamFriends.SetRichPresence("steam_display", "Playing multiplayer on " + SceneManager.GetActiveScene().name);
+                    SteamFriends.SetRichPresence("connect", "--boneworks-multiplayer-id-connect " + serverId);
+                    SteamFriends.SetRichPresence("steam_player_group", serverId.ToString());
+                    Connect(ModPrefs.GetString("ConnectionInfo", "HostSteamID"));
+                    //ui.SetState(MultiplayerUIState.Client);
+                }
 
-            if (Input.GetKeyDown(KeyCode.S))
+                if (Input.GetKeyDown(KeyCode.S))
+                {
+                    SteamFriends.SetRichPresence("steam_display", "Hosting multiplayer on " + SceneManager.GetActiveScene().name);
+                    SteamFriends.SetRichPresence("connect", "--boneworks-multiplayer-id-connect " + SteamClient.SteamId);
+                    SteamFriends.SetRichPresence("steam_player_group", SteamClient.SteamId.ToString());
+                    StartServer();
+                    //ui.SetState(MultiplayerUIState.Server);
+                }
+            }
+            else
             {
-                SteamFriends.SetRichPresence("steam_display", "Hosting multiplayer on " + SceneManager.GetActiveScene().name);
-                SteamFriends.SetRichPresence("connect", "--boneworks-multiplayer-id-connect " + SteamClient.SteamId);
-                SteamFriends.SetRichPresence("steam_player_group", SteamClient.SteamId.ToString());
-                StartServer();
-                //ui.SetState(MultiplayerUIState.Server);
+                if (Input.GetKeyDown(KeyCode.C))
+                {
+                    Disconnect();
+                }
+
+                if (Input.GetKeyDown(KeyCode.S))
+                {
+                    MelonModLogger.Log("Stopping server...");
+                    StopServer();
+                }
             }
 
             if (Input.GetKeyDown(KeyCode.N))
@@ -241,7 +305,7 @@ namespace MultiplayerMod
             if (useTestModel)
             {
                 Vector3 offsetVec = new Vector3(0.0f, 0.0f, 1.0f);
-                testRep.ford.transform.position = localPelvis.transform.position + offsetVec;
+                testRep.ford.transform.position = localPelvis.transform.position + offsetVec - new Vector3(0.0f, 0.3f, 0.0f);
                 testRep.handL.transform.position = localHandL.transform.position + offsetVec;
                 testRep.handR.transform.position = localHandR.transform.position + offsetVec;
                 testRep.pelvis.transform.position = localPelvis.transform.position + offsetVec;
@@ -261,7 +325,7 @@ namespace MultiplayerMod
             }
         }
 
-        override public void OnFixedUpdate()
+        public override void OnFixedUpdate()
         {
             if (isClient)
                 ClientUpdate();
@@ -270,7 +334,7 @@ namespace MultiplayerMod
                 ServerUpdate();
         }
 
-        public void OnWantsToQuit()
+        public override void OnApplicationQuit()
         {
             if (isClient)
             {
