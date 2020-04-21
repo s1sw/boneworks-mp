@@ -62,7 +62,7 @@
     </Reference>
     <Reference Include="MelonLoader.ModHandler, Version=0.0.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Steam Games\steamapps\common\BONEWORKS\BONEWORKS\MelonLoader\MelonLoader.ModHandler.dll</HintPath>
+      <HintPath>Managed\MelonLoader.ModHandler.dll</HintPath>
     </Reference>
     <Reference Include="NavMeshComponents">
       <HintPath>Managed\NavMeshComponents.dll</HintPath>
@@ -246,10 +246,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Client.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="MultiplayerUI.cs" />
     <Compile Include="NetworkMessages.cs" />
     <Compile Include="P2PMessage.cs" />
+    <Compile Include="PlayerRep.cs" />
+    <Compile Include="SendUtil.cs" />
+    <Compile Include="Server.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Facepunch.Steamworks\Facepunch.Steamworks.Win64.csproj">

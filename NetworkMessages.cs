@@ -4,29 +4,30 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace MultiplayerMod
 {
     public interface INetworkMessage
     {
         P2PMessage MakeMsg();
-        int GetSize();
     }
 
     // Server -> clients
     public class OtherPlayerPositionMessage : INetworkMessage
     {
         public Vector3 headPos;
-        public Quaternion headRot;
         public Vector3 lHandPos;
-        public Quaternion lHandRot;
         public Vector3 rHandPos;
-        public Quaternion rHandRot;
         public Vector3 pelvisPos;
-        public Quaternion pelvisRot;
         public Vector3 lFootPos;
-        public Quaternion lFootRot;
         public Vector3 rFootPos;
+
+        public Quaternion headRot;
+        public Quaternion lHandRot;
+        public Quaternion rHandRot;
+        public Quaternion pelvisRot;
+        public Quaternion lFootRot;
         public Quaternion rFootRot;
         public byte playerId;
 
@@ -39,14 +40,14 @@ namespace MultiplayerMod
             rHandPos = msg.ReadVector3();
             pelvisPos = msg.ReadVector3();
             lFootPos = msg.ReadVector3();
-            rFootPos = msg.ReadVector3();   
+            rFootPos = msg.ReadVector3();
 
-            headRot = msg.ReadQuaternion();
-            lHandRot = msg.ReadQuaternion();
-            rHandRot = msg.ReadQuaternion();
-            pelvisRot = msg.ReadQuaternion();
-            lFootRot = msg.ReadQuaternion();
-            rFootRot = msg.ReadQuaternion();
+            headRot = msg.ReadCompressedQuaternion();
+            lHandRot = msg.ReadCompressedQuaternion();
+            rHandRot = msg.ReadCompressedQuaternion();
+            pelvisRot = msg.ReadCompressedQuaternion();
+            lFootRot = msg.ReadCompressedQuaternion();
+            rFootRot = msg.ReadCompressedQuaternion();
         }
 
         public OtherPlayerPositionMessage()
@@ -62,17 +63,16 @@ namespace MultiplayerMod
             msg.WriteVector3(lHandPos);
             msg.WriteVector3(rHandPos);
             msg.WriteVector3(pelvisPos);
+            msg.WriteVector3(lFootPos);
+            msg.WriteVector3(rFootPos);
 
-            msg.WriteQuaternion(headRot);
-            msg.WriteQuaternion(lHandRot);
-            msg.WriteQuaternion(rHandRot);
-            msg.WriteQuaternion(pelvisRot);
+            msg.WriteCompressedQuaternion(headRot);
+            msg.WriteCompressedQuaternion(lHandRot);
+            msg.WriteCompressedQuaternion(rHandRot);
+            msg.WriteCompressedQuaternion(pelvisRot);
+            msg.WriteCompressedQuaternion(lFootRot);
+            msg.WriteCompressedQuaternion(rFootRot);
             return msg;
-        }
-
-        public int GetSize()
-        {
-            return (sizeof(float) * 3 * 4) + (sizeof(byte) * 2) + (sizeof(float) * 4 * 4);
         }
     }
 
@@ -80,13 +80,18 @@ namespace MultiplayerMod
     public class PlayerPositionMessage : INetworkMessage
     {
         public Vector3 headPos;
-        public Quaternion headRot;
         public Vector3 lHandPos;
-        public Quaternion lHandRot;
         public Vector3 rHandPos;
-        public Quaternion rHandRot;
         public Vector3 pelvisPos;
+        public Vector3 lFootPos;
+        public Vector3 rFootPos;
+
+        public Quaternion headRot;
+        public Quaternion lHandRot;
+        public Quaternion rHandRot;
         public Quaternion pelvisRot;
+        public Quaternion lFootRot;
+        public Quaternion rFootRot;
 
         public PlayerPositionMessage(P2PMessage msg)
         {
@@ -94,11 +99,15 @@ namespace MultiplayerMod
             lHandPos = msg.ReadVector3();
             rHandPos = msg.ReadVector3();
             pelvisPos = msg.ReadVector3();
+            lFootPos = msg.ReadVector3();
+            rFootPos = msg.ReadVector3();
 
-            headRot = msg.ReadQuaternion();
-            lHandRot = msg.ReadQuaternion();
-            rHandRot = msg.ReadQuaternion();
-            pelvisRot = msg.ReadQuaternion();
+            headRot = msg.ReadCompressedQuaternion();
+            lHandRot = msg.ReadCompressedQuaternion();
+            rHandRot = msg.ReadCompressedQuaternion();
+            pelvisRot = msg.ReadCompressedQuaternion();
+            lFootRot = msg.ReadCompressedQuaternion();
+            rFootRot = msg.ReadCompressedQuaternion();
         }
 
         public PlayerPositionMessage()
@@ -108,20 +117,94 @@ namespace MultiplayerMod
         {
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.PlayerPosition);
+
             msg.WriteVector3(headPos);
             msg.WriteVector3(lHandPos);
             msg.WriteVector3(rHandPos);
             msg.WriteVector3(pelvisPos);
-            msg.WriteQuaternion(headRot);
-            msg.WriteQuaternion(lHandRot);
-            msg.WriteQuaternion(rHandRot);
-            msg.WriteQuaternion(pelvisRot);
+            msg.WriteVector3(lFootPos);
+            msg.WriteVector3(rFootPos);
+
+            msg.WriteCompressedQuaternion(headRot);
+            msg.WriteCompressedQuaternion(lHandRot);
+            msg.WriteCompressedQuaternion(rHandRot);
+            msg.WriteCompressedQuaternion(pelvisRot);
+            msg.WriteCompressedQuaternion(lFootRot);
+            msg.WriteCompressedQuaternion(rFootRot);
             return msg;
         }
+    }
 
-        public int GetSize()
+    public class SceneTransitionMessage : INetworkMessage
+    {
+        public byte sceneByte;
+
+        public SceneTransitionMessage(P2PMessage msg)
         {
-            return (sizeof(float) * 3 * 4) + sizeof(byte) + (sizeof(float) * 4 * 4);
+            sceneByte = msg.ReadByte();
+        }
+
+        public SceneTransitionMessage()
+        {
+
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.SceneTransition);
+            msg.WriteByte(sceneByte);
+            return msg;
         }
     }
+
+    public class PlayerNameMessage : INetworkMessage
+    {
+        public string name;
+
+        public PlayerNameMessage()
+        {
+
+        }
+
+        public PlayerNameMessage(P2PMessage msg)
+        {
+            name = msg.ReadUnicodeString();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.PlayerName);
+            msg.WriteUnicodeString(name);
+            return msg;
+        }
+    }
+
+    public class OtherPlayerNameMessage : INetworkMessage
+    {
+        public byte playerId;
+        public string name;
+
+        public OtherPlayerNameMessage()
+        {
+
+        }
+
+        public OtherPlayerNameMessage(P2PMessage msg)
+        {
+            playerId = msg.ReadByte();
+            name = msg.ReadUnicodeString();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.OtherPlayerName);
+            msg.WriteByte(playerId);
+            msg.WriteUnicodeString(name);
+            return msg;
+        }
+    }
+
 }
