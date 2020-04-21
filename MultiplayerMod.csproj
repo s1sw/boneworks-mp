@@ -250,7 +250,6 @@
     <Compile Include="MultiplayerUI.cs" />
     <Compile Include="NetworkMessages.cs" />
     <Compile Include="P2PMessage.cs" />
-    <Compile Include="UnityUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Facepunch.Steamworks\Facepunch.Steamworks.Win64.csproj">
