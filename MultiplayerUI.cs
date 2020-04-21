@@ -12,8 +12,9 @@ namespace MultiplayerMod
 {
     enum MultiplayerUIState
     {
-        PreStart,
-        Started
+        PreConnect,
+        Server,
+        Client
     }
 
     class MultiplayerUI
@@ -23,16 +24,11 @@ namespace MultiplayerMod
 
         private GameObject uiObj;
         private Text playerCountText;
-        private InputField steamIdField;
-        private GameObject playerCountParent;
-        private GameObject connectParent;
-
-        public event Action<string> Connect;
-        public event Action StartServer;
+        private Text preconnectText;
+        private Text clientConnectedText;
 
         public MultiplayerUI()
         {
-            // Would like to use the generic version here, but that breaks due to IL2CPP
             uiBundle = AssetBundle.LoadFromFile("canvasbundle.canvas");
 
             if (uiBundle == null)
@@ -48,11 +44,12 @@ namespace MultiplayerMod
             else
             {
                 MelonLoader.MelonModLogger.Log("Loaded canvas bundle");
+                // Would like to use the generic version here, but that breaks due to IL2CPP
                 uiPrefab = uiBundle.LoadAsset("Assets/Prefabs/Canvas.prefab").Cast<GameObject>();
                 if (uiPrefab == null)
                     MelonLoader.MelonModLogger.LogError("Couldn't find prefab");
                 Recreate();
-                
+
             }
         }
 
@@ -64,39 +61,30 @@ namespace MultiplayerMod
 
             Transform panelTransform = uiObj.transform.Find("Panel");
 
-            connectParent = panelTransform.Find("ConnectParent").gameObject;
+            playerCountText = panelTransform.Find("PlayerCountText").GetComponent<Text>();
+            preconnectText = panelTransform.Find("PreconnectText").GetComponent<Text>();
 
-            steamIdField = connectParent.transform.Find("TargetSteamID").GetComponent<InputField>();
-
-            connectParent.transform.Find("ConnectButton").GetComponent<Button>().onClick.AddListener((Action)OnConnectClick);
-            connectParent.transform.Find("StartServerButton").GetComponent<Button>().onClick.AddListener((Action)OnServerStartClick);
-
-            playerCountParent = panelTransform.Find("PlayerCountText").gameObject;
-            playerCountText = playerCountParent.GetComponent<Text>();
-        }
-
-        private void OnConnectClick()
-        {
-            Connect(steamIdField.text);
-        }
-
-        private void OnServerStartClick()
-        {
-            StartServer();
-            SetState(MultiplayerUIState.Started);
         }
 
         public void SetState(MultiplayerUIState f)
         {
-            if (f == MultiplayerUIState.Started)
+            switch (f)
             {
-                connectParent.SetActive(false);
-                playerCountParent.SetActive(true);
-            }
-            else
-            {
-                connectParent.SetActive(true);
-                playerCountParent.SetActive(false);
+                case MultiplayerUIState.PreConnect:
+                    preconnectText.enabled = true;
+                    playerCountText.enabled = false;
+                    clientConnectedText.enabled = false;
+                    break;
+                case MultiplayerUIState.Client:
+                    preconnectText.enabled = false;
+                    clientConnectedText.enabled = true;
+                    playerCountText.enabled = false;
+                    break;
+                case MultiplayerUIState.Server:
+                    preconnectText.enabled = false;
+                    playerCountText.enabled = true;
+                    clientConnectedText.enabled = false;
+                    break;
             }
         }
 

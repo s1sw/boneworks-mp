@@ -16,7 +16,7 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
+    <Optimize>false</Optimize>
     <OutputPath>Output</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
@@ -29,15 +29,15 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
     <Reference Include="ch.sycoforge.Decal">
       <HintPath>Managed\ch.sycoforge.Decal.dll</HintPath>
     </Reference>
     <Reference Include="com.unity.postprocessing.Runtime">
       <HintPath>Managed\com.unity.postprocessing.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="Facepunch.Steamworks.Win64, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Managed\Facepunch.Steamworks.Win64.dll</HintPath>
     </Reference>
     <Reference Include="Il2Cppmscorlib">
       <HintPath>Managed\Il2Cppmscorlib.dll</HintPath>
@@ -248,7 +248,15 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="MultiplayerUI.cs" />
+    <Compile Include="NetworkMessages.cs" />
+    <Compile Include="P2PMessage.cs" />
     <Compile Include="UnityUtils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Facepunch.Steamworks\Facepunch.Steamworks.Win64.csproj">
+      <Project>{ab3a459c-5413-4ea4-8faa-9cc935be61e1}</Project>
+      <Name>Facepunch.Steamworks.Win64</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
