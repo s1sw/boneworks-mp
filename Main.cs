@@ -349,13 +349,6 @@ namespace MultiplayerMod
                 testRep.pelvis.transform.rotation = localPelvis.transform.rotation;
                 testRep.head.transform.rotation = localHead.transform.rotation;
             }
-
-
-            if (isServer)
-                ServerUpdate();
-
-            if (isClient)
-                ClientUpdate();
         }
 
         private void ServerUpdate()
@@ -521,10 +514,7 @@ namespace MultiplayerMod
 
                 }
             }
-        }
 
-        override public void OnFixedUpdate()
-        {
             PlayerPositionMessage ppm = new PlayerPositionMessage();
             ppm.headPos = localHead.transform.position;
             ppm.lHandPos = localHandL.transform.position;
@@ -537,6 +527,15 @@ namespace MultiplayerMod
             ppm.pelvisRot = localPelvis.transform.rotation;
 
             SendToServer(ppm, P2PSend.Unreliable);
+        }
+
+        override public void OnFixedUpdate()
+        {
+            if (isClient)
+                ClientUpdate();
+
+            if (isServer)
+                ServerUpdate();
         }
 
         private void SendToServer(P2PMessage msg, P2PSend send)
