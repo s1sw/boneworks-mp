@@ -11,17 +11,6 @@ namespace MultiplayerMod
 {
     public partial class MultiplayerMod : MelonMod
     {
-        private void SendToServer(P2PMessage msg, P2PSend send)
-        {
-            byte[] msgBytes = msg.GetBytes();
-            SteamNetworking.SendP2PPacket(serverId, msgBytes, msgBytes.Length, 0, send);
-        }
-
-        private void SendToServer(INetworkMessage msg, P2PSend send)
-        {
-            SendToServer(msg.MakeMsg(), send);
-        }
-
         private void ServerSendToAll(INetworkMessage msg, P2PSend send)
         {
             P2PMessage pMsg = msg.MakeMsg();

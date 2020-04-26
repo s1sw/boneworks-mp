@@ -3,12 +3,33 @@ using MelonLoader;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
 namespace MultiplayerMod
 {
+    public static class QuatExt
+    {
+        public static float Idx(this Quaternion q, int idx)
+        {
+            switch (idx)
+            {
+                case 0:
+                    return q.x;
+                case 1:
+                    return q.y;
+                case 2:
+                    return q.z;
+                case 3:
+                    return q.w;
+                default:
+                    return 0f;
+            }
+        }
+    }
+
     public class P2PMessage
     {
         readonly List<byte[]> byteChunks = new List<byte[]>();
@@ -71,7 +92,13 @@ namespace MultiplayerMod
             Vector3 difference = v3 - basis;
             difference *= short.MaxValue / range;
 
+            short x = (short)difference.x;
+            short y = (short)difference.y;
+            short z = (short)difference.z;
 
+            WriteShort(x);
+            WriteShort(y);
+            WriteShort(z);
         }
 
         public void WriteQuaternion(Quaternion q)
@@ -82,108 +109,149 @@ namespace MultiplayerMod
             WriteFloat(q.w);
         }
 
-        // TOOD: Storing the largest index as a whole byte
-        // is pretty wasteful.
-        public void WriteCompressedQuaternion(Quaternion q)
+        private const float FLOAT_PRECISION_MULT = 32767f;
+
+        public void WriteCompressedQuaternion(Quaternion rotation)
         {
-            byte largestIndex = 255;
-            float largest = float.MinValue;
+            var maxIndex = (byte)0;
+            var maxValue = float.MinValue;
+            var sign = 1f;
 
-            Vector3 components = new Vector3();
-
-            if (Mathf.Abs(q.w) > largest)
+            // Determine the index of the largest (absolute value) element in the Quaternion.
+            // We will transmit only the three smallest elements, and reconstruct the largest
+            // element during decoding. 
+            for (int i = 0; i < 4; i++)
             {
-                largest = q.w;
+                var element = rotation.Idx(i);
+                var abs = Mathf.Abs(rotation.Idx(i));
+                if (abs > maxValue)
+                {
+                    // We don't need to explicitly transmit the sign bit of the omitted element because you 
+                    // can make the omitted element always positive by negating the entire quaternion if 
+                    // the omitted element is negative (in quaternion space (x,y,z,w) and (-x,-y,-z,-w) 
+                    // represent the same rotation.), but we need to keep track of the sign for use below.
+                    sign = (element < 0) ? -1 : 1;
 
-                largestIndex = 0;
-                components.x = q.x;
-                components.y = q.y;
-                components.z = q.z;
+                    // Keep track of the index of the largest element
+                    maxIndex = (byte)i;
+                    maxValue = abs;
+                }
             }
 
-            if (Mathf.Abs(q.x) > largest)
+            // If the maximum value is approximately 1f (such as Quaternion.identity [0,0,0,1]), then we can 
+            // reduce storage even further due to the fact that all other fields must be 0f by definition, so 
+            // we only need to send the index of the largest field.
+            if (Mathf.Approximately(maxValue, 1f))
             {
-                largest = q.x;
-
-                largestIndex = 1;
-                components.x = q.w;
-                components.y = q.y;
-                components.z = q.z;
+                // Again, don't need to transmit the sign since in quaternion space (x,y,z,w) and (-x,-y,-z,-w) 
+                // represent the same rotation. We only need to send the index of the single element whose value
+                // is 1f in order to recreate an equivalent rotation on the receiver.
+                WriteByte((byte)(maxIndex + 4));
+                WriteShort(0);
+                WriteShort(0);
+                WriteShort(0);
+                return;
             }
 
-            if (Mathf.Abs(q.y) > largest)
-            {
-                largest = q.y;
-                largestIndex = 2;
+            var a = (short)0;
+            var b = (short)0;
+            var c = (short)0;
 
-                components.x = q.w;
-                components.y = q.x;
-                components.z = q.z;
+            // We multiply the value of each element by QUAT_PRECISION_MULT before converting to 16-bit integer 
+            // in order to maintain precision. This is necessary since by definition each of the three smallest 
+            // elements are less than 1.0, and the conversion to 16-bit integer would otherwise truncate everything 
+            // to the right of the decimal place. This allows us to keep five decimal places.
+
+            if (maxIndex == 0)
+            {
+                a = (short)(rotation.y * sign * FLOAT_PRECISION_MULT);
+                b = (short)(rotation.z * sign * FLOAT_PRECISION_MULT);
+                c = (short)(rotation.w * sign * FLOAT_PRECISION_MULT);
+            }
+            else if (maxIndex == 1)
+            {
+                a = (short)(rotation.x * sign * FLOAT_PRECISION_MULT);
+                b = (short)(rotation.z * sign * FLOAT_PRECISION_MULT);
+                c = (short)(rotation.w * sign * FLOAT_PRECISION_MULT);
+            }
+            else if (maxIndex == 2)
+            {
+                a = (short)(rotation.x * sign * FLOAT_PRECISION_MULT);
+                b = (short)(rotation.y * sign * FLOAT_PRECISION_MULT);
+                c = (short)(rotation.w * sign * FLOAT_PRECISION_MULT);
+            }
+            else
+            {
+                a = (short)(rotation.x * sign * FLOAT_PRECISION_MULT);
+                b = (short)(rotation.y * sign * FLOAT_PRECISION_MULT);
+                c = (short)(rotation.z * sign * FLOAT_PRECISION_MULT);
             }
 
-            if (Mathf.Abs(q.z) > largest)
-            {
-                largest = q.z;
-                largestIndex = 3;
-
-                components.x = q.w;
-                components.y = q.x;
-                components.z = q.y;
-            }
-
-            // Negative and positive quaternions represent the same rotation,
-            // so to avoid sending a sign over the network
-            // we can just make everything else negative.
-            if (largest < 0.0f)
-                components *= -1.0f;
-
-            // Compress components
-
-            byte cX, cY, cZ;
-
-            cX = (byte)((components.x + 1.0f) * 127);
-            cY = (byte)((components.y + 1.0f) * 127);
-            cZ = (byte)((components.z + 1.0f) * 127);
-
-            WriteByte(largestIndex);
-            WriteByte(cX);
-            WriteByte(cY);
-            WriteByte(cZ);
+            WriteByte(maxIndex);
+            WriteShort(a);
+            WriteShort(b);
+            WriteShort(c);
         }
 
         public Quaternion ReadCompressedQuaternion()
         {
-            byte largestIndex = ReadByte();
-            byte cA = ReadByte();
-            byte cB = ReadByte();
-            byte cC = ReadByte();
+            // Read the index of the omitted field from the stream.
+            var maxIndex = ReadByte();
 
-            float a = (cA / 127.0f) - 1.0f;
-            float b = (cB / 127.0f) - 1.0f;
-            float c = (cC / 127.0f) - 1.0f;
-
-            // Unity's Mathf is really slow due to IL2CPP but we can't use .NET's MathF either :(
-            float largest = (float)Math.Sqrt(1 - (a * a) - (b * b) - (c * c));
-
-            switch (largestIndex)
+            // Values between 4 and 7 indicate that only the index of the single field whose value is 1f was
+            // sent, and (maxIndex - 4) is the correct index for that field.
+            if (maxIndex >= 4 && maxIndex <= 7)
             {
-                case 0:
-                    return new Quaternion(a, b, c, largest);
-                case 1:
-                    return new Quaternion(largest, b, c, a);
-                case 2:
-                    return new Quaternion(b, largest, c, a);
-                case 3:
-                    return new Quaternion(b, c, largest, a);
+                var x = (maxIndex == 4) ? 1f : 0f;
+                var y = (maxIndex == 5) ? 1f : 0f;
+                var z = (maxIndex == 6) ? 1f : 0f;
+                var w = (maxIndex == 7) ? 1f : 0f;
+
+                ReadShort();
+                ReadShort();
+                ReadShort();
+                return new Quaternion(x, y, z, w);
             }
 
-            return Quaternion.identity;
+            // Read the other three fields and derive the value of the omitted field
+            var a = (float)ReadShort() / FLOAT_PRECISION_MULT;
+            var b = (float)ReadShort() / FLOAT_PRECISION_MULT;
+            var c = (float)ReadShort() / FLOAT_PRECISION_MULT;
+            var d = Mathf.Sqrt(1f - (a * a + b * b + c * c));
+
+            if (maxIndex == 0)
+                return new Quaternion(d, a, b, c);
+            else if (maxIndex == 1)
+                return new Quaternion(a, d, b, c);
+            else if (maxIndex == 2)
+                return new Quaternion(a, b, d, c);
+
+            return new Quaternion(a, b, c, d);
+        }
+
+        public Vector3 ReadCompressedVector3(Vector3 basis, float range = 2.0f)
+        {
+            short x = ReadShort();
+            short y = ReadShort();
+            short z = ReadShort();
+
+            float fX = x / (float)short.MaxValue * range;
+            float fY = y / (float)short.MaxValue * range;
+            float fZ = z / (float)short.MaxValue * range;
+
+            return new Vector3(fX, fY, fZ) + basis;
         }
 
         public void WriteUnicodeString(string str)
         {
             byte[] bArr = System.Text.Encoding.UTF8.GetBytes(str);
             WriteByte((byte)bArr.Length);
+            byteChunks.Add(bArr);
+        }
+
+        public void WriteUlong(ulong l)
+        {
+            byte[] bArr = BitConverter.GetBytes(l);
             byteChunks.Add(bArr);
         }
 
@@ -199,6 +267,13 @@ namespace MultiplayerMod
             float v = BitConverter.ToSingle(rBytes, rPos);
             rPos += sizeof(float);
             return v;
+        }
+
+        public short ReadShort()
+        {
+            short x = BitConverter.ToInt16(rBytes, rPos);
+            rPos += sizeof(short);
+            return x;
         }
 
         public Vector3 ReadVector3()

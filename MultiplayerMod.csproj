@@ -33,6 +33,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
+    <Reference Include="BoneHook">
+      <HintPath>Dependencies\BoneHook.dll</HintPath>
+    </Reference>
     <Reference Include="ch.sycoforge.Decal">
       <HintPath>Managed\ch.sycoforge.Decal.dll</HintPath>
     </Reference>
@@ -246,12 +249,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="BWUtil.cs" />
     <Compile Include="Client.cs" />
+    <Compile Include="Discord\ActivityManager.cs" />
+    <Compile Include="Discord\Constants.cs" />
+    <Compile Include="Discord\Core.cs" />
+    <Compile Include="Discord\ImageManager.cs" />
+    <Compile Include="Discord\LobbyManager.cs" />
+    <Compile Include="Discord\StorageManager.cs" />
+    <Compile Include="Discord\StoreManager.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="MultiplayerUI.cs" />
     <Compile Include="NetworkMessages.cs" />
     <Compile Include="P2PMessage.cs" />
     <Compile Include="PlayerRep.cs" />
+    <Compile Include="RichPresence.cs" />
     <Compile Include="SendUtil.cs" />
     <Compile Include="Server.cs" />
   </ItemGroup>

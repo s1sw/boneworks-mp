@@ -1,6 +1,8 @@
-﻿using Facepunch.Steamworks;
+﻿using Discord;
+using Facepunch.Steamworks;
 using Facepunch.Steamworks.Data;
 using MelonLoader;
+using Oculus.Platform.Samples.VrHoops;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,52 +10,129 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using BoneHook;
+using static UnityEngine.Object;
 
 namespace MultiplayerMod
 {
-    public partial class MultiplayerMod
+    public class Client
     {
-        private void Connect(string obj)
+        private BoneworksRigTransforms localRigTransforms;
+        private SteamId serverId;
+        private readonly Dictionary<byte, PlayerRep> playerObjects = new Dictionary<byte, PlayerRep>(MultiplayerMod.MAX_PLAYERS);
+        private readonly Dictionary<byte, string> playerNames = new Dictionary<byte, string>(MultiplayerMod.MAX_PLAYERS);
+        private readonly Dictionary<byte, SteamId> largePlayerIds = new Dictionary<byte, SteamId>(MultiplayerMod.MAX_PLAYERS);
+        private readonly Dictionary<SteamId, byte> smallPlayerIds = new Dictionary<SteamId, byte>(MultiplayerMod.MAX_PLAYERS);
+        public bool isConnected = false;
+
+        public void SetupRP()
+        {
+            RichPresence.OnJoin += RichPresence_OnJoin;
+        }
+
+        public void SetLocalRigTransforms(BoneworksRigTransforms rigTransforms)
+        {
+            localRigTransforms = rigTransforms;
+        }
+
+        public void Connect(string obj)
         {
             MelonModLogger.Log("Starting client and connecting");
 
             serverId = ulong.Parse(obj);
             MelonModLogger.Log("Connecting to " + obj);
-            isClient = true;
 
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.Join);
-            msg.WriteByte(PROTOCOL_VERSION);
+            msg.WriteByte(MultiplayerMod.PROTOCOL_VERSION);
             msg.WriteUnicodeString(SteamClient.Name);
-
             SteamNetworking.SendP2PPacket(serverId, msg.GetBytes());
 
-            PlayerNameMessage pnm = new PlayerNameMessage
-            {
-                name = SteamClient.Name
-            };
-            SendToServer(pnm, P2PSend.Reliable);
+            RichPresence.SetActivity(
+                new Activity()
+                {
+                    Details = "Connected to a server",
+                    Secrets = new ActivitySecrets()
+                    {
+                        Join = obj
+                    },
+                    Party = new ActivityParty()
+                    {
+                        Id = obj + "P",
+                        Size = new PartySize()
+                        {
+                            CurrentSize = 1,
+                            MaxSize = MultiplayerMod.MAX_PLAYERS
+                        }
+                    }
+                });
 
-            localHandL = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/l_Arm_ClavicleSHJnt/l_AC_AuxSHJnt/l_Arm_ShoulderSHJnt/l_Arm_Elbow_CurveSHJnt/l_WristSHJnt/l_Hand_1SHJnt");
-            localHandR = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/r_Arm_ClavicleSHJnt/r_AC_AuxSHJnt/r_Arm_ShoulderSHJnt/r_Arm_Elbow_CurveSHJnt/r_WristSHJnt/r_Hand_1SHJnt");
-            localPelvis = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt");
-            localHead = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt");
-            localFootR = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/r_Leg_HipSHJnt/r_Leg_KneeSHJnt/r_Leg_AnkleSHJnt");
-            localFootL = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/l_Leg_HipSHJnt/l_Leg_KneeSHJnt/l_Leg_AnkleSHJnt");
+            isConnected = true;
+            //PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
+            //PlayerHooks.OnPlayerLetGoObject += PlayerHooks_OnPlayerLetGoObject;
+            localRigTransforms = BWUtil.GetLocalRigTransforms();
         }
 
-        private void Disconnect()
+        private void RichPresence_OnJoin(string obj)
         {
+            Connect(obj);
+        }
+
+        private void PlayerHooks_OnPlayerLetGoObject(GameObject obj)
+        {
+            HandGunChangeMessage hgcm = new HandGunChangeMessage()
+            {
+                isForOtherPlayer = false,
+                destroy = true
+            };
+
+            SendToServer(hgcm, P2PSend.Reliable);
+        }
+
+        private void PlayerHooks_OnPlayerGrabObject(GameObject obj)
+        {
+            GunType? gt = BWUtil.GetGunType(obj.transform.root.gameObject);
+            if (gt != null)
+            {
+                HandGunChangeMessage hgcm = new HandGunChangeMessage()
+                {
+                    isForOtherPlayer = false,
+                    type = gt.Value,
+                    destroy = false
+                };
+
+                SendToServer(hgcm, P2PSend.Reliable);
+            }
+        }
+
+        public void Disconnect()
+        {
+            try
+            {
+                foreach (PlayerRep r in playerObjects.Values)
+                {
+                    r.Destroy();
+                }
+            }
+            catch (Exception)
+            {
+                MelonModLogger.LogError("Caught exception destroying player objects");
+            }
+
             MelonModLogger.Log("Disconnecting...");
-            isClient = false;
+            isConnected = false;
             serverId = 0;
             playerObjects.Clear();
             playerNames.Clear();
+            largePlayerIds.Clear();
+            smallPlayerIds.Clear();
 
             SteamNetworking.CloseP2PSessionWithUser(serverId);
+            //PlayerHooks.OnPlayerGrabObject -= PlayerHooks_OnPlayerGrabObject;
+            //PlayerHooks.OnPlayerLetGoObject -= PlayerHooks_OnPlayerLetGoObject;
         }
 
-        private void ClientUpdate()
+        public void Update()
         {
             while (SteamNetworking.IsP2PPacketAvailable(0))
             {
@@ -70,23 +149,41 @@ namespace MultiplayerMod
                         case MessageType.OtherPlayerPosition:
                             {
                                 OtherPlayerPositionMessage oppm = new OtherPlayerPositionMessage(msg);
-                                PlayerRep pr = GetPlayerRep(oppm.playerId);
 
-                                pr.head.transform.position = oppm.headPos;
-                                pr.handL.transform.position = oppm.lHandPos;
-                                pr.handR.transform.position = oppm.rHandPos;
-                                pr.pelvis.transform.position = oppm.pelvisPos;
-                                pr.ford.transform.position = oppm.pelvisPos - new Vector3(0.0f, 0.3f, 0.0f);
-                                pr.footL.transform.position = oppm.lFootPos;
-                                pr.footR.transform.position = oppm.rFootPos;
 
-                                pr.head.transform.rotation = oppm.headRot;
-                                pr.handL.transform.rotation = oppm.lHandRot;
-                                pr.handR.transform.rotation = oppm.rHandRot;
-                                pr.pelvis.transform.rotation = oppm.pelvisRot;
-                                pr.footL.transform.rotation = oppm.lFootRot;
-                                pr.footR.transform.rotation = oppm.rFootRot;
+                                if (playerObjects.ContainsKey(oppm.playerId))
+                                {
+                                    PlayerRep pr = GetPlayerRep(oppm.playerId);
 
+                                    pr.head.transform.position = oppm.headPos;
+                                    pr.handL.transform.position = oppm.lHandPos;
+                                    pr.handR.transform.position = oppm.rHandPos;
+                                    pr.pelvis.transform.position = oppm.pelvisPos;
+                                    pr.ford.transform.position = oppm.pelvisPos - new Vector3(0.0f, 0.3f, 0.0f);
+                                    pr.footL.transform.position = oppm.lFootPos;
+                                    pr.footR.transform.position = oppm.rFootPos;
+
+                                    pr.head.transform.rotation = oppm.headRot;
+                                    pr.handL.transform.rotation = oppm.lHandRot;
+                                    pr.handR.transform.rotation = oppm.rHandRot;
+                                    pr.pelvis.transform.rotation = oppm.pelvisRot;
+                                    pr.footL.transform.rotation = oppm.lFootRot;
+                                    pr.footR.transform.rotation = oppm.rFootRot;
+                                }
+
+                                break;
+                            }
+                        case MessageType.OtherFullRig:
+                            {
+                                OtherFullRigTransformMessage ofrtm = new OtherFullRigTransformMessage(msg);
+                                byte playerId = ofrtm.playerId;
+
+                                if (playerObjects.ContainsKey(ofrtm.playerId))
+                                {
+                                    PlayerRep pr = GetPlayerRep(playerId);
+
+                                    pr.ApplyTransformMessage(ofrtm);
+                                }
                                 break;
                             }
                         case MessageType.ServerShutdown:
@@ -102,19 +199,14 @@ namespace MultiplayerMod
                                 byte pid = msg.ReadByte();
                                 playerObjects[pid].Destroy();
                                 playerObjects.Remove(pid);
+                                largePlayerIds.Remove(pid);
+                                playerNames.Remove(pid);
                                 break;
                             }
                         case MessageType.JoinRejected:
                             {
-                                MelonModLogger.Log("Join rejected - likely an incompatible version of the game.");
-                                break;
-                            }
-                        case MessageType.OtherPlayerName:
-                            {
-                                OtherPlayerNameMessage opnm = new OtherPlayerNameMessage(msg);
-                                PlayerRep pr = GetPlayerRep(opnm.playerId, opnm.name);
-                                pr.namePlate.GetComponent<TMPro.TextMeshPro>().text = opnm.name;
-                                playerNames.Add(opnm.playerId, opnm.name);
+                                MelonModLogger.LogError("Join rejected - you are using an incompatible version of the mod!");
+                                Disconnect();
                                 break;
                             }
                         case MessageType.SceneTransition:
@@ -123,36 +215,134 @@ namespace MultiplayerMod
                                 SceneManager.LoadScene(stm.sceneByte);
                                 break;
                             }
+                        case MessageType.Join:
+                            {
+                                ClientJoinMessage cjm = new ClientJoinMessage(msg);
+                                largePlayerIds.Add(cjm.playerId, cjm.steamId);
+                                playerNames.Add(cjm.playerId, cjm.name);
+                                playerObjects.Add(cjm.playerId, new PlayerRep(cjm.name, cjm.steamId));
+                                break;
+                            }
+                        case MessageType.OtherHandGunChange:
+                            {
+                                HandGunChangeMessage hgcm = new HandGunChangeMessage(msg, true);
+
+                                if (hgcm.destroy)
+                                {
+                                    Destroy(playerObjects[hgcm.playerId].currentGun);
+                                }
+                                else
+                                {
+                                    PlayerRep pr = playerObjects[hgcm.playerId];
+                                    pr.currentGun = BWUtil.SpawnGun(hgcm.type);
+                                    pr.currentGun.transform.parent = pr.gunParent.transform;
+                                    pr.currentGun.transform.localPosition = Vector3.zero;
+                                    pr.currentGun.transform.localEulerAngles = new Vector3(0.0f, 0.0f, 90.0f);
+                                    pr.currentGun.GetComponent<Rigidbody>().isKinematic = true;
+                                }
+                                break;
+                            }
                     }
                 }
             }
 
-            if (localHead != null)
-            {
-                PlayerPositionMessage ppm = new PlayerPositionMessage
-                {
-                    headPos = localHead.transform.position,
-                    lHandPos = localHandL.transform.position,
-                    rHandPos = localHandR.transform.position,
-                    pelvisPos = localPelvis.transform.position,
-                    lFootPos = localFootL.transform.position,
-                    rFootPos = localFootR.transform.position,
+            //if (localHead != null)
+            //{
+            //    PlayerPositionMessage ppm = new PlayerPositionMessage
+            //    {
+            //        headPos = localHead.transform.position,
+            //        lHandPos = localHandL.transform.position,
+            //        rHandPos = localHandR.transform.position,
+            //        pelvisPos = localPelvis.transform.position,
+            //        lFootPos = localFootL.transform.position,
+            //        rFootPos = localFootR.transform.position,
 
-                    headRot = localHead.transform.rotation,
-                    lHandRot = localHandL.transform.rotation,
-                    rHandRot = localHandR.transform.rotation,
-                    pelvisRot = localPelvis.transform.rotation,
-                    lFootRot = localFootL.transform.rotation,
-                    rFootRot = localFootR.transform.rotation
+            //        headRot = localHead.transform.rotation,
+            //        lHandRot = localHandL.transform.rotation,
+            //        rHandRot = localHandR.transform.rotation,
+            //        pelvisRot = localPelvis.transform.rotation,
+            //        lFootRot = localFootL.transform.rotation,
+            //        rFootRot = localFootR.transform.rotation
+            //    };
+
+            //    SendToServer(ppm, P2PSend.Unreliable);
+
+            //    foreach (PlayerRep pr in playerObjects.Values)
+            //    {
+            //        pr.UpdateNameplateFacing(Camera.current.transform);
+            //    }
+            //}
+            //else if (enableFullRig)
+            {
+                FullRigTransformMessage frtm = new FullRigTransformMessage
+                {
+                    posMain = localRigTransforms.main.position,
+                    posRoot = localRigTransforms.root.position,
+                    posLHip = localRigTransforms.lHip.position,
+                    posRHip = localRigTransforms.rHip.position,
+                    posLKnee = localRigTransforms.lKnee.position,
+                    posRKnee = localRigTransforms.rKnee.position,
+                    posLAnkle = localRigTransforms.lAnkle.position,
+                    posRAnkle = localRigTransforms.rAnkle.position,
+
+                    posSpine1 = localRigTransforms.spine1.position,
+                    posSpine2 = localRigTransforms.spine2.position,
+                    posSpineTop = localRigTransforms.spineTop.position,
+                    posLClavicle = localRigTransforms.lClavicle.position,
+                    posRClavicle = localRigTransforms.rClavicle.position,
+                    posNeck = localRigTransforms.neck.position,
+                    posLShoulder = localRigTransforms.lShoulder.position,
+                    posRShoulder = localRigTransforms.rShoulder.position,
+                    posLElbow = localRigTransforms.lElbow.position,
+                    posRElbow = localRigTransforms.rElbow.position,
+                    posLWrist = localRigTransforms.lWrist.position,
+                    posRWrist = localRigTransforms.rWrist.position,
+
+                    rotMain = localRigTransforms.main.rotation,
+                    rotRoot = localRigTransforms.root.rotation,
+                    rotLHip = localRigTransforms.lHip.rotation,
+                    rotRHip = localRigTransforms.rHip.rotation,
+                    rotLKnee = localRigTransforms.lKnee.rotation,
+                    rotRKnee = localRigTransforms.rKnee.rotation,
+                    rotLAnkle = localRigTransforms.lAnkle.rotation,
+                    rotRAnkle = localRigTransforms.rAnkle.rotation,
+                    rotSpine1 = localRigTransforms.spine1.rotation,
+                    rotSpine2 = localRigTransforms.spine2.rotation,
+                    rotSpineTop = localRigTransforms.spineTop.rotation,
+                    rotLClavicle = localRigTransforms.lClavicle.rotation,
+                    rotRClavicle = localRigTransforms.rClavicle.rotation,
+                    rotNeck = localRigTransforms.neck.rotation,
+                    rotLShoulder = localRigTransforms.lShoulder.rotation,
+                    rotRShoulder = localRigTransforms.rShoulder.rotation,
+                    rotLElbow = localRigTransforms.lElbow.rotation,
+                    rotRElbow = localRigTransforms.rElbow.rotation,
+                    rotLWrist = localRigTransforms.lWrist.rotation,
+                    rotRWrist = localRigTransforms.rWrist.rotation
                 };
 
-                SendToServer(ppm, P2PSend.Unreliable);
+                SendToServer(frtm, P2PSend.Unreliable);
 
                 foreach (PlayerRep pr in playerObjects.Values)
                 {
                     pr.UpdateNameplateFacing(Camera.current.transform);
                 }
-            }   
+            }
+        }
+
+        private PlayerRep GetPlayerRep(byte playerId)
+        {
+            return playerObjects[playerId];
+        }
+
+        private void SendToServer(P2PMessage msg, P2PSend send)
+        {
+            byte[] msgBytes = msg.GetBytes();
+            SteamNetworking.SendP2PPacket(serverId, msgBytes, msgBytes.Length, 0, send);
+        }
+
+        private void SendToServer(INetworkMessage msg, P2PSend send)
+        {
+            SendToServer(msg.MakeMsg(), send);
         }
     }
 }
