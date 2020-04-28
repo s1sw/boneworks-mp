@@ -1,5 +1,6 @@
 ﻿using Facepunch.Steamworks;
 using Oculus.Platform;
+using Oculus.Platform.Models;
 using System;
 using System.CodeDom;
 using System.Collections.Generic;
@@ -141,11 +142,11 @@ namespace MultiplayerMod
 
     public class SceneTransitionMessage : INetworkMessage
     {
-        public byte sceneByte;
+        public string sceneName;
 
         public SceneTransitionMessage(P2PMessage msg)
         {
-            sceneByte = msg.ReadByte();
+            sceneName = msg.ReadUnicodeString();
         }
 
         public SceneTransitionMessage()
@@ -157,7 +158,7 @@ namespace MultiplayerMod
         {
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.SceneTransition);
-            msg.WriteByte(sceneByte);
+            msg.WriteUnicodeString(sceneName);
             return msg;
         }
     }
@@ -544,6 +545,29 @@ namespace MultiplayerMod
 
             msg.WriteByte(Convert.ToByte(destroy));
             msg.WriteByte((byte)type);
+            return msg;
+        }
+    }
+
+    public class SetPartyIdMessage : INetworkMessage
+    {
+        public string partyId;
+
+        public SetPartyIdMessage()
+        {
+
+        }
+
+        public SetPartyIdMessage(P2PMessage msg)
+        {
+            partyId = msg.ReadUnicodeString();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.SetPartyId);
+            msg.WriteUnicodeString(partyId);
             return msg;
         }
     }

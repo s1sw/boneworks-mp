@@ -12,6 +12,7 @@ namespace MultiplayerMod
 {
     public static class QuatExt
     {
+        // Unity normally provides this, but it's been stripped in Boneworks :(
         public static float Idx(this Quaternion q, int idx)
         {
             switch (idx)

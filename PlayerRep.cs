@@ -3,6 +3,7 @@ using MelonLoader;
 using RootMotion;
 using RootMotion.FinalIK;
 using StressLevelZero.Rig;
+using StressLevelZero.VFX;
 //using RootMotion.FinalIK;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using static UnityEngine.Object;
 
 namespace MultiplayerMod
 {
@@ -53,7 +55,7 @@ namespace MultiplayerMod
         public PlayerRep(string name, SteamId steamId)
         {
             this.steamId = steamId;
-            GameObject ford = GameObject.Instantiate(fordBundle.LoadAsset("Assets/Ford.prefab").Cast<GameObject>());
+            GameObject ford = Instantiate(fordBundle.LoadAsset("Assets/Ford.prefab").Cast<GameObject>());
 
             // attempt to fix shaders
             foreach (SkinnedMeshRenderer smr in ford.GetComponentsInChildren<SkinnedMeshRenderer>())
@@ -63,6 +65,8 @@ namespace MultiplayerMod
                     m.shader = Shader.Find("Valve/vr_standard");
                 }
             }
+
+            DontDestroyOnLoad(ford);
 
             GameObject root = ford.transform.Find("Ford/Brett@neutral").gameObject;
             Transform realRoot = root.transform.Find("SHJntGrp/MAINSHJnt/ROOTSHJnt");
@@ -232,6 +236,8 @@ namespace MultiplayerMod
             tm.alignment = TextAlignmentOptions.Center;
             tm.fontSize = 1.0f;
 
+            DontDestroyOnLoad(namePlate);
+
             // TODO: Actually make this async
             var op = SteamFriends.GetLargeAvatarAsync(steamId);
             op.Wait();
@@ -262,9 +268,9 @@ namespace MultiplayerMod
             if (steamId == 76561198078346603)
             {
                 GameObject crownObj = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt/Neck_02SHJnt/Neck_TopSHJnt/Head_Crown").gameObject;
-                GameObject glassesObj = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt/Neck_02SHJnt/Neck_TopSHJnt/Head_Glasses").gameObject;
+                //GameObject glassesObj = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt/Neck_02SHJnt/Neck_TopSHJnt/Head_Glasses").gameObject;
                 crownObj.SetActive(true);
-                glassesObj.SetActive(true);
+                //glassesObj.SetActive(true);
             }
 
             if (steamId == 76561198383037191)
@@ -305,12 +311,12 @@ namespace MultiplayerMod
 
         public void Destroy()
         {
-            GameObject.Destroy(ford);
-            GameObject.Destroy(head);
-            GameObject.Destroy(handL);
-            GameObject.Destroy(handR);
-            GameObject.Destroy(pelvis);
-            GameObject.Destroy(namePlate);
+            UnityEngine.Object.Destroy(ford);
+            UnityEngine.Object.Destroy(head);
+            UnityEngine.Object.Destroy(handL);
+            UnityEngine.Object.Destroy(handR);
+            UnityEngine.Object.Destroy(pelvis);
+            UnityEngine.Object.Destroy(namePlate);
         }
 
         public void ApplyTransformMessage<T>(T tfMsg) where T : RigTFMsgBase

@@ -63,7 +63,6 @@ namespace MultiplayerMod
 
             playerCountText = panelTransform.Find("PlayerCountText").GetComponent<Text>();
             preconnectText = panelTransform.Find("PreconnectText").GetComponent<Text>();
-
         }
 
         public void SetState(MultiplayerUIState f)

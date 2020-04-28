@@ -2,8 +2,10 @@
 using Facepunch.Steamworks;
 using Facepunch.Steamworks.Data;
 using MelonLoader;
+using Oculus.Platform.Models;
 using Oculus.Platform.Samples.VrHoops;
 using StressLevelZero.Props.Weapons;
+using StressLevelZero.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,16 +13,27 @@ using System.Text;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using static UnityEngine.Object;
 
 namespace MultiplayerMod
 {
-    public partial class MultiplayerMod
+    public class Server
     {
-        private readonly Dictionary<byte, PlayerRep> playerObjects = new Dictionary<byte, PlayerRep>(MAX_PLAYERS);
+        private readonly Dictionary<byte, PlayerRep> playerObjects = new Dictionary<byte, PlayerRep>(MultiplayerMod.MAX_PLAYERS);
+        private readonly Dictionary<byte, string> playerNames = new Dictionary<byte, string>(MultiplayerMod.MAX_PLAYERS);
+        private readonly List<SteamId> players = new List<SteamId>();
+        private readonly Dictionary<SteamId, byte> smallPlayerIds = new Dictionary<SteamId, byte>(MultiplayerMod.MAX_PLAYERS);
+        private readonly Dictionary<byte, SteamId> largePlayerIds = new Dictionary<byte, SteamId>(MultiplayerMod.MAX_PLAYERS);
+        private string partyId = "";
+        private byte smallIdCounter = 0;
+        private BoneworksRigTransforms localRigTransforms;
 
-        private void ServerUpdate()
+        public bool IsRunning { get; private set; }
+
+        public void Update()
         {
+            if (SceneLoader.loading) return;
             //ui.SetPlayerCount(players.Count);
             while (SteamNetworking.IsP2PPacketAvailable(0))
             {
@@ -36,7 +49,7 @@ namespace MultiplayerMod
                     {
                         case MessageType.Join:
                             {
-                                if (msg.ReadByte() != PROTOCOL_VERSION)
+                                if (msg.ReadByte() != MultiplayerMod.PROTOCOL_VERSION)
                                 {
                                     // Somebody tried to join with an incompatible verison
                                     P2PMessage m2 = new P2PMessage();
@@ -98,14 +111,26 @@ namespace MultiplayerMod
                                             },
                                             Party = new ActivityParty()
                                             {
-                                                Id = SteamClient.SteamId.ToString() + "P",
+                                                Id = partyId,
                                                 Size = new PartySize()
                                                 {
                                                     CurrentSize = players.Count + 1,
-                                                    MaxSize = MAX_PLAYERS
+                                                    MaxSize = MultiplayerMod.MAX_PLAYERS
                                                 }
                                             }
                                         });
+
+                                    SceneTransitionMessage stm = new SceneTransitionMessage()
+                                    {
+                                        sceneName = BoneworksSceneManager.GetCurrentSceneName()
+                                    };
+                                    SendToId(stm, P2PSend.Reliable, packet.Value.SteamId);
+
+                                    SetPartyIdMessage spid = new SetPartyIdMessage()
+                                    {
+                                        partyId = partyId
+                                    };
+                                    SendToId(spid, P2PSend.Reliable, packet.Value.SteamId);
                                 }
                                 break;
                             }
@@ -181,62 +206,65 @@ namespace MultiplayerMod
                                 FullRigTransformMessage frtm = new FullRigTransformMessage(msg);
 
                                 byte playerId = smallPlayerIds[packet.Value.SteamId];
-                                if (playerObjects.ContainsKey(playerId) && enableFullRig)
+                                if (playerObjects.ContainsKey(playerId))
                                 {
-                                    PlayerRep pr = GetPlayerRep(playerId);
+                                    PlayerRep pr = playerObjects[playerId];
 
-                                    //ApplyTransformMessage(pr, frtm);
-                                    pr.ApplyTransformMessage(frtm);
-
-                                    OtherFullRigTransformMessage ofrtm = new OtherFullRigTransformMessage
+                                    if (pr.rigTransforms.main != null)
                                     {
-                                        playerId = playerId,
+                                        //ApplyTransformMessage(pr, frtm);
+                                        pr.ApplyTransformMessage(frtm);
 
-                                        posMain = frtm.posMain,
-                                        posRoot = frtm.posRoot,
-                                        posLHip = frtm.posLHip,
-                                        posRHip = frtm.posRHip,
-                                        posLKnee = frtm.posLKnee,
-                                        posRKnee = frtm.posRKnee,
-                                        posLAnkle = frtm.posLAnkle,
-                                        posRAnkle = frtm.posRAnkle,
+                                        OtherFullRigTransformMessage ofrtm = new OtherFullRigTransformMessage
+                                        {
+                                            playerId = playerId,
 
-                                        posSpine1 = frtm.posSpine1,
-                                        posSpine2 = frtm.posSpine2,
-                                        posSpineTop = frtm.posSpineTop,
-                                        posLClavicle = frtm.posLClavicle,
-                                        posRClavicle = frtm.posRClavicle,
-                                        posNeck = frtm.posNeck,
-                                        posLShoulder = frtm.posLShoulder,
-                                        posRShoulder = frtm.posRShoulder,
-                                        posLElbow = frtm.posLElbow,
-                                        posRElbow = frtm.posRElbow,
-                                        posLWrist = frtm.posLWrist,
-                                        posRWrist = frtm.posRWrist,
+                                            posMain = frtm.posMain,
+                                            posRoot = frtm.posRoot,
+                                            posLHip = frtm.posLHip,
+                                            posRHip = frtm.posRHip,
+                                            posLKnee = frtm.posLKnee,
+                                            posRKnee = frtm.posRKnee,
+                                            posLAnkle = frtm.posLAnkle,
+                                            posRAnkle = frtm.posRAnkle,
 
-                                        rotMain = frtm.rotMain,
-                                        rotRoot = frtm.rotRoot,
-                                        rotLHip = frtm.rotLHip,
-                                        rotRHip = frtm.rotRHip,
-                                        rotLKnee = frtm.rotLKnee,
-                                        rotRKnee = frtm.rotRKnee,
-                                        rotLAnkle = frtm.rotLAnkle,
-                                        rotRAnkle = frtm.rotRAnkle,
-                                        rotSpine1 = frtm.rotSpine1,
-                                        rotSpine2 = frtm.rotSpine2,
-                                        rotSpineTop = frtm.rotSpineTop,
-                                        rotLClavicle = frtm.rotLClavicle,
-                                        rotRClavicle = frtm.rotRClavicle,
-                                        rotNeck = frtm.rotNeck,
-                                        rotLShoulder = frtm.rotLShoulder,
-                                        rotRShoulder = frtm.rotRShoulder,
-                                        rotLElbow = frtm.rotLElbow,
-                                        rotRElbow = frtm.rotRElbow,
-                                        rotLWrist = frtm.rotLWrist,
-                                        rotRWrist = frtm.rotRWrist
-                                    };
+                                            posSpine1 = frtm.posSpine1,
+                                            posSpine2 = frtm.posSpine2,
+                                            posSpineTop = frtm.posSpineTop,
+                                            posLClavicle = frtm.posLClavicle,
+                                            posRClavicle = frtm.posRClavicle,
+                                            posNeck = frtm.posNeck,
+                                            posLShoulder = frtm.posLShoulder,
+                                            posRShoulder = frtm.posRShoulder,
+                                            posLElbow = frtm.posLElbow,
+                                            posRElbow = frtm.posRElbow,
+                                            posLWrist = frtm.posLWrist,
+                                            posRWrist = frtm.posRWrist,
 
-                                    ServerSendToAllExcept(ofrtm, P2PSend.Unreliable, packet.Value.SteamId);
+                                            rotMain = frtm.rotMain,
+                                            rotRoot = frtm.rotRoot,
+                                            rotLHip = frtm.rotLHip,
+                                            rotRHip = frtm.rotRHip,
+                                            rotLKnee = frtm.rotLKnee,
+                                            rotRKnee = frtm.rotRKnee,
+                                            rotLAnkle = frtm.rotLAnkle,
+                                            rotRAnkle = frtm.rotRAnkle,
+                                            rotSpine1 = frtm.rotSpine1,
+                                            rotSpine2 = frtm.rotSpine2,
+                                            rotSpineTop = frtm.rotSpineTop,
+                                            rotLClavicle = frtm.rotLClavicle,
+                                            rotRClavicle = frtm.rotRClavicle,
+                                            rotNeck = frtm.rotNeck,
+                                            rotLShoulder = frtm.rotLShoulder,
+                                            rotRShoulder = frtm.rotRShoulder,
+                                            rotLElbow = frtm.rotLElbow,
+                                            rotRElbow = frtm.rotRElbow,
+                                            rotLWrist = frtm.rotLWrist,
+                                            rotRWrist = frtm.rotRWrist
+                                        };
+
+                                        ServerSendToAllExcept(ofrtm, P2PSend.Unreliable, packet.Value.SteamId);
+                                    }
                                 }
                                 break;
                             }
@@ -264,8 +292,6 @@ namespace MultiplayerMod
                                     pr.currentGun.transform.parent = pr.gunParent.transform;
                                     pr.currentGun.transform.localPosition = Vector3.zero;
                                     pr.currentGun.transform.localRotation = Quaternion.identity;//Quaternion.AngleAxis(90.0f, new Vector3(0.0f, 1.0f, 0.0f)) * Quaternion.AngleAxis(90.0f, new Vector3(1.0f, 0.0f, 0.0f));
-                                    if (pr.currentGun.GetComponentInChildren<Rigidbody>() == null)
-                                        MelonModLogger.LogError("wefijhewkfhwekjfhew");
                                     pr.currentGun.GetComponentInChildren<Rigidbody>().isKinematic = true;
                                 }
 
@@ -304,6 +330,11 @@ namespace MultiplayerMod
             //    ServerSendToAll(oppm, P2PSend.Unreliable);
             //} 
             //else if(enableFullRig && localHead != null)
+
+            if (localRigTransforms.main == null)
+                localRigTransforms = BWUtil.GetLocalRigTransforms();
+
+            if (localRigTransforms.main != null)
             {
                 OtherFullRigTransformMessage ofrtm = new OtherFullRigTransformMessage
                 {
@@ -361,22 +392,113 @@ namespace MultiplayerMod
             }
         }
 
-        private void StartServer()
+        private void OnP2PSessionRequest(SteamId id)
         {
-            MelonModLogger.Log("Starting server...");
-            isServer = true;
-            localHandL = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/l_Arm_ClavicleSHJnt/l_AC_AuxSHJnt/l_Arm_ShoulderSHJnt/l_Arm_Elbow_CurveSHJnt/l_WristSHJnt/l_Hand_1SHJnt");
-            localHandR = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/r_Arm_ClavicleSHJnt/r_AC_AuxSHJnt/r_Arm_ShoulderSHJnt/r_Arm_Elbow_CurveSHJnt/r_WristSHJnt/r_Hand_1SHJnt");
-            localPelvis = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt");
-            localHead = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt");
-            localFootR = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/r_Leg_HipSHJnt/r_Leg_KneeSHJnt/r_Leg_AnkleSHJnt");
-            localFootL = GameObject.Find("[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt/ROOTSHJnt/l_Leg_HipSHJnt/l_Leg_KneeSHJnt/l_Leg_AnkleSHJnt");
-            SetLocalRigTransforms();
-
+            SteamNetworking.AcceptP2PSessionWithUser(id);
+            MelonModLogger.Log("Accepted session for " + id.ToString());
         }
 
-        private void StopServer()
+        private void OnP2PConnectionFailed(SteamId id, P2PSessionError error)
         {
+            if (error == P2PSessionError.NoRightsToApp)
+            {
+                MelonModLogger.LogError("You don't own the game on Steam.");
+            }
+            else if (error == P2PSessionError.NotRunningApp)
+            {
+                // Probably a leaver
+                if (smallPlayerIds.ContainsKey(id))
+                {
+                    MelonModLogger.Log("Player left with SteamID: " + id);
+                    byte smallId = smallPlayerIds[id];
+
+                    P2PMessage disconnectMsg = new P2PMessage();
+                    disconnectMsg.WriteByte((byte)MessageType.Disconnect);
+                    disconnectMsg.WriteByte(smallId);
+
+                    foreach (SteamId p in players)
+                    {
+                        SteamNetworking.SendP2PPacket(p, disconnectMsg.GetBytes(), -1, 0, P2PSend.Reliable);
+                    }
+
+                    playerObjects[smallId].Destroy();
+                    playerObjects.Remove(smallId);
+                    players.Remove(id);
+                    smallPlayerIds.Remove(id);
+                }
+            }
+            else if (error == P2PSessionError.Timeout)
+            {
+                MelonModLogger.LogError("Connection with " + id + "timed out.");
+
+                    byte smallId = smallPlayerIds[id];
+
+                    P2PMessage disconnectMsg = new P2PMessage();
+                    disconnectMsg.WriteByte((byte)MessageType.Disconnect);
+                    disconnectMsg.WriteByte(smallId);
+
+                    foreach (SteamId p in players)
+                    {
+                        SteamNetworking.SendP2PPacket(p, disconnectMsg.GetBytes(), -1, 0, P2PSend.Reliable);
+                    }
+
+                    playerObjects[smallId].Destroy();
+                    playerObjects.Remove(smallId);
+                    players.Remove(id);
+                    smallPlayerIds.Remove(id);
+            }
+            else
+            {
+                MelonModLogger.LogError("Unhandled P2P error: " + error.ToString());
+            }
+        }
+
+        private void MultiplayerMod_OnLevelWasLoadedEvent(int level)
+        {
+            SceneTransitionMessage stm = new SceneTransitionMessage
+            {
+                sceneName = BoneworksSceneManager.GetSceneNameFromScenePath(level)
+            };
+            ServerSendToAll(stm, P2PSend.Reliable);
+        }
+
+        public void StartServer()
+        {
+            MelonModLogger.Log("Starting server...");
+            localRigTransforms = BWUtil.GetLocalRigTransforms();
+            partyId = SteamClient.SteamId + "P" + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+
+            RichPresence.SetActivity(
+                new Activity()
+                {
+                    Details = "Hosting a server",
+                    Secrets = new ActivitySecrets()
+                    {
+                        Join = SteamClient.SteamId.ToString()
+                    },
+                    Party = new ActivityParty()
+                    {
+                        Id = partyId,
+                        Size = new PartySize()
+                        {
+                            CurrentSize = 1,
+                            MaxSize = MultiplayerMod.MAX_PLAYERS
+                        }
+                    }
+                });
+
+            SteamNetworking.OnP2PSessionRequest = OnP2PSessionRequest;
+            SteamNetworking.OnP2PConnectionFailed = OnP2PConnectionFailed;
+
+            MultiplayerMod.OnLevelWasLoadedEvent += MultiplayerMod_OnLevelWasLoadedEvent;
+
+            IsRunning = true;
+        }
+
+        public void StopServer()
+        {
+            IsRunning = false;
+
             try
             {
                 foreach (PlayerRep r in playerObjects.Values)
@@ -394,7 +516,6 @@ namespace MultiplayerMod
             smallPlayerIds.Clear();
             largePlayerIds.Clear();
             smallIdCounter = 1;
-            isServer = false;
 
             P2PMessage shutdownMsg = new P2PMessage();
             shutdownMsg.WriteByte((byte)MessageType.ServerShutdown);
@@ -403,6 +524,76 @@ namespace MultiplayerMod
             {
                 SteamNetworking.SendP2PPacket(p, shutdownMsg.GetBytes(), -1, 0, P2PSend.Reliable);
                 SteamNetworking.CloseP2PSessionWithUser(p);
+            }
+
+            MultiplayerMod.OnLevelWasLoadedEvent -= MultiplayerMod_OnLevelWasLoadedEvent;
+
+            SteamNetworking.OnP2PSessionRequest = null;
+            SteamNetworking.OnP2PConnectionFailed = null;
+        }
+
+        private void ServerSendToAll(INetworkMessage msg, P2PSend send)
+        {
+            P2PMessage pMsg = msg.MakeMsg();
+            byte[] bytes = pMsg.GetBytes();
+            foreach (SteamId p in players)
+            {
+                SteamNetworking.SendP2PPacket(p, bytes, bytes.Length, 0, send);
+            }
+        }
+
+        private void ServerSendToAllExcept(INetworkMessage msg, P2PSend send, SteamId except)
+        {
+            P2PMessage pMsg = msg.MakeMsg();
+            byte[] bytes = pMsg.GetBytes();
+            foreach (SteamId p in players)
+            {
+                if (p != except)
+                    SteamNetworking.SendP2PPacket(p, bytes, bytes.Length, 0, send);
+            }
+        }
+
+        private void SendToId(INetworkMessage msg, P2PSend send, SteamId id)
+        {
+            P2PMessage pMsg = msg.MakeMsg();
+            byte[] bytes = pMsg.GetBytes();
+            SteamNetworking.SendP2PPacket(id, bytes, bytes.Length, 0, send);
+        }
+
+        private void PlayerHooks_OnPlayerLetGoObject(GameObject obj)
+        {
+            HandGunChangeMessage hgcm = new HandGunChangeMessage()
+            {
+                isForOtherPlayer = true,
+                destroy = true,
+                playerId = 0
+            };
+
+            ServerSendToAll(hgcm, P2PSend.Reliable);
+        }
+
+        private void PlayerHooks_OnPlayerGrabObject(GameObject obj)
+        {
+            // See if it's a gun
+            GunType? gt = BWUtil.GetGunType(obj.transform.root.gameObject);
+            if (gt != null)
+            {
+                HandGunChangeMessage hgcm = new HandGunChangeMessage()
+                {
+                    isForOtherPlayer = true,
+                    type = gt.Value,
+                    destroy = false,
+                    playerId = 0
+                };
+
+                ServerSendToAll(hgcm, P2PSend.Reliable);
+
+                switch (gt)
+                {
+                    case GunType.EDER22:
+                        MelonModLogger.Log("Holding Eder22");
+                        break;
+                }
             }
         }
     }
