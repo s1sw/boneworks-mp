@@ -4,6 +4,7 @@ using Facepunch.Steamworks.Data;
 using MelonLoader;
 using Oculus.Platform.Models;
 using Oculus.Platform.Samples.VrHoops;
+using StressLevelZero.Pool;
 using StressLevelZero.Props.Weapons;
 using StressLevelZero.Utilities;
 using System;
@@ -22,9 +23,10 @@ namespace MultiplayerMod
     {
         private readonly Dictionary<byte, PlayerRep> playerObjects = new Dictionary<byte, PlayerRep>(MultiplayerMod.MAX_PLAYERS);
         private readonly Dictionary<byte, string> playerNames = new Dictionary<byte, string>(MultiplayerMod.MAX_PLAYERS);
-        private readonly List<SteamId> players = new List<SteamId>();
+        private readonly List<ulong> players = new List<ulong>();
         private readonly Dictionary<SteamId, byte> smallPlayerIds = new Dictionary<SteamId, byte>(MultiplayerMod.MAX_PLAYERS);
         private readonly Dictionary<byte, SteamId> largePlayerIds = new Dictionary<byte, SteamId>(MultiplayerMod.MAX_PLAYERS);
+        private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
         private string partyId = "";
         private byte smallIdCounter = 0;
         private BoneworksRigTransforms localRigTransforms;
@@ -149,7 +151,7 @@ namespace MultiplayerMod
 
                                 playerObjects[smallId].Destroy();
                                 playerObjects.Remove(smallId);
-                                players.Remove(packet.Value.SteamId);
+                                players.RemoveAll((ulong val) => val == packet.Value.SteamId);
                                 smallPlayerIds.Remove(packet.Value.SteamId);
                                 break;
                             }
@@ -390,6 +392,67 @@ namespace MultiplayerMod
             {
                 pr.UpdateNameplateFacing(Camera.current.transform);
             }
+
+            {
+                enemyPoolManager.FindMissingPools();
+                Pool pool = enemyPoolManager.GetPool(EnemyType.NullBody);
+                for (int i = 0; i < pool.transform.childCount; i++)
+                {
+                    GameObject childEnemy = pool.transform.GetChild(i).gameObject;
+
+                    BoneworksRigTransforms brt = BWUtil.GetHumanoidRigTransforms(childEnemy.transform.Find("brettEnemy@neutral").gameObject);
+
+                    EnemyRigTransformMessage ertf = new EnemyRigTransformMessage()
+                    {
+                        poolChildIdx = (byte)i,
+                        enemyType = EnemyType.NullBody,
+                        posMain = localRigTransforms.main.position,
+                        posRoot = localRigTransforms.root.position,
+                        posLHip = localRigTransforms.lHip.position,
+                        posRHip = localRigTransforms.rHip.position,
+                        posLKnee = localRigTransforms.lKnee.position,
+                        posRKnee = localRigTransforms.rKnee.position,
+                        posLAnkle = localRigTransforms.lAnkle.position,
+                        posRAnkle = localRigTransforms.rAnkle.position,
+
+                        posSpine1 = localRigTransforms.spine1.position,
+                        posSpine2 = localRigTransforms.spine2.position,
+                        posSpineTop = localRigTransforms.spineTop.position,
+                        posLClavicle = localRigTransforms.lClavicle.position,
+                        posRClavicle = localRigTransforms.rClavicle.position,
+                        posNeck = localRigTransforms.neck.position,
+                        posLShoulder = localRigTransforms.lShoulder.position,
+                        posRShoulder = localRigTransforms.rShoulder.position,
+                        posLElbow = localRigTransforms.lElbow.position,
+                        posRElbow = localRigTransforms.rElbow.position,
+                        posLWrist = localRigTransforms.lWrist.position,
+                        posRWrist = localRigTransforms.rWrist.position,
+
+                        rotMain = localRigTransforms.main.rotation,
+                        rotRoot = localRigTransforms.root.rotation,
+                        rotLHip = localRigTransforms.lHip.rotation,
+                        rotRHip = localRigTransforms.rHip.rotation,
+                        rotLKnee = localRigTransforms.lKnee.rotation,
+                        rotRKnee = localRigTransforms.rKnee.rotation,
+                        rotLAnkle = localRigTransforms.lAnkle.rotation,
+                        rotRAnkle = localRigTransforms.rAnkle.rotation,
+                        rotSpine1 = localRigTransforms.spine1.rotation,
+                        rotSpine2 = localRigTransforms.spine2.rotation,
+                        rotSpineTop = localRigTransforms.spineTop.rotation,
+                        rotLClavicle = localRigTransforms.lClavicle.rotation,
+                        rotRClavicle = localRigTransforms.rClavicle.rotation,
+                        rotNeck = localRigTransforms.neck.rotation,
+                        rotLShoulder = localRigTransforms.lShoulder.rotation,
+                        rotRShoulder = localRigTransforms.rShoulder.rotation,
+                        rotLElbow = localRigTransforms.lElbow.rotation,
+                        rotRElbow = localRigTransforms.rElbow.rotation,
+                        rotLWrist = localRigTransforms.lWrist.rotation,
+                        rotRWrist = localRigTransforms.rWrist.rotation
+                    };
+
+                    ServerSendToAll(ertf, P2PSend.UnreliableNoDelay);
+                }
+            }
         }
 
         private void OnP2PSessionRequest(SteamId id)
@@ -423,7 +486,7 @@ namespace MultiplayerMod
 
                     playerObjects[smallId].Destroy();
                     playerObjects.Remove(smallId);
-                    players.Remove(id);
+                    players.RemoveAll((ulong val) => val == id);
                     smallPlayerIds.Remove(id);
                 }
             }
@@ -431,21 +494,21 @@ namespace MultiplayerMod
             {
                 MelonModLogger.LogError("Connection with " + id + "timed out.");
 
-                    byte smallId = smallPlayerIds[id];
+                byte smallId = smallPlayerIds[id];
 
-                    P2PMessage disconnectMsg = new P2PMessage();
-                    disconnectMsg.WriteByte((byte)MessageType.Disconnect);
-                    disconnectMsg.WriteByte(smallId);
+                P2PMessage disconnectMsg = new P2PMessage();
+                disconnectMsg.WriteByte((byte)MessageType.Disconnect);
+                disconnectMsg.WriteByte(smallId);
 
-                    foreach (SteamId p in players)
-                    {
-                        SteamNetworking.SendP2PPacket(p, disconnectMsg.GetBytes(), -1, 0, P2PSend.Reliable);
-                    }
+                foreach (SteamId p in players)
+                {
+                    SteamNetworking.SendP2PPacket(p, disconnectMsg.GetBytes(), -1, 0, P2PSend.Reliable);
+                }
 
-                    playerObjects[smallId].Destroy();
-                    playerObjects.Remove(smallId);
-                    players.Remove(id);
-                    smallPlayerIds.Remove(id);
+                playerObjects[smallId].Destroy();
+                playerObjects.Remove(smallId);
+                players.RemoveAll((ulong val) => val == id);
+                smallPlayerIds.Remove(id);
             }
             else
             {
@@ -460,6 +523,7 @@ namespace MultiplayerMod
                 sceneName = BoneworksSceneManager.GetSceneNameFromScenePath(level)
             };
             ServerSendToAll(stm, P2PSend.Reliable);
+            enemyPoolManager.FindAllPools();
         }
 
         public void StartServer()
@@ -525,6 +589,8 @@ namespace MultiplayerMod
                 SteamNetworking.SendP2PPacket(p, shutdownMsg.GetBytes(), -1, 0, P2PSend.Reliable);
                 SteamNetworking.CloseP2PSessionWithUser(p);
             }
+
+            players.Clear();
 
             MultiplayerMod.OnLevelWasLoadedEvent -= MultiplayerMod_OnLevelWasLoadedEvent;
 

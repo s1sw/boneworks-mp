@@ -15,6 +15,8 @@ using static UnityEngine.Object;
 using Valve.VR;
 using StressLevelZero.Interaction;
 using StressLevelZero.Utilities;
+using StressLevelZero.Pool;
+using StressLevelZero.AI;
 
 namespace MultiplayerMod
 {
@@ -29,6 +31,7 @@ namespace MultiplayerMod
         private readonly Dictionary<byte, string> playerNames = new Dictionary<byte, string>(MultiplayerMod.MAX_PLAYERS);
         private readonly Dictionary<byte, SteamId> largePlayerIds = new Dictionary<byte, SteamId>(MultiplayerMod.MAX_PLAYERS);
         private readonly Dictionary<SteamId, byte> smallPlayerIds = new Dictionary<SteamId, byte>(MultiplayerMod.MAX_PLAYERS);
+        private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
         public bool isConnected = false;
 
         public void SetupRP()
@@ -187,7 +190,6 @@ namespace MultiplayerMod
                             {
                                 OtherPlayerPositionMessage oppm = new OtherPlayerPositionMessage(msg);
 
-
                                 if (playerObjects.ContainsKey(oppm.playerId))
                                 {
                                     PlayerRep pr = GetPlayerRep(oppm.playerId);
@@ -305,10 +307,21 @@ namespace MultiplayerMod
                                     });
                                 break;
                             }
+                        case MessageType.EnemyRigTransform:
+                            {
+                                enemyPoolManager.FindMissingPools();
+                                EnemyRigTransformMessage ertm = new EnemyRigTransformMessage(msg);
+                                Pool pool = enemyPoolManager.GetPool(ertm.enemyType);
+                                // HORRID PERFORMANCE
+                                Transform enemyTf = pool.transform.GetChild(ertm.poolChildIdx);
+                                GameObject rootObj = enemyTf.Find("enemyBrett@neutral").gameObject;
+                                BoneworksRigTransforms brt = BWUtil.GetHumanoidRigTransforms(rootObj);
+                                BWUtil.ApplyRigTransform(brt, ertm);
+                                break;
+                            }
                     }
                 }
             }
-
             //if (localHead != null)
             //{
             //    PlayerPositionMessage ppm = new PlayerPositionMessage

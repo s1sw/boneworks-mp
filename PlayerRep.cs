@@ -20,6 +20,7 @@ namespace MultiplayerMod
     public class PlayerRep
     {
         public static bool hideBody = false;
+        public static bool showHair = true;
 
         public GameObject ford;
         public GameObject head;
@@ -184,6 +185,11 @@ namespace MultiplayerMod
             gunParent.transform.localRotation = Quaternion.identity;
 
             root.transform.Find("geoGrp/brett_body").GetComponent<SkinnedMeshRenderer>().enabled = !hideBody;
+
+            if (!showHair)
+            {
+                root.transform.Find("geoGrp/brett_hair_cards").gameObject.SetActive(false);
+            }
 
             //ik.solver.leftArm.target = lHandTarget.transform;
             //ik.solver.rightArm.target = rHandTarget.transform;

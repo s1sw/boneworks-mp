@@ -1,6 +1,7 @@
 ﻿using MelonLoader;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,6 +11,13 @@ using static UnityEngine.Object;
 
 namespace MultiplayerMod
 {
+    public enum EnemyType
+    {
+        NullBody,
+        FordEarlyExit,
+        CorruptedNullBody
+    }
+
     static class BWUtil
     {
         private static readonly Dictionary<GunType, GameObject> gunPrefabs = new Dictionary<GunType, GameObject>()
@@ -52,6 +60,12 @@ namespace MultiplayerMod
         public static BoneworksRigTransforms GetLocalRigTransforms()
         {
             GameObject root = GameObject.Find("[RigManager (Default Brett)]/[SkeletonRig (GameWorld Brett)]/Brett@neutral");
+
+            return GetHumanoidRigTransforms(root);
+        }
+
+        public static BoneworksRigTransforms GetHumanoidRigTransforms(GameObject root)
+        {
             Transform realRoot = root.transform.Find("SHJntGrp/MAINSHJnt/ROOTSHJnt");
 
             BoneworksRigTransforms brt = new BoneworksRigTransforms()
@@ -79,6 +93,69 @@ namespace MultiplayerMod
             };
 
             return brt;
+        }
+
+        public static void ApplyRigTransform(BoneworksRigTransforms rigTransforms, RigTFMsgBase tfMsg)
+        {
+            rigTransforms.main.position = tfMsg.posMain;
+            rigTransforms.main.rotation = tfMsg.rotMain;
+
+            rigTransforms.root.position = tfMsg.posRoot;
+            rigTransforms.root.rotation = tfMsg.rotRoot;
+
+            rigTransforms.lHip.position = tfMsg.posLHip;
+            rigTransforms.lHip.rotation = tfMsg.rotLHip;
+
+            rigTransforms.rHip.position = tfMsg.posRHip;
+            rigTransforms.rHip.rotation = tfMsg.rotRHip;
+
+            rigTransforms.lAnkle.position = tfMsg.posLAnkle;
+            rigTransforms.lAnkle.rotation = tfMsg.rotLAnkle;
+
+            rigTransforms.rAnkle.position = tfMsg.posRAnkle;
+            rigTransforms.rAnkle.rotation = tfMsg.rotRAnkle;
+
+            rigTransforms.lKnee.position = tfMsg.posLKnee;
+            rigTransforms.lKnee.rotation = tfMsg.rotLKnee;
+
+            rigTransforms.rKnee.position = tfMsg.posRKnee;
+            rigTransforms.rKnee.rotation = tfMsg.rotRKnee;
+
+            rigTransforms.spine1.position = tfMsg.posSpine1;
+            rigTransforms.spine1.rotation = tfMsg.rotSpine1;
+
+            rigTransforms.spine2.position = tfMsg.posSpine2;
+            rigTransforms.spine2.rotation = tfMsg.rotSpine2;
+
+            rigTransforms.spineTop.position = tfMsg.posSpineTop;
+            rigTransforms.spineTop.rotation = tfMsg.rotSpineTop;
+
+            rigTransforms.lClavicle.position = tfMsg.posLClavicle;
+            rigTransforms.lClavicle.rotation = tfMsg.rotLClavicle;
+
+            rigTransforms.rClavicle.position = tfMsg.posRClavicle;
+            rigTransforms.rClavicle.rotation = tfMsg.rotRClavicle;
+
+            rigTransforms.neck.position = tfMsg.posNeck;
+            rigTransforms.neck.rotation = tfMsg.rotNeck;
+
+            rigTransforms.lShoulder.position = tfMsg.posLShoulder;
+            rigTransforms.lShoulder.rotation = tfMsg.rotLShoulder;
+
+            rigTransforms.rShoulder.position = tfMsg.posRShoulder;
+            rigTransforms.rShoulder.rotation = tfMsg.rotRShoulder;
+
+            rigTransforms.lElbow.position = tfMsg.posLElbow;
+            rigTransforms.lElbow.rotation = tfMsg.rotLElbow;
+
+            rigTransforms.rElbow.position = tfMsg.posRElbow;
+            rigTransforms.rElbow.rotation = tfMsg.rotRElbow;
+
+            rigTransforms.lWrist.position = tfMsg.posLWrist;
+            rigTransforms.lWrist.rotation = tfMsg.rotLWrist;
+
+            rigTransforms.rWrist.position = tfMsg.posRWrist;
+            rigTransforms.rWrist.rotation = tfMsg.rotRWrist;
         }
     }
 }

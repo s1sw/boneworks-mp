@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using StressLevelZero.VRMK;
 
 namespace MultiplayerMod
 {
@@ -110,7 +111,7 @@ namespace MultiplayerMod
             WriteFloat(q.w);
         }
 
-        private const float FLOAT_PRECISION_MULT = 32767f;
+        private const float FLOAT_PRECISION_MULT = 127.0f;
 
         public void WriteCompressedQuaternion(Quaternion rotation)
         {
@@ -154,9 +155,9 @@ namespace MultiplayerMod
                 return;
             }
 
-            var a = (short)0;
-            var b = (short)0;
-            var c = (short)0;
+            var a = (byte)0;
+            var b = (byte)0;
+            var c = (byte)0;
 
             // We multiply the value of each element by QUAT_PRECISION_MULT before converting to 16-bit integer 
             // in order to maintain precision. This is necessary since by definition each of the three smallest 
@@ -165,33 +166,33 @@ namespace MultiplayerMod
 
             if (maxIndex == 0)
             {
-                a = (short)(rotation.y * sign * FLOAT_PRECISION_MULT);
-                b = (short)(rotation.z * sign * FLOAT_PRECISION_MULT);
-                c = (short)(rotation.w * sign * FLOAT_PRECISION_MULT);
+                a = (byte)(rotation.y * sign * FLOAT_PRECISION_MULT);
+                b = (byte)(rotation.z * sign * FLOAT_PRECISION_MULT);
+                c = (byte)(rotation.w * sign * FLOAT_PRECISION_MULT);
             }
             else if (maxIndex == 1)
             {
-                a = (short)(rotation.x * sign * FLOAT_PRECISION_MULT);
-                b = (short)(rotation.z * sign * FLOAT_PRECISION_MULT);
-                c = (short)(rotation.w * sign * FLOAT_PRECISION_MULT);
+                a = (byte)(rotation.x * sign * FLOAT_PRECISION_MULT);
+                b = (byte)(rotation.z * sign * FLOAT_PRECISION_MULT);
+                c = (byte)(rotation.w * sign * FLOAT_PRECISION_MULT);
             }
             else if (maxIndex == 2)
             {
-                a = (short)(rotation.x * sign * FLOAT_PRECISION_MULT);
-                b = (short)(rotation.y * sign * FLOAT_PRECISION_MULT);
-                c = (short)(rotation.w * sign * FLOAT_PRECISION_MULT);
+                a = (byte)(rotation.x * sign * FLOAT_PRECISION_MULT);
+                b = (byte)(rotation.y * sign * FLOAT_PRECISION_MULT);
+                c = (byte)(rotation.w * sign * FLOAT_PRECISION_MULT);
             }
             else
             {
-                a = (short)(rotation.x * sign * FLOAT_PRECISION_MULT);
-                b = (short)(rotation.y * sign * FLOAT_PRECISION_MULT);
-                c = (short)(rotation.z * sign * FLOAT_PRECISION_MULT);
+                a = (byte)(rotation.x * sign * FLOAT_PRECISION_MULT);
+                b = (byte)(rotation.y * sign * FLOAT_PRECISION_MULT);
+                c = (byte)(rotation.z * sign * FLOAT_PRECISION_MULT);
             }
 
             WriteByte(maxIndex);
-            WriteShort(a);
-            WriteShort(b);
-            WriteShort(c);
+            WriteByte(a);
+            WriteByte(b);
+            WriteByte(c);
         }
 
         public Quaternion ReadCompressedQuaternion()
@@ -215,9 +216,9 @@ namespace MultiplayerMod
             }
 
             // Read the other three fields and derive the value of the omitted field
-            var a = (float)ReadShort() / FLOAT_PRECISION_MULT;
-            var b = (float)ReadShort() / FLOAT_PRECISION_MULT;
-            var c = (float)ReadShort() / FLOAT_PRECISION_MULT;
+            var a = (float)ReadByte() / FLOAT_PRECISION_MULT;
+            var b = (float)ReadByte() / FLOAT_PRECISION_MULT;
+            var c = (float)ReadByte() / FLOAT_PRECISION_MULT;
             var d = Mathf.Sqrt(1f - (a * a + b * b + c * c));
 
             if (maxIndex == 0)
@@ -279,7 +280,6 @@ namespace MultiplayerMod
 
         public Vector3 ReadVector3()
         {
-
             return new Vector3(ReadFloat(), ReadFloat(), ReadFloat());
         }
 

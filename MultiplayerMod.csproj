@@ -259,7 +259,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="BWUtil.cs" />
+    <Compile Include="Boneworks\BWUtil.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="Discord\ActivityManager.cs" />
     <Compile Include="Discord\Constants.cs" />
@@ -268,13 +268,14 @@
     <Compile Include="Discord\LobbyManager.cs" />
     <Compile Include="Discord\StorageManager.cs" />
     <Compile Include="Discord\StoreManager.cs" />
+    <Compile Include="Boneworks\EnemyPoolManager.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="MultiplayerUI.cs" />
-    <Compile Include="NetworkMessages.cs" />
-    <Compile Include="P2PMessage.cs" />
+    <Compile Include="Networking\NetworkMessages.cs" />
+    <Compile Include="Networking\P2PMessage.cs" />
     <Compile Include="PlayerRep.cs" />
     <Compile Include="RichPresence.cs" />
-    <Compile Include="SendUtil.cs" />
+    <Compile Include="Networking\SendUtil.cs" />
     <Compile Include="Server.cs" />
   </ItemGroup>
   <ItemGroup>
