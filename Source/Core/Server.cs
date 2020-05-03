@@ -143,6 +143,8 @@ namespace MultiplayerMod.Core
                                         partyId = partyId
                                     };
                                     SendToId(spid, P2PSend.Reliable, packet.Value.SteamId);
+
+                                    ui.SetPlayerCount(players.Count, MultiplayerUIState.Server);
                                 }
                                 break;
                             }

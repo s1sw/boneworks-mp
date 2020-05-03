@@ -32,8 +32,6 @@ namespace MultiplayerMod
         public const int MAX_PLAYERS = 16;
         public const byte PROTOCOL_VERSION = 30;
 
-        private bool isServer = false;
-
         private MultiplayerUI ui;
         private Client client;
         private Server server;
@@ -93,7 +91,7 @@ namespace MultiplayerMod
         {
             RichPresence.Update();
 
-            if (!client.isConnected && !isServer)
+            if (!client.isConnected && !server.IsRunning)
             {
                 // If the user is not connected, start their client and attempt a connection
                 if (Input.GetKeyDown(KeyCode.C))
@@ -133,7 +131,7 @@ namespace MultiplayerMod
             if (client.isConnected)
                 client.Update();
 
-            if (isServer)
+            if (server.IsRunning)
                 server.Update();
         }
 
@@ -142,7 +140,7 @@ namespace MultiplayerMod
             if (client.isConnected)
                 client.Disconnect();
 
-            if (isServer)
+            if (server.IsRunning)
                 server.StopServer();
         }
     }
