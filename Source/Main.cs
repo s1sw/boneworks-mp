@@ -65,11 +65,11 @@ namespace MultiplayerMod
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
 
-#region Unused Code
+            #region Unused Code
             //PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
             //PlayerHooks.OnPlayerLetGoObject += PlayerHooks_OnPlayerLetGoObject;
             //BWUtil.InitialiseGunPrefabs();
-#endregion
+            #endregion
         }
 
         public override void OnLevelWasLoaded(int level)

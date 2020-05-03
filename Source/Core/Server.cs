@@ -313,6 +313,7 @@ namespace MultiplayerMod.Core
                 }
             }
 
+            #region Unused Code
             //if (localHead != null && !enableFullRig)
             //{
             //    OtherPlayerPositionMessage oppm = new OtherPlayerPositionMessage
@@ -336,6 +337,7 @@ namespace MultiplayerMod.Core
             //    ServerSendToAll(oppm, P2PSend.Unreliable);
             //} 
             //else if(enableFullRig && localHead != null)
+            #endregion
 
             if (localRigTransforms.main == null)
                 localRigTransforms = BWUtil.GetLocalRigTransforms();
