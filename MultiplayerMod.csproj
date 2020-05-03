@@ -37,63 +37,63 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="BoneHook">
       <HintPath>Dependencies\BoneHook.dll</HintPath>
     </Reference>
     <Reference Include="ch.sycoforge.Decal">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\ch.sycoforge.Decal.dll</HintPath>
+      <HintPath>Managed\ch.sycoforge.Decal.dll</HintPath>
     </Reference>
     <Reference Include="com.unity.postprocessing.Runtime">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\com.unity.postprocessing.Runtime.dll</HintPath>
+      <HintPath>Managed\com.unity.postprocessing.Runtime.dll</HintPath>
     </Reference>
     <Reference Include="Il2Cppmscorlib">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\Il2Cppmscorlib.dll</HintPath>
+      <HintPath>Managed\Il2Cppmscorlib.dll</HintPath>
     </Reference>
     <Reference Include="Il2CppSystem">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\Il2CppSystem.dll</HintPath>
+      <HintPath>Managed\Il2CppSystem.dll</HintPath>
     </Reference>
     <Reference Include="Il2CppSystem.Configuration">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\Il2CppSystem.Configuration.dll</HintPath>
+      <HintPath>Managed\Il2CppSystem.Configuration.dll</HintPath>
     </Reference>
     <Reference Include="Il2CppSystem.Core">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\Il2CppSystem.Core.dll</HintPath>
+      <HintPath>Managed\Il2CppSystem.Core.dll</HintPath>
     </Reference>
     <Reference Include="Il2CppSystem.Runtime.Serialization">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\Il2CppSystem.Runtime.Serialization.dll</HintPath>
+      <HintPath>Managed\Il2CppSystem.Runtime.Serialization.dll</HintPath>
     </Reference>
     <Reference Include="Il2CppSystem.Xml">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\Il2CppSystem.Xml.dll</HintPath>
+      <HintPath>Managed\Il2CppSystem.Xml.dll</HintPath>
     </Reference>
     <Reference Include="Il2CppSystem.Xml.Linq">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\Il2CppSystem.Xml.Linq.dll</HintPath>
+      <HintPath>Managed\Il2CppSystem.Xml.Linq.dll</HintPath>
     </Reference>
     <Reference Include="MelonLoader.ModHandler, Version=0.0.2.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\MelonLoader-src\MelonLoader-master\Output\Debug\MelonLoader\MelonLoader.ModHandler.dll</HintPath>
+      <HintPath>Managed\MelonLoader.ModHandler.dll</HintPath>
     </Reference>
     <Reference Include="NavMeshComponents">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\NavMeshComponents.dll</HintPath>
+      <HintPath>Managed\NavMeshComponents.dll</HintPath>
     </Reference>
     <Reference Include="Oculus.VR">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\Oculus.VR.dll</HintPath>
+      <HintPath>Managed\Oculus.VR.dll</HintPath>
     </Reference>
     <Reference Include="OPS.Rsa">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\OPS.Rsa.dll</HintPath>
+      <HintPath>Managed\OPS.Rsa.dll</HintPath>
     </Reference>
     <Reference Include="ProBuilderCore">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\ProBuilderCore.dll</HintPath>
+      <HintPath>Managed\ProBuilderCore.dll</HintPath>
     </Reference>
     <Reference Include="SteamVR">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\SteamVR.dll</HintPath>
+      <HintPath>Managed\SteamVR.dll</HintPath>
     </Reference>
     <Reference Include="SteamVR_Actions">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\SteamVR_Actions.dll</HintPath>
+      <HintPath>Managed\SteamVR_Actions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -102,159 +102,159 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="TextMeshPro-1.0.55.2017.2.0b12">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\TextMeshPro-1.0.55.2017.2.0b12.dll</HintPath>
+      <HintPath>Managed\TextMeshPro-1.0.55.2017.2.0b12.dll</HintPath>
     </Reference>
     <Reference Include="UnhollowerBaseLib">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnhollowerBaseLib.dll</HintPath>
+      <HintPath>Managed\UnhollowerBaseLib.dll</HintPath>
     </Reference>
     <Reference Include="UnhollowerRuntimeLib">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnhollowerRuntimeLib.dll</HintPath>
+      <HintPath>Managed\UnhollowerRuntimeLib.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Recorder">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\Unity.Recorder.dll</HintPath>
+      <HintPath>Managed\Unity.Recorder.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.dll</HintPath>
+      <HintPath>Managed\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.AIModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.AIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.AnimationModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.AnimationModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ARModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.ARModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.ARModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AssetBundleModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.AssetBundleModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.AudioModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.AudioModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ClothModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.ClothModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.ClothModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.DirectorModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.DirectorModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.DirectorModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.GridModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.GridModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.GridModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ImageConversionModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.IMGUIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.IMGUIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.InputModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.InputModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.InputModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.JSONSerializeModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.Physics2DModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.Physics2DModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.Physics2DModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.SharedInternalsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.SharedInternalsModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.SharedInternalsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.SpatialTracking, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.SpatialTracking.dll</HintPath>
+      <HintPath>Managed\UnityEngine.SpatialTracking.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TerrainModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.TerrainModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.TerrainModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TerrainPhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.TerrainPhysicsModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.TerrainPhysicsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.TextRenderingModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.TilemapModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.TilemapModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.TilemapModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.Timeline, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.Timeline.dll</HintPath>
+      <HintPath>Managed\UnityEngine.Timeline.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIElementsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.UIElementsModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.UIElementsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.UIModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.UIModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UnityAnalyticsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.UnityAnalyticsModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.UnityAnalyticsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UnityWebRequestModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.VehiclesModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.VehiclesModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.VehiclesModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.VFXModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.VFXModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.VFXModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.VideoModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.VideoModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.VideoModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.VRModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.VRModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.VRModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.WindModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.WindModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.WindModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.XRModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\UnityEngine.XRModule.dll</HintPath>
+      <HintPath>Managed\UnityEngine.XRModule.dll</HintPath>
     </Reference>
     <Reference Include="Valve.Newtonsoft.Json">
-      <HintPath>D:\Downloads\Unity Modding Tools\IL2CPP Tools\Il2CppAssemblyUnhollower.0.2.0.0\Managed\Valve.Newtonsoft.Json.dll</HintPath>
+      <HintPath>Managed\Valve.Newtonsoft.Json.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -269,7 +269,6 @@
     <Compile Include="Discord\StorageManager.cs" />
     <Compile Include="Discord\StoreManager.cs" />
     <Compile Include="Boneworks\EnemyPoolManager.cs" />
-    <Compile Include="Extras\SpecialUsers.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="MultiplayerUI.cs" />
     <Compile Include="Networking\NetworkMessages.cs" />
