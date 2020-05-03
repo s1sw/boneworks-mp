@@ -346,26 +346,26 @@ namespace MultiplayerMod.Networking
             posLWrist = msg.ReadCompressedVector3(posRoot);
             posRWrist = msg.ReadCompressedVector3(posRoot);
 
-            rotMain = msg.ReadCompressedQuaternion();
-            rotRoot = msg.ReadCompressedQuaternion();
-            rotLHip = msg.ReadCompressedQuaternion();
-            rotRHip = msg.ReadCompressedQuaternion();
-            rotLKnee = msg.ReadCompressedQuaternion();
-            rotRKnee = msg.ReadCompressedQuaternion();
-            rotLAnkle = msg.ReadCompressedQuaternion();
-            rotRAnkle = msg.ReadCompressedQuaternion();
-            rotSpine1 = msg.ReadCompressedQuaternion();
-            rotSpine2 = msg.ReadCompressedQuaternion();
-            rotSpineTop = msg.ReadCompressedQuaternion();
-            rotLClavicle = msg.ReadCompressedQuaternion();
-            rotRClavicle = msg.ReadCompressedQuaternion();
-            rotNeck = msg.ReadCompressedQuaternion();
-            rotLShoulder = msg.ReadCompressedQuaternion();
-            rotRShoulder = msg.ReadCompressedQuaternion();
-            rotLElbow = msg.ReadCompressedQuaternion();
-            rotRElbow = msg.ReadCompressedQuaternion();
-            rotLWrist = msg.ReadCompressedQuaternion();
-            rotRWrist = msg.ReadCompressedQuaternion();
+            rotMain = msg.ReadSmallerCompressedQuaternion();
+            rotRoot = msg.ReadSmallerCompressedQuaternion();
+            rotLHip = msg.ReadSmallerCompressedQuaternion();
+            rotRHip = msg.ReadSmallerCompressedQuaternion();
+            rotLKnee = msg.ReadSmallerCompressedQuaternion();
+            rotRKnee = msg.ReadSmallerCompressedQuaternion();
+            rotLAnkle = msg.ReadSmallerCompressedQuaternion();
+            rotRAnkle = msg.ReadSmallerCompressedQuaternion();
+            rotSpine1 = msg.ReadSmallerCompressedQuaternion();
+            rotSpine2 = msg.ReadSmallerCompressedQuaternion();
+            rotSpineTop = msg.ReadSmallerCompressedQuaternion();
+            rotLClavicle = msg.ReadSmallerCompressedQuaternion();
+            rotRClavicle = msg.ReadSmallerCompressedQuaternion();
+            rotNeck = msg.ReadSmallerCompressedQuaternion();
+            rotLShoulder = msg.ReadSmallerCompressedQuaternion();
+            rotRShoulder = msg.ReadSmallerCompressedQuaternion();
+            rotLElbow = msg.ReadSmallerCompressedQuaternion();
+            rotRElbow = msg.ReadSmallerCompressedQuaternion();
+            rotLWrist = msg.ReadSmallerCompressedQuaternion();
+            rotRWrist = msg.ReadSmallerCompressedQuaternion();
         }
 
         public P2PMessage MakeMsg()
@@ -395,27 +395,27 @@ namespace MultiplayerMod.Networking
             msg.WriteCompressedVector3(posLWrist, posRoot);
             msg.WriteCompressedVector3(posRWrist, posRoot);
 
-            msg.WriteCompressedQuaternion(rotMain);
-            msg.WriteCompressedQuaternion(rotRoot);
-            msg.WriteCompressedQuaternion(rotLHip);
-            msg.WriteCompressedQuaternion(rotRHip);
-            msg.WriteCompressedQuaternion(rotLKnee);
-            msg.WriteCompressedQuaternion(rotRKnee);
-            msg.WriteCompressedQuaternion(rotLAnkle);
-            msg.WriteCompressedQuaternion(rotRAnkle);
+            msg.WriteSmallerCompressedQuaternion(rotMain);
+            msg.WriteSmallerCompressedQuaternion(rotRoot);
+            msg.WriteSmallerCompressedQuaternion(rotLHip);
+            msg.WriteSmallerCompressedQuaternion(rotRHip);
+            msg.WriteSmallerCompressedQuaternion(rotLKnee);
+            msg.WriteSmallerCompressedQuaternion(rotRKnee);
+            msg.WriteSmallerCompressedQuaternion(rotLAnkle);
+            msg.WriteSmallerCompressedQuaternion(rotRAnkle);
 
-            msg.WriteCompressedQuaternion(rotSpine1);
-            msg.WriteCompressedQuaternion(rotSpine2);
-            msg.WriteCompressedQuaternion(rotSpineTop);
-            msg.WriteCompressedQuaternion(rotLClavicle);
-            msg.WriteCompressedQuaternion(rotRClavicle);
-            msg.WriteCompressedQuaternion(rotNeck);
-            msg.WriteCompressedQuaternion(rotLShoulder);
-            msg.WriteCompressedQuaternion(rotRShoulder);
-            msg.WriteCompressedQuaternion(rotLElbow);
-            msg.WriteCompressedQuaternion(rotRElbow);
-            msg.WriteCompressedQuaternion(rotLWrist);
-            msg.WriteCompressedQuaternion(rotRWrist);
+            msg.WriteSmallerCompressedQuaternion(rotSpine1);
+            msg.WriteSmallerCompressedQuaternion(rotSpine2);
+            msg.WriteSmallerCompressedQuaternion(rotSpineTop);
+            msg.WriteSmallerCompressedQuaternion(rotLClavicle);
+            msg.WriteSmallerCompressedQuaternion(rotRClavicle);
+            msg.WriteSmallerCompressedQuaternion(rotNeck);
+            msg.WriteSmallerCompressedQuaternion(rotLShoulder);
+            msg.WriteSmallerCompressedQuaternion(rotRShoulder);
+            msg.WriteSmallerCompressedQuaternion(rotLElbow);
+            msg.WriteSmallerCompressedQuaternion(rotRElbow);
+            msg.WriteSmallerCompressedQuaternion(rotLWrist);
+            msg.WriteSmallerCompressedQuaternion(rotRWrist);
 
             return msg;
         }
@@ -456,26 +456,26 @@ namespace MultiplayerMod.Networking
             posLWrist = msg.ReadCompressedVector3(posRoot);
             posRWrist = msg.ReadCompressedVector3(posRoot);
 
-            rotMain = msg.ReadCompressedQuaternion();
-            rotRoot = msg.ReadCompressedQuaternion();
-            rotLHip = msg.ReadCompressedQuaternion();
-            rotRHip = msg.ReadCompressedQuaternion();
-            rotLKnee = msg.ReadCompressedQuaternion();
-            rotRKnee = msg.ReadCompressedQuaternion();
-            rotLAnkle = msg.ReadCompressedQuaternion();
-            rotRAnkle = msg.ReadCompressedQuaternion();
-            rotSpine1 = msg.ReadCompressedQuaternion();
-            rotSpine2 = msg.ReadCompressedQuaternion();
-            rotSpineTop = msg.ReadCompressedQuaternion();
-            rotLClavicle = msg.ReadCompressedQuaternion();
-            rotRClavicle = msg.ReadCompressedQuaternion();
-            rotNeck = msg.ReadCompressedQuaternion();
-            rotLShoulder = msg.ReadCompressedQuaternion();
-            rotRShoulder = msg.ReadCompressedQuaternion();
-            rotLElbow = msg.ReadCompressedQuaternion();
-            rotRElbow = msg.ReadCompressedQuaternion();
-            rotLWrist = msg.ReadCompressedQuaternion();
-            rotRWrist = msg.ReadCompressedQuaternion();
+            rotMain = msg.ReadSmallerCompressedQuaternion();
+            rotRoot = msg.ReadSmallerCompressedQuaternion();
+            rotLHip = msg.ReadSmallerCompressedQuaternion();
+            rotRHip = msg.ReadSmallerCompressedQuaternion();
+            rotLKnee = msg.ReadSmallerCompressedQuaternion();
+            rotRKnee = msg.ReadSmallerCompressedQuaternion();
+            rotLAnkle = msg.ReadSmallerCompressedQuaternion();
+            rotRAnkle = msg.ReadSmallerCompressedQuaternion();
+            rotSpine1 = msg.ReadSmallerCompressedQuaternion();
+            rotSpine2 = msg.ReadSmallerCompressedQuaternion();
+            rotSpineTop = msg.ReadSmallerCompressedQuaternion();
+            rotLClavicle = msg.ReadSmallerCompressedQuaternion();
+            rotRClavicle = msg.ReadSmallerCompressedQuaternion();
+            rotNeck = msg.ReadSmallerCompressedQuaternion();
+            rotLShoulder = msg.ReadSmallerCompressedQuaternion();
+            rotRShoulder = msg.ReadSmallerCompressedQuaternion();
+            rotLElbow = msg.ReadSmallerCompressedQuaternion();
+            rotRElbow = msg.ReadSmallerCompressedQuaternion();
+            rotLWrist = msg.ReadSmallerCompressedQuaternion();
+            rotRWrist = msg.ReadSmallerCompressedQuaternion();
         }
 
         public P2PMessage MakeMsg()
@@ -506,27 +506,27 @@ namespace MultiplayerMod.Networking
             msg.WriteCompressedVector3(posLWrist, posRoot);
             msg.WriteCompressedVector3(posRWrist, posRoot);
 
-            msg.WriteCompressedQuaternion(rotMain);
-            msg.WriteCompressedQuaternion(rotRoot);
-            msg.WriteCompressedQuaternion(rotLHip);
-            msg.WriteCompressedQuaternion(rotRHip);
-            msg.WriteCompressedQuaternion(rotLKnee);
-            msg.WriteCompressedQuaternion(rotRKnee);
-            msg.WriteCompressedQuaternion(rotLAnkle);
-            msg.WriteCompressedQuaternion(rotRAnkle);
+            msg.WriteSmallerCompressedQuaternion(rotMain);
+            msg.WriteSmallerCompressedQuaternion(rotRoot);
+            msg.WriteSmallerCompressedQuaternion(rotLHip);
+            msg.WriteSmallerCompressedQuaternion(rotRHip);
+            msg.WriteSmallerCompressedQuaternion(rotLKnee);
+            msg.WriteSmallerCompressedQuaternion(rotRKnee);
+            msg.WriteSmallerCompressedQuaternion(rotLAnkle);
+            msg.WriteSmallerCompressedQuaternion(rotRAnkle);
 
-            msg.WriteCompressedQuaternion(rotSpine1);
-            msg.WriteCompressedQuaternion(rotSpine2);
-            msg.WriteCompressedQuaternion(rotSpineTop);
-            msg.WriteCompressedQuaternion(rotLClavicle);
-            msg.WriteCompressedQuaternion(rotRClavicle);
-            msg.WriteCompressedQuaternion(rotNeck);
-            msg.WriteCompressedQuaternion(rotLShoulder);
-            msg.WriteCompressedQuaternion(rotRShoulder);
-            msg.WriteCompressedQuaternion(rotLElbow);
-            msg.WriteCompressedQuaternion(rotRElbow);
-            msg.WriteCompressedQuaternion(rotLWrist);
-            msg.WriteCompressedQuaternion(rotRWrist);
+            msg.WriteSmallerCompressedQuaternion(rotSpine1);
+            msg.WriteSmallerCompressedQuaternion(rotSpine2);
+            msg.WriteSmallerCompressedQuaternion(rotSpineTop);
+            msg.WriteSmallerCompressedQuaternion(rotLClavicle);
+            msg.WriteSmallerCompressedQuaternion(rotRClavicle);
+            msg.WriteSmallerCompressedQuaternion(rotNeck);
+            msg.WriteSmallerCompressedQuaternion(rotLShoulder);
+            msg.WriteSmallerCompressedQuaternion(rotRShoulder);
+            msg.WriteSmallerCompressedQuaternion(rotLElbow);
+            msg.WriteSmallerCompressedQuaternion(rotRElbow);
+            msg.WriteSmallerCompressedQuaternion(rotLWrist);
+            msg.WriteSmallerCompressedQuaternion(rotRWrist);
 
             return msg;
         }
@@ -569,26 +569,26 @@ namespace MultiplayerMod.Networking
             posLWrist = msg.ReadCompressedVector3(posRoot);
             posRWrist = msg.ReadCompressedVector3(posRoot);
 
-            rotMain = msg.ReadCompressedQuaternion();
-            rotRoot = msg.ReadCompressedQuaternion();
-            rotLHip = msg.ReadCompressedQuaternion();
-            rotRHip = msg.ReadCompressedQuaternion();
-            rotLKnee = msg.ReadCompressedQuaternion();
-            rotRKnee = msg.ReadCompressedQuaternion();
-            rotLAnkle = msg.ReadCompressedQuaternion();
-            rotRAnkle = msg.ReadCompressedQuaternion();
-            rotSpine1 = msg.ReadCompressedQuaternion();
-            rotSpine2 = msg.ReadCompressedQuaternion();
-            rotSpineTop = msg.ReadCompressedQuaternion();
-            rotLClavicle = msg.ReadCompressedQuaternion();
-            rotRClavicle = msg.ReadCompressedQuaternion();
-            rotNeck = msg.ReadCompressedQuaternion();
-            rotLShoulder = msg.ReadCompressedQuaternion();
-            rotRShoulder = msg.ReadCompressedQuaternion();
-            rotLElbow = msg.ReadCompressedQuaternion();
-            rotRElbow = msg.ReadCompressedQuaternion();
-            rotLWrist = msg.ReadCompressedQuaternion();
-            rotRWrist = msg.ReadCompressedQuaternion();
+            rotMain = msg.ReadSmallerCompressedQuaternion();
+            rotRoot = msg.ReadSmallerCompressedQuaternion();
+            rotLHip = msg.ReadSmallerCompressedQuaternion();
+            rotRHip = msg.ReadSmallerCompressedQuaternion();
+            rotLKnee = msg.ReadSmallerCompressedQuaternion();
+            rotRKnee = msg.ReadSmallerCompressedQuaternion();
+            rotLAnkle = msg.ReadSmallerCompressedQuaternion();
+            rotRAnkle = msg.ReadSmallerCompressedQuaternion();
+            rotSpine1 = msg.ReadSmallerCompressedQuaternion();
+            rotSpine2 = msg.ReadSmallerCompressedQuaternion();
+            rotSpineTop = msg.ReadSmallerCompressedQuaternion();
+            rotLClavicle = msg.ReadSmallerCompressedQuaternion();
+            rotRClavicle = msg.ReadSmallerCompressedQuaternion();
+            rotNeck = msg.ReadSmallerCompressedQuaternion();
+            rotLShoulder = msg.ReadSmallerCompressedQuaternion();
+            rotRShoulder = msg.ReadSmallerCompressedQuaternion();
+            rotLElbow = msg.ReadSmallerCompressedQuaternion();
+            rotRElbow = msg.ReadSmallerCompressedQuaternion();
+            rotLWrist = msg.ReadSmallerCompressedQuaternion();
+            rotRWrist = msg.ReadSmallerCompressedQuaternion();
         }
 
         public P2PMessage MakeMsg()
@@ -620,27 +620,27 @@ namespace MultiplayerMod.Networking
             msg.WriteCompressedVector3(posLWrist, posRoot);
             msg.WriteCompressedVector3(posRWrist, posRoot);
 
-            msg.WriteCompressedQuaternion(rotMain);
-            msg.WriteCompressedQuaternion(rotRoot);
-            msg.WriteCompressedQuaternion(rotLHip);
-            msg.WriteCompressedQuaternion(rotRHip);
-            msg.WriteCompressedQuaternion(rotLKnee);
-            msg.WriteCompressedQuaternion(rotRKnee);
-            msg.WriteCompressedQuaternion(rotLAnkle);
-            msg.WriteCompressedQuaternion(rotRAnkle);
+            msg.WriteSmallerCompressedQuaternion(rotMain);
+            msg.WriteSmallerCompressedQuaternion(rotRoot);
+            msg.WriteSmallerCompressedQuaternion(rotLHip);
+            msg.WriteSmallerCompressedQuaternion(rotRHip);
+            msg.WriteSmallerCompressedQuaternion(rotLKnee);
+            msg.WriteSmallerCompressedQuaternion(rotRKnee);
+            msg.WriteSmallerCompressedQuaternion(rotLAnkle);
+            msg.WriteSmallerCompressedQuaternion(rotRAnkle);
 
-            msg.WriteCompressedQuaternion(rotSpine1);
-            msg.WriteCompressedQuaternion(rotSpine2);
-            msg.WriteCompressedQuaternion(rotSpineTop);
-            msg.WriteCompressedQuaternion(rotLClavicle);
-            msg.WriteCompressedQuaternion(rotRClavicle);
-            msg.WriteCompressedQuaternion(rotNeck);
-            msg.WriteCompressedQuaternion(rotLShoulder);
-            msg.WriteCompressedQuaternion(rotRShoulder);
-            msg.WriteCompressedQuaternion(rotLElbow);
-            msg.WriteCompressedQuaternion(rotRElbow);
-            msg.WriteCompressedQuaternion(rotLWrist);
-            msg.WriteCompressedQuaternion(rotRWrist);
+            msg.WriteSmallerCompressedQuaternion(rotSpine1);
+            msg.WriteSmallerCompressedQuaternion(rotSpine2);
+            msg.WriteSmallerCompressedQuaternion(rotSpineTop);
+            msg.WriteSmallerCompressedQuaternion(rotLClavicle);
+            msg.WriteSmallerCompressedQuaternion(rotRClavicle);
+            msg.WriteSmallerCompressedQuaternion(rotNeck);
+            msg.WriteSmallerCompressedQuaternion(rotLShoulder);
+            msg.WriteSmallerCompressedQuaternion(rotRShoulder);
+            msg.WriteSmallerCompressedQuaternion(rotLElbow);
+            msg.WriteSmallerCompressedQuaternion(rotRElbow);
+            msg.WriteSmallerCompressedQuaternion(rotLWrist);
+            msg.WriteSmallerCompressedQuaternion(rotRWrist);
 
             return msg;
         }
