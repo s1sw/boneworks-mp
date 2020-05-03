@@ -56,7 +56,6 @@ namespace MultiplayerMod
         public Transform rWrist;
     }
 
-
     public enum MessageType
     {
         Join,
@@ -153,44 +152,62 @@ namespace MultiplayerMod
 
         public unsafe override void OnApplicationStart()
         {
+            // Start the SteamClient, used for networking
             SteamClient.Init(823500);
             MelonModLogger.Log("Multiplayer initialising with SteamID " + SteamClient.SteamId.ToString() + ". Protocol version " + PROTOCOL_VERSION.ToString());
             ModPrefs.RegisterCategory("MPMod", "Multiplayer Settings");
             ModPrefs.RegisterPrefString("MPMod", "HostSteamID", "0");
             ModPrefs.RegisterPrefBool("MPMod", "MrCleanFord", false, "90% effective hair removal solution");
 
+            // Allows for the networking to fallback onto steam's servers
             SteamNetworking.AllowP2PPacketRelay(true);
+
+            // Create the UI and cache the PlayerRep's model
             ui = new MultiplayerUI();
             PlayerRep.LoadFord();
 
+            // Configures if the PlayerRep's are showing or hiding certain parts
             PlayerRep.showBody = true;
             PlayerRep.showHair = ModPrefs.GetBool("MPMod", "MrCleanFord");
+
+            // Initialize Discord's RichPresence
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
 
+            // Hook into the PuppetMasta health and log values
             Hook("PuppetMasta.SubBehaviourHealth", "TakeDamage", typeof(MultiplayerMod), out origTakeDamage);
 
+            #region Unused Code
             //PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
             //PlayerHooks.OnPlayerLetGoObject += PlayerHooks_OnPlayerLetGoObject;
             //BWUtil.InitialiseGunPrefabs();
+            #endregion
         }
 
         public override void OnLevelWasLoaded(int level)
         {
+            // Prevents the loadingScene from being logged
             if (level == -1) return;
+
+            // Output the loaded scene's name
             MelonModLogger.Log("Loaded scene " + level.ToString() + "(" + BoneworksSceneManager.GetSceneNameFromScenePath(level) + ") (from " + SceneManager.GetActiveScene().name + ")");
 
+            // Attempt to invoke the loaded Event
             OnLevelWasLoadedEvent?.Invoke(level);
         }
 
         public override void OnLevelWasInitialized(int level)
         {
+            // Fix the UI
             ui.Recreate();
+
+            // Log that the scene has been init'ed
             MelonModLogger.Log("Initialized scene " + level.ToString());
         }
 
         public override void OnUpdate()
         {
+            // Update RichPresence
             RichPresence.Update();
 
             if (!client.isConnected && !isServer)

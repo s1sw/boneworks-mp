@@ -24,12 +24,6 @@ namespace MultiplayerMod
 
         private GameObject uiObj;
 
-        /* ORIGINAL CODE
-        private Text playerCountText;
-        private Text preconnectText;
-        private Text clientConnectedText;
-        */
-
         private Text clientStatusText;
 
         public MultiplayerUI()
@@ -58,22 +52,6 @@ namespace MultiplayerMod
             }
         }
 
-        public void Recreate()
-        {
-            uiObj = GameObject.Instantiate(uiBundle.LoadAsset("Assets/Prefabs/Canvas.prefab").Cast<GameObject>());
-            uiObj.GetComponent<Canvas>().worldCamera = Camera.current;
-            UnityEngine.Object.DontDestroyOnLoad(uiObj);
-
-            Transform panelTransform = uiObj.transform.Find("Panel");
-
-            /* ORIGINAL CODE
-            playerCountText = panelTransform.Find("PlayerCountText").GetComponent<Text>();
-            preconnectText = panelTransform.Find("PreconnectText").GetComponent<Text>();
-            */
-
-            clientStatusText = panelTransform.Find("PlayerCountText").GetComponent<Text>();
-        }
-
         // Updates the UI based on the client's status
         public void SetState(MultiplayerUIState uiState)
         {
@@ -81,24 +59,6 @@ namespace MultiplayerMod
 
             switch (uiState)
             {
-                /* ORIGINAL CODE
-                case MultiplayerUIState.PreConnect:
-                    preconnectText.enabled = true;
-                    playerCountText.enabled = false;
-                    clientConnectedText.enabled = false;
-                    break;
-                case MultiplayerUIState.Client:
-                    preconnectText.enabled = false;
-                    clientConnectedText.enabled = true;
-                    playerCountText.enabled = false;
-                    break;
-                case MultiplayerUIState.Server:
-                    preconnectText.enabled = false;
-                    playerCountText.enabled = true;
-                    clientConnectedText.enabled = false;
-                    break;
-                */
-
                 case MultiplayerUIState.PreConnect:
                     clientStatusText.text = "MP UNOFFICIAL MOD - NOT FINISHED!";
                     break;
@@ -113,10 +73,23 @@ namespace MultiplayerMod
             }
         }
 
+        // Updates the UI to reflect the Player Count
         public void SetPlayerCount(int nPlayers, MultiplayerUIState uiState)
         {
             if (uiState == MultiplayerUIState.Server)
                 clientStatusText.text = "Players: " + nPlayers;
+        }
+
+        // Recreates the UI canvas
+        public void Recreate()
+        {
+            uiObj = GameObject.Instantiate(uiBundle.LoadAsset("Assets/Prefabs/Canvas.prefab").Cast<GameObject>());
+            uiObj.GetComponent<Canvas>().worldCamera = Camera.current;
+            UnityEngine.Object.DontDestroyOnLoad(uiObj);
+
+            Transform panelTransform = uiObj.transform.Find("Panel");
+
+            clientStatusText = panelTransform.Find("PlayerCountText").GetComponent<Text>();
         }
     }
 }

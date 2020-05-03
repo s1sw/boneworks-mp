@@ -280,7 +280,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Boneworks\BWUtil.cs" />
-    <Compile Include="Client.cs" />
+    <Compile Include="Source\Client.cs" />
     <Compile Include="Discord\ActivityManager.cs" />
     <Compile Include="Discord\Constants.cs" />
     <Compile Include="Discord\Core.cs" />
@@ -289,16 +289,16 @@
     <Compile Include="Discord\StorageManager.cs" />
     <Compile Include="Discord\StoreManager.cs" />
     <Compile Include="Boneworks\EnemyPoolManager.cs" />
-    <Compile Include="Extras\SpecialUsers.cs" />
-    <Compile Include="Extras\Utilities.cs" />
-    <Compile Include="Main.cs" />
-    <Compile Include="MultiplayerUI.cs" />
-    <Compile Include="Networking\NetworkMessages.cs" />
-    <Compile Include="Networking\P2PMessage.cs" />
-    <Compile Include="PlayerRep.cs" />
-    <Compile Include="RichPresence.cs" />
-    <Compile Include="Networking\SendUtil.cs" />
-    <Compile Include="Server.cs" />
+    <Compile Include="Source\Extras\SpecialUsers.cs" />
+    <Compile Include="Source\Extras\Utilities.cs" />
+    <Compile Include="Source\Main.cs" />
+    <Compile Include="Source\MultiplayerUI.cs" />
+    <Compile Include="Source\Networking\NetworkMessages.cs" />
+    <Compile Include="Source\Networking\P2PMessage.cs" />
+    <Compile Include="Source\PlayerRep.cs" />
+    <Compile Include="Source\RichPresence.cs" />
+    <Compile Include="Source\Networking\SendUtil.cs" />
+    <Compile Include="Source\Server.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Facepunch.Steamworks\Facepunch.Steamworks.Win64.csproj">
