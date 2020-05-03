@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>BoneworksModdingToolkit</name>
+    </assembly>
+    <members>
+        <member name="M:BoneworksModdingToolkit.AssetBundles.LoadBundle(System.String,UnityEngine.AssetBundle@)">
+            <summary>
+            Loads the given bundle from Mods/AssetBundles
+            </summary>
+            <returns>True if the bundle was successfully loaded</returns>
+        </member>
+        <member name="M:BoneworksModdingToolkit.BMTManager.UpdateSpawnMenu">
+            <summary>
+            Resets object pools and updates the UI
+            </summary>
+        </member>
+        <member name="M:BoneworksModdingToolkit.SpawnMenu.AddItem(UnityEngine.GameObject,System.Int32,System.String,StressLevelZero.Data.CategoryFilters)">
+            <summary>
+            Prefab should be a new unique instance of the object.
+            You need to switch levels for new items to show up.
+            </summary>
+        </member>
+        <member name="M:BoneworksModdingToolkit.SpawnMenu.UpdateUI">
+            <summary>
+            Should only be run when the spawn menu is opened. Not every frame!
+            </summary>
+            <returns>True if the UI was successfully updated.</returns>
+        </member>
+        <member name="M:BoneworksModdingToolkit.SpawnMenu.UpdatePools">
+            <summary>
+            Destroys existing pools and creates new ones
+            </summary>
+        </member>
+	<member name="M:BoneworksModdingToolkit.Banning.AddToBanList">
+            <summary>
+            Add's a Steam ID to the banned list of ID's
+            </summary>
+        </member>
+    </members>
+</doc>

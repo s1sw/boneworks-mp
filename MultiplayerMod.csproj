@@ -43,8 +43,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="BoneHook">
-      <HintPath>Dependencies\BoneHook.dll</HintPath>
+    <Reference Include="BoneworksModdingToolkit">
+      <HintPath>Dependencies\BoneworksModdingToolkit.dll</HintPath>
     </Reference>
     <Reference Include="ch.sycoforge.Decal, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

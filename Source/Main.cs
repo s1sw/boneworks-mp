@@ -8,7 +8,6 @@ using Facepunch.Steamworks;
 using Discord;
 using StressLevelZero.Props;
 using StressLevelZero.Props.Weapons;
-using BoneHook;
 
 using static UnityEngine.Object;
 using Utilties;
@@ -32,7 +31,7 @@ namespace MultiplayerMod
         public const string Name = "Multiplayer Mod";
         public const string Author = "Someone Somewhere";
         public const string Company = "Lava Gang";
-        public const string Version = "0.11.0";
+        public const string Version = "0.10.3";
         public const string DownloadLink = "https://discord.gg/2Wn3N2P";
     }
 
@@ -73,15 +72,6 @@ namespace MultiplayerMod
 
         public unsafe override void OnApplicationStart()
         {
-            try
-            {
-                if (!SteamClient.IsValid)
-                    SteamClient.Init(823500);
-            }
-            catch (Exception e)
-            {
-                MelonModLogger.LogError("Caught exception while initialising Steam client. This is likely a result of having the Boneworks Modding Toolkit installed.");
-            }
             MelonModLogger.Log("Multiplayer initialising with SteamID " + SteamClient.SteamId.ToString() + ". Protocol version " + PROTOCOL_VERSION.ToString());
 
             // Set up prefs
