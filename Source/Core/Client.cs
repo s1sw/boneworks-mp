@@ -18,6 +18,7 @@ using StressLevelZero.Pool;
 using StressLevelZero.AI;
 
 using MultiplayerMod.Structs;
+using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
 
 namespace MultiplayerMod.Core

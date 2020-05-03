@@ -26,35 +26,6 @@ using MultiplayerMod.Representations;
 
 namespace MultiplayerMod
 {
-    public static class FileInfo
-    {
-        public const string Name = "Multiplayer Mod";
-        public const string Author = "Someone Somewhere";
-        public const string Company = "Lava Gang";
-        public const string Version = "0.10.3";
-        public const string DownloadLink = "https://discord.gg/2Wn3N2P";
-    }
-
-    public enum MessageType
-    {
-        Join,
-        PlayerName,
-        OtherPlayerName,
-        PlayerPosition,
-        OtherPlayerPosition,
-        Disconnect,
-        ServerShutdown,
-        JoinRejected,
-        SceneTransition,
-        FullRig,
-        OtherFullRig,
-        HandGunChange,
-        OtherHandGunChange,
-        SetPartyId,
-        EnemyRigTransform,
-        Attack
-    }
-
     public partial class MultiplayerMod : MelonMod
     {
         // TODO: Enforce player limit
@@ -94,11 +65,11 @@ namespace MultiplayerMod
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
 
-            #region Unused Code
+#region Unused Code
             //PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
             //PlayerHooks.OnPlayerLetGoObject += PlayerHooks_OnPlayerLetGoObject;
             //BWUtil.InitialiseGunPrefabs();
-            #endregion
+#endregion
         }
 
         public override void OnLevelWasLoaded(int level)

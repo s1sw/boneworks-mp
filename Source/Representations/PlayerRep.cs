@@ -16,6 +16,7 @@ using UnityEngine;
 using static UnityEngine.Object;
 
 using MultiplayerMod.Structs;
+using MultiplayerMod.Networking;
 
 namespace MultiplayerMod.Representations
 {
