@@ -38,6 +38,7 @@ namespace MultiplayerMod
         readonly byte[] rBytes;
         int rPos = 0;
 
+        // Blank constructor?
         public P2PMessage()
         {
         }

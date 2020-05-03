@@ -23,9 +23,14 @@ namespace MultiplayerMod
         private GameObject uiPrefab;
 
         private GameObject uiObj;
+
+        /* ORIGINAL CODE
         private Text playerCountText;
         private Text preconnectText;
         private Text clientConnectedText;
+        */
+
+        private Text clientStatusText;
 
         public MultiplayerUI()
         {
@@ -61,14 +66,22 @@ namespace MultiplayerMod
 
             Transform panelTransform = uiObj.transform.Find("Panel");
 
+            /* ORIGINAL CODE
             playerCountText = panelTransform.Find("PlayerCountText").GetComponent<Text>();
             preconnectText = panelTransform.Find("PreconnectText").GetComponent<Text>();
+            */
+
+            clientStatusText = panelTransform.Find("PlayerCountText").GetComponent<Text>();
         }
 
-        public void SetState(MultiplayerUIState f)
+        // Updates the UI based on the client's status
+        public void SetState(MultiplayerUIState uiState)
         {
-            switch (f)
+            clientStatusText.enabled = true;
+
+            switch (uiState)
             {
+                /* ORIGINAL CODE
                 case MultiplayerUIState.PreConnect:
                     preconnectText.enabled = true;
                     playerCountText.enabled = false;
@@ -84,12 +97,26 @@ namespace MultiplayerMod
                     playerCountText.enabled = true;
                     clientConnectedText.enabled = false;
                     break;
+                */
+
+                case MultiplayerUIState.PreConnect:
+                    clientStatusText.text = "MP UNOFFICIAL MOD - NOT FINISHED!";
+                    break;
+
+                case MultiplayerUIState.Client:
+                    clientStatusText.text = "Connected";
+                    break;
+
+                case MultiplayerUIState.Server:
+                    clientStatusText.text = "Hosting";
+                    break;
             }
         }
 
-        public void SetPlayerCount(int nPlayers)
+        public void SetPlayerCount(int nPlayers, MultiplayerUIState uiState)
         {
-            playerCountText.text = "Players: " + nPlayers;
+            if (uiState == MultiplayerUIState.Server)
+                clientStatusText.text = "Players: " + nPlayers;
         }
     }
 }
