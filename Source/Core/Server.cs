@@ -17,6 +17,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using static UnityEngine.Object;
 
+using MultiplayerMod.Structs;
 using MultiplayerMod.Representations;
 
 namespace MultiplayerMod.Core

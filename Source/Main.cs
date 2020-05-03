@@ -22,6 +22,7 @@ using System.Runtime.InteropServices;
 using System.Linq;
 
 using MultiplayerMod.Core;
+using MultiplayerMod.Structs;
 using MultiplayerMod.Representations;
 
 namespace MultiplayerMod
@@ -33,30 +34,6 @@ namespace MultiplayerMod
         public const string Company = "Lava Gang";
         public const string Version = "0.11.0";
         public const string DownloadLink = "https://discord.gg/2Wn3N2P";
-    }
-
-    public struct BoneworksRigTransforms
-    {
-        public Transform main;
-        public Transform root;
-        public Transform lHip;
-        public Transform rHip;
-        public Transform spine1;
-        public Transform spine2;
-        public Transform spineTop;
-        public Transform lClavicle;
-        public Transform rClavicle;
-        public Transform neck;
-        public Transform lShoulder;
-        public Transform rShoulder;
-        public Transform lElbow;
-        public Transform rElbow;
-        public Transform lKnee;
-        public Transform rKnee;
-        public Transform lAnkle;
-        public Transform rAnkle;
-        public Transform lWrist;
-        public Transform rWrist;
     }
 
     public enum MessageType
@@ -155,9 +132,10 @@ namespace MultiplayerMod
 
         public unsafe override void OnApplicationStart()
         {
-            // Start the SteamClient, used for networking
             SteamClient.Init(823500);
             MelonModLogger.Log("Multiplayer initialising with SteamID " + SteamClient.SteamId.ToString() + ". Protocol version " + PROTOCOL_VERSION.ToString());
+
+            // Set up prefs
             ModPrefs.RegisterCategory("MPMod", "Multiplayer Settings");
             ModPrefs.RegisterPrefString("MPMod", "HostSteamID", "0");
             ModPrefs.RegisterPrefBool("MPMod", "MrCleanFord", false, "90% effective hair removal solution");
@@ -177,7 +155,7 @@ namespace MultiplayerMod
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
 
-            // Hook into the PuppetMasta health and log values
+            // Hook into the PuppetMasta, patches method to log debug info
             Hook("PuppetMasta.SubBehaviourHealth", "TakeDamage", typeof(MultiplayerMod), out origTakeDamage);
 
             #region Unused Code
@@ -189,28 +167,21 @@ namespace MultiplayerMod
 
         public override void OnLevelWasLoaded(int level)
         {
-            // Prevents the loadingScene from being logged
             if (level == -1) return;
 
-            // Output the loaded scene's name
             MelonModLogger.Log("Loaded scene " + level.ToString() + "(" + BoneworksSceneManager.GetSceneNameFromScenePath(level) + ") (from " + SceneManager.GetActiveScene().name + ")");
 
-            // Attempt to invoke the loaded Event
             OnLevelWasLoadedEvent?.Invoke(level);
         }
 
         public override void OnLevelWasInitialized(int level)
         {
-            // Fix the UI
             ui.Recreate();
-
-            // Log that the scene has been init'ed
             MelonModLogger.Log("Initialized scene " + level.ToString());
         }
 
         public override void OnUpdate()
         {
-            // Update RichPresence
             RichPresence.Update();
 
             if (!client.isConnected && !isServer)
@@ -293,7 +264,7 @@ namespace MultiplayerMod
             //}
             #endregion
 
-            // Does stuff with the nullbody pool? That's my best guess...
+            // Does stuff with the nullbody pool? Sorry, that's my best guess...
             if (Input.GetKeyDown(KeyCode.P))
             {
                 Pool nullbodyPool = null;
@@ -415,7 +386,6 @@ namespace MultiplayerMod
 
         public override void OnApplicationQuit()
         {
-            // Stop connections if the game has closed
             if (client.isConnected)
                 client.Disconnect();
 

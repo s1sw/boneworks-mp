@@ -299,6 +299,7 @@
     <Compile Include="Source\Core\RichPresence.cs" />
     <Compile Include="Source\Networking\SendUtil.cs" />
     <Compile Include="Source\Core\Server.cs" />
+    <Compile Include="Source\Structs\RigTransforms.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Facepunch.Steamworks\Facepunch.Steamworks.Win64.csproj">
