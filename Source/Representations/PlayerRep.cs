@@ -200,7 +200,7 @@ namespace MultiplayerMod.Representations
 
             // If for whatever reason this is needed, show or hide the rep's body and hair
             root.transform.Find("geoGrp/brett_body").GetComponent<SkinnedMeshRenderer>().enabled = showBody;
-            root.transform.Find("geoGrp/brett_hair_cards").gameObject.SetActive(showHair);
+            root.transform.Find("geoGrp/brett_hairCards").gameObject.SetActive(showHair);
 
             #region Unused Code
             // IK code?
@@ -222,29 +222,7 @@ namespace MultiplayerMod.Representations
             #endregion
 
             // Assign the transforms for the rep
-            rigTransforms = new BoneworksRigTransforms()
-            {
-                main = root.transform.Find("SHJntGrp/MAINSHJnt"),
-                root = root.transform.Find("SHJntGrp/MAINSHJnt/ROOTSHJnt"),
-                lHip = realRoot.Find("l_Leg_HipSHJnt"),
-                rHip = realRoot.Find("r_Leg_HipSHJnt"),
-                spine1 = realRoot.Find("Spine_01SHJnt"),
-                spine2 = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt"),
-                spineTop = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt"),
-                lClavicle = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/l_Arm_ClavicleSHJnt"),
-                rClavicle = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/r_Arm_ClavicleSHJnt"),
-                lShoulder = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/l_Arm_ClavicleSHJnt/l_AC_AuxSHJnt/l_Arm_ShoulderSHJnt"),
-                rShoulder = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/r_Arm_ClavicleSHJnt/r_AC_AuxSHJnt/r_Arm_ShoulderSHJnt"),
-                lElbow = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/l_Arm_ClavicleSHJnt/l_AC_AuxSHJnt/l_Arm_ShoulderSHJnt/l_Arm_Elbow_CurveSHJnt"),
-                rElbow = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/r_Arm_ClavicleSHJnt/r_AC_AuxSHJnt/r_Arm_ShoulderSHJnt/r_Arm_Elbow_CurveSHJnt"),
-                lWrist = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/l_Arm_ClavicleSHJnt/l_AC_AuxSHJnt/l_Arm_ShoulderSHJnt/l_Arm_Elbow_CurveSHJnt/l_WristSHJnt"),
-                rWrist = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/r_Arm_ClavicleSHJnt/r_AC_AuxSHJnt/r_Arm_ShoulderSHJnt/r_Arm_Elbow_CurveSHJnt/r_WristSHJnt"),
-                neck = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt"),
-                lAnkle = realRoot.Find("l_Leg_HipSHJnt/l_Leg_KneeSHJnt/l_Leg_AnkleSHJnt"),
-                rAnkle = realRoot.Find("r_Leg_HipSHJnt/r_Leg_KneeSHJnt/r_Leg_AnkleSHJnt"),
-                lKnee = realRoot.Find("l_Leg_HipSHJnt/l_Leg_KneeSHJnt"),
-                rKnee = realRoot.Find("r_Leg_HipSHJnt/r_Leg_KneeSHJnt"),
-            };
+            rigTransforms = BWUtil.GetHumanoidRigTransforms(root);
 
             // Grab these body parts from the rigTransforms
             head = rigTransforms.neck.gameObject;
@@ -263,9 +241,9 @@ namespace MultiplayerMod.Representations
             // Prevents the nameplate from being destroyed during a level change
             DontDestroyOnLoad(namePlate);
 
-            MelonCoroutines.Start(AsyncAvatarRoutine(SteamFriends.GetLargeAvatarAsync(steamId)));
+            MelonCoroutines.Start(AsyncAvatarRoutine(steamId));
 
-            // Gives certain user's special appearances
+            // Gives certain users special appearances
             Extras.SpecialUsers.GiveUniqueAccessories(steamId, realRoot);
 
             // Change the shader to the one that's already used in the game
@@ -296,9 +274,10 @@ namespace MultiplayerMod.Representations
             #endregion
         }
 
-        private IEnumerator AsyncAvatarRoutine(Task<Image?> imageTask)
+        private IEnumerator AsyncAvatarRoutine(SteamId id)
         {
-            while(!imageTask.IsCompleted)
+            Task<Image?> imageTask = SteamFriends.GetLargeAvatarAsync(id);
+            while (!imageTask.IsCompleted)
             {
                 // WaitForEndOfFrame is broken in MelonLoader, so use WaitForSeconds
                 yield return new WaitForSeconds(0.011f);
