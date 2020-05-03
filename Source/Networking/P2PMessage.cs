@@ -73,6 +73,11 @@ namespace MultiplayerMod.Networking
             byteChunks.Add(new byte[] { b });
         }
 
+        public void WriteSignedByte(sbyte s)
+        {
+            byteChunks.Add(new byte[] { (byte)s });
+        }
+
         public void WriteFloat(float f)
         {
             byteChunks.Add(BitConverter.GetBytes(f));
@@ -112,7 +117,7 @@ namespace MultiplayerMod.Networking
             WriteFloat(q.w);
         }
 
-        private const float FLOAT_PRECISION_MULT = 127.0f;
+        private const float FLOAT_PRECISION_MULT = 32767.0f;
 
         public void WriteCompressedQuaternion(Quaternion rotation)
         {
@@ -150,15 +155,15 @@ namespace MultiplayerMod.Networking
                 // represent the same rotation. We only need to send the index of the single element whose value
                 // is 1f in order to recreate an equivalent rotation on the receiver.
                 WriteByte((byte)(maxIndex + 4));
-                WriteByte(0);
-                WriteByte(0);
-                WriteByte(0);
+                WriteShort(0);
+                WriteShort(0);
+                WriteShort(0);
                 return;
             }
 
-            var a = (byte)0;
-            var b = (byte)0;
-            var c = (byte)0;
+            var a = (short)0;
+            var b = (short)0;
+            var c = (short)0;
 
             // We multiply the value of each element by QUAT_PRECISION_MULT before converting to 16-bit integer 
             // in order to maintain precision. This is necessary since by definition each of the three smallest 
@@ -167,33 +172,55 @@ namespace MultiplayerMod.Networking
 
             if (maxIndex == 0)
             {
-                a = (byte)(rotation.y * sign * FLOAT_PRECISION_MULT);
-                b = (byte)(rotation.z * sign * FLOAT_PRECISION_MULT);
-                c = (byte)(rotation.w * sign * FLOAT_PRECISION_MULT);
+                a = (short)(rotation.y * sign * FLOAT_PRECISION_MULT);
+                b = (short)(rotation.z * sign * FLOAT_PRECISION_MULT);
+                c = (short)(rotation.w * sign * FLOAT_PRECISION_MULT);
             }
             else if (maxIndex == 1)
             {
-                a = (byte)(rotation.x * sign * FLOAT_PRECISION_MULT);
-                b = (byte)(rotation.z * sign * FLOAT_PRECISION_MULT);
-                c = (byte)(rotation.w * sign * FLOAT_PRECISION_MULT);
+                a = (short)(rotation.x * sign * FLOAT_PRECISION_MULT);
+                b = (short)(rotation.z * sign * FLOAT_PRECISION_MULT);
+                c = (short)(rotation.w * sign * FLOAT_PRECISION_MULT);
             }
             else if (maxIndex == 2)
             {
-                a = (byte)(rotation.x * sign * FLOAT_PRECISION_MULT);
-                b = (byte)(rotation.y * sign * FLOAT_PRECISION_MULT);
-                c = (byte)(rotation.w * sign * FLOAT_PRECISION_MULT);
+                a = (short)(rotation.x * sign * FLOAT_PRECISION_MULT);
+                b = (short)(rotation.y * sign * FLOAT_PRECISION_MULT);
+                c = (short)(rotation.w * sign * FLOAT_PRECISION_MULT);
             }
             else
             {
-                a = (byte)(rotation.x * sign * FLOAT_PRECISION_MULT);
-                b = (byte)(rotation.y * sign * FLOAT_PRECISION_MULT);
-                c = (byte)(rotation.z * sign * FLOAT_PRECISION_MULT);
+                a = (short)(rotation.x * sign * FLOAT_PRECISION_MULT);
+                b = (short)(rotation.y * sign * FLOAT_PRECISION_MULT);
+                c = (short)(rotation.z * sign * FLOAT_PRECISION_MULT);
             }
 
             WriteByte(maxIndex);
-            WriteByte(a);
-            WriteByte(b);
-            WriteByte(c);
+            WriteShort(a);
+            WriteShort(b);
+            WriteShort(c);
+        }
+
+        // Smaller but lower quality
+        public void WriteSmallerCompressedQuaternion(Quaternion q)
+        {
+            WriteSignedByte((sbyte)(q.x * 127.0f));
+            WriteSignedByte((sbyte)(q.y * 127.0f));
+            WriteSignedByte((sbyte)(q.z * 127.0f));
+            WriteSignedByte((sbyte)(q.w * 127.0f));
+        }
+
+        public void WriteUnicodeString(string str)
+        {
+            byte[] bArr = System.Text.Encoding.UTF8.GetBytes(str);
+            WriteByte((byte)bArr.Length);
+            byteChunks.Add(bArr);
+        }
+
+        public void WriteUlong(ulong l)
+        {
+            byte[] bArr = BitConverter.GetBytes(l);
+            byteChunks.Add(bArr);
         }
 
         public Quaternion ReadCompressedQuaternion()
@@ -217,9 +244,9 @@ namespace MultiplayerMod.Networking
             }
 
             // Read the other three fields and derive the value of the omitted field
-            var a = (float)ReadByte() / FLOAT_PRECISION_MULT;
-            var b = (float)ReadByte() / FLOAT_PRECISION_MULT;
-            var c = (float)ReadByte() / FLOAT_PRECISION_MULT;
+            var a = (float)ReadShort() / FLOAT_PRECISION_MULT;
+            var b = (float)ReadShort() / FLOAT_PRECISION_MULT;
+            var c = (float)ReadShort() / FLOAT_PRECISION_MULT;
             var d = Mathf.Sqrt(1f - (a * a + b * b + c * c));
 
             if (maxIndex == 0)
@@ -230,6 +257,11 @@ namespace MultiplayerMod.Networking
                 return new Quaternion(a, b, d, c);
 
             return new Quaternion(a, b, c, d);
+        }
+
+        public Quaternion ReadSmallerCompressedQuaternion()
+        {
+            return new Quaternion(ReadSignedByte() / 127.0f, ReadSignedByte() / 127.0f, ReadSignedByte() / 127.0f, ReadSignedByte() / 127.0f);
         }
 
         public Vector3 ReadCompressedVector3(Vector3 basis, float range = 2.0f)
@@ -245,22 +277,16 @@ namespace MultiplayerMod.Networking
             return new Vector3(fX, fY, fZ) + basis;
         }
 
-        public void WriteUnicodeString(string str)
-        {
-            byte[] bArr = System.Text.Encoding.UTF8.GetBytes(str);
-            WriteByte((byte)bArr.Length);
-            byteChunks.Add(bArr);
-        }
-
-        public void WriteUlong(ulong l)
-        {
-            byte[] bArr = BitConverter.GetBytes(l);
-            byteChunks.Add(bArr);
-        }
-
         public byte ReadByte()
         {
             byte v = rBytes[rPos];
+            rPos++;
+            return v;
+        }
+
+        public sbyte ReadSignedByte()
+        {
+            sbyte v = (sbyte)rBytes[rPos];
             rPos++;
             return v;
         }
