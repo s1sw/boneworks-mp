@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using StressLevelZero.VRMK;
 
-namespace MultiplayerMod
+namespace MultiplayerMod.Networking
 {
     public static class QuatExt
     {

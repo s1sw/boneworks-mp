@@ -27,35 +27,6 @@ using MultiplayerMod.Representations;
 
 namespace MultiplayerMod
 {
-    public static class FileInfo
-    {
-        public const string Name = "Multiplayer Mod";
-        public const string Author = "Someone Somewhere";
-        public const string Company = "Lava Gang";
-        public const string Version = "0.11.0";
-        public const string DownloadLink = "https://discord.gg/2Wn3N2P";
-    }
-
-    public enum MessageType
-    {
-        Join,
-        PlayerName,
-        OtherPlayerName,
-        PlayerPosition,
-        OtherPlayerPosition,
-        Disconnect,
-        ServerShutdown,
-        JoinRejected,
-        SceneTransition,
-        FullRig,
-        OtherFullRig,
-        HandGunChange,
-        OtherHandGunChange,
-        SetPartyId,
-        EnemyRigTransform,
-        Attack
-    }
-
     public partial class MultiplayerMod : MelonMod
     {
         // TODO: Enforce player limit
