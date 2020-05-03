@@ -280,7 +280,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Boneworks\BWUtil.cs" />
-    <Compile Include="Source\Client.cs" />
+    <Compile Include="Source\Core\Client.cs" />
     <Compile Include="Discord\ActivityManager.cs" />
     <Compile Include="Discord\Constants.cs" />
     <Compile Include="Discord\Core.cs" />
@@ -292,13 +292,13 @@
     <Compile Include="Source\Extras\SpecialUsers.cs" />
     <Compile Include="Source\Extras\Utilities.cs" />
     <Compile Include="Source\Main.cs" />
-    <Compile Include="Source\MultiplayerUI.cs" />
+    <Compile Include="Source\Core\MultiplayerUI.cs" />
     <Compile Include="Source\Networking\NetworkMessages.cs" />
     <Compile Include="Source\Networking\P2PMessage.cs" />
-    <Compile Include="Source\PlayerRep.cs" />
-    <Compile Include="Source\RichPresence.cs" />
+    <Compile Include="Source\Representations\PlayerRep.cs" />
+    <Compile Include="Source\Core\RichPresence.cs" />
     <Compile Include="Source\Networking\SendUtil.cs" />
-    <Compile Include="Source\Server.cs" />
+    <Compile Include="Source\Core\Server.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Facepunch.Steamworks\Facepunch.Steamworks.Win64.csproj">
@@ -306,5 +306,6 @@
       <Name>Facepunch.Steamworks.Win64</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

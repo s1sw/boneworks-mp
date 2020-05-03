@@ -8,7 +8,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using MelonLoader;
 
-namespace MultiplayerMod
+namespace MultiplayerMod.Core
 {
     enum MultiplayerUIState
     {

@@ -18,7 +18,9 @@ using StressLevelZero.Utilities;
 using StressLevelZero.Pool;
 using StressLevelZero.AI;
 
-namespace MultiplayerMod
+using MultiplayerMod.Representations;
+
+namespace MultiplayerMod.Core
 {
     public class Client
     {

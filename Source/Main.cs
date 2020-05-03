@@ -21,6 +21,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Linq;
 
+using MultiplayerMod.Core;
+using MultiplayerMod.Representations;
+
 namespace MultiplayerMod
 {
     public static class FileInfo
