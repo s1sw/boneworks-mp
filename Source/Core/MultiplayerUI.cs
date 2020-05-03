@@ -7,6 +7,7 @@ using UnhollowerRuntimeLib;
 using UnityEngine;
 using UnityEngine.UI;
 using MelonLoader;
+using static UnityEngine.Object;
 
 namespace MultiplayerMod.Core
 {
@@ -20,11 +21,8 @@ namespace MultiplayerMod.Core
     class MultiplayerUI
     {
         private readonly AssetBundle uiBundle;
-        private GameObject uiPrefab;
-
         private GameObject uiObj;
-
-        private Text clientStatusText;
+        private Text statusText;
 
         public MultiplayerUI()
         {
@@ -33,7 +31,8 @@ namespace MultiplayerMod.Core
             if (uiBundle == null)
             {
                 MelonModLogger.LogError("Failed to load canvas bundle");
-                // Resort to creating a UI thing manually
+                
+                // Create a world space UI to display the error message
                 GameObject tmObj = new GameObject("TextMesh");
                 TextMesh tm = tmObj.AddComponent<TextMesh>();
                 tm.text = "You haven't installed the mod correctly!";
@@ -42,33 +41,41 @@ namespace MultiplayerMod.Core
             }
             else
             {
-                MelonLoader.MelonModLogger.Log("Loaded canvas bundle");
-                // Would like to use the generic version here, but that breaks due to IL2CPP
-                uiPrefab = uiBundle.LoadAsset("Assets/Prefabs/Canvas.prefab").Cast<GameObject>();
-                if (uiPrefab == null)
-                    MelonLoader.MelonModLogger.LogError("Couldn't find prefab");
+                MelonModLogger.Log("Loaded canvas bundle");
                 Recreate();
 
             }
         }
 
+        public void Recreate()
+        {
+            GameObject uiPrefab = uiBundle.LoadAsset("Assets/Prefabs/Canvas.prefab").Cast<GameObject>();
+            uiObj = Instantiate(uiPrefab);
+            uiObj.GetComponent<Canvas>().worldCamera = Camera.current;
+            DontDestroyOnLoad(uiObj);
+
+            Transform panelTransform = uiObj.transform.Find("Panel");
+
+            statusText = panelTransform.Find("StatusText").GetComponent<Text>();
+        }
+
         // Updates the UI based on the client's status
         public void SetState(MultiplayerUIState uiState)
         {
-            clientStatusText.enabled = true;
+            statusText.enabled = true;
 
             switch (uiState)
             {
                 case MultiplayerUIState.PreConnect:
-                    clientStatusText.text = "MP UNOFFICIAL MOD - NOT FINISHED!";
+                    statusText.text = "Not connected. Press S to start a server.";
                     break;
 
                 case MultiplayerUIState.Client:
-                    clientStatusText.text = "Connected";
+                    statusText.text = "Connected";
                     break;
 
                 case MultiplayerUIState.Server:
-                    clientStatusText.text = "Hosting";
+                    statusText.text = "Hosting";
                     break;
             }
         }
@@ -77,7 +84,7 @@ namespace MultiplayerMod.Core
         public void SetPlayerCount(int nPlayers, MultiplayerUIState uiState)
         {
             if (uiState == MultiplayerUIState.Server)
-                clientStatusText.text = "Players: " + nPlayers;
+                statusText.text = $"Currently hosting {nPlayers} players";
         }
 
         // Recreates the UI canvas

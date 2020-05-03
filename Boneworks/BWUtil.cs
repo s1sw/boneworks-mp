@@ -20,6 +20,25 @@ namespace MultiplayerMod
         CorruptedNullBody
     }
 
+    public enum GunType
+    {
+        EDER22,
+        M1911,
+        P350,
+        MP5K,
+        MP5KFlashlight,
+        MP5KSabrelake,
+        MP5,
+        MK18Holo,
+        MK18Sabrelake,
+        MK18LaserForegrip,
+        M16Naked,
+        M16Ironsights,
+        M16LaserForegrip,
+        M16ACOG,
+        Uzi
+    }
+
     static class BWUtil
     {
         private static readonly Dictionary<GunType, GameObject> gunPrefabs = new Dictionary<GunType, GameObject>()

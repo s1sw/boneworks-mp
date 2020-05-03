@@ -395,7 +395,8 @@ namespace MultiplayerMod.Core
             {
                 pr.UpdateNameplateFacing(Camera.current.transform);
             }
-
+            // Disabled temporarily
+#if false
             {
                 enemyPoolManager.FindMissingPools();
                 Pool pool = enemyPoolManager.GetPool(EnemyType.NullBody);
@@ -456,6 +457,7 @@ namespace MultiplayerMod.Core
                     ServerSendToAll(ertf, P2PSend.UnreliableNoDelay);
                 }
             }
+#endif
         }
 
         private void OnP2PSessionRequest(SteamId id)

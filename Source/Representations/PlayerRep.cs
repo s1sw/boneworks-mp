@@ -62,20 +62,10 @@ namespace MultiplayerMod.Representations
         // Constructor
         public PlayerRep(string name, SteamId steamId)
         {
-            // Take the passed steamId, and assign it to this
             this.steamId = steamId;
 
             // Create this player's "Ford" to represent them, known as their rep
             GameObject ford = Instantiate(fordBundle.LoadAsset("Assets/Ford.prefab").Cast<GameObject>());
-
-            // Attempts to fix any broken shaders
-            foreach (SkinnedMeshRenderer smr in ford.GetComponentsInChildren<SkinnedMeshRenderer>())
-            {
-                foreach (Material m in smr.sharedMaterials)
-                {
-                    m.shader = Shader.Find("Valve/vr_standard");
-                }
-            }
 
             // Makes sure that the rep isn't destroyed per level change.
             DontDestroyOnLoad(ford);
@@ -270,40 +260,20 @@ namespace MultiplayerMod.Representations
             // Prevents the nameplate from being destroyed during a level change
             DontDestroyOnLoad(namePlate);
 
-            /* ORIGINAL COPY
-            var op = SteamFriends.GetLargeAvatarAsync(steamId);
-            op.Wait();
-            if (op.Result.HasValue)
-            {
-                GameObject avatar = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                UnityEngine.Object.Destroy(avatar.GetComponent<Collider>());
-                var avatarMr = avatar.GetComponent<MeshRenderer>();
-                var avatarMat = avatarMr.material;
-                avatarMat.shader = Shader.Find("Unlit/Texture");
-
-                var val = op.Result.Value;
-
-                Texture2D returnTexture = new Texture2D((int)val.Width, (int)val.Height, TextureFormat.RGBA32, false, true);
-                GCHandle pinnedArray = GCHandle.Alloc(val.Data, GCHandleType.Pinned);
-                IntPtr pointer = pinnedArray.AddrOfPinnedObject();
-                returnTexture.LoadRawTextureData(pointer, val.Data.Length);
-                returnTexture.Apply();
-                pinnedArray.Free();
-
-                avatarMat.mainTexture = returnTexture;
-
-                avatar.transform.SetParent(namePlate.transform);
-                avatar.transform.localScale = new Vector3(0.25f, -0.25f, 0.25f);
-                avatar.transform.localPosition = new Vector3(0.0f, 0.2f, 0.0f);
-            }
-            */
-
             task_asyncLoadPlayerIcon = SteamFriends.GetLargeAvatarAsync(steamId);
 
             // Gives certain user's special appearances
             Extras.SpecialUsers.GiveUniqueAccessories(steamId, realRoot);
 
-            // Does a second attempt to fix any broken shaders
+            // Change the shader to the one that's already used in the game
+            // Without this, the player model will only show in one eye
+            foreach (SkinnedMeshRenderer smr in ford.GetComponentsInChildren<SkinnedMeshRenderer>())
+            {
+                foreach (Material m in smr.sharedMaterials)
+                {
+                    m.shader = Shader.Find("Valve/vr_standard");
+                }
+            }
             foreach (MeshRenderer smr in ford.GetComponentsInChildren<MeshRenderer>())
             {
                 foreach (Material m in smr.sharedMaterials)
@@ -335,12 +305,12 @@ namespace MultiplayerMod.Representations
                 var avatarMat = avatarMr.material;
                 avatarMat.shader = Shader.Find("Unlit/Texture");
 
-                var val = task_asyncLoadPlayerIcon.Result.Value;
+                var avatarIcon = task_asyncLoadPlayerIcon.Result.Value;
 
-                Texture2D returnTexture = new Texture2D((int)val.Width, (int)val.Height, TextureFormat.RGBA32, false, true);
-                GCHandle pinnedArray = GCHandle.Alloc(val.Data, GCHandleType.Pinned);
+                Texture2D returnTexture = new Texture2D((int)avatarIcon.Width, (int)avatarIcon.Height, TextureFormat.RGBA32, false, true);
+                GCHandle pinnedArray = GCHandle.Alloc(avatarIcon.Data, GCHandleType.Pinned);
                 IntPtr pointer = pinnedArray.AddrOfPinnedObject();
-                returnTexture.LoadRawTextureData(pointer, val.Data.Length);
+                returnTexture.LoadRawTextureData(pointer, avatarIcon.Data.Length);
                 returnTexture.Apply();
                 pinnedArray.Free();
 
@@ -369,7 +339,7 @@ namespace MultiplayerMod.Representations
             }
         }
 
-        // Destroys the GameObject's stored inside this class, preparing this instance for deletion
+        // Destroys the GameObjects stored inside this class, preparing this instance for deletion
         public void Destroy()
         {
             UnityEngine.Object.Destroy(ford);
@@ -383,65 +353,7 @@ namespace MultiplayerMod.Representations
         // Applies the information recieved from the Transform packet
         public void ApplyTransformMessage<T>(T tfMsg) where T : RigTFMsgBase
         {
-            rigTransforms.main.position = tfMsg.posMain;
-            rigTransforms.main.rotation = tfMsg.rotMain;
-
-            rigTransforms.root.position = tfMsg.posRoot;
-            rigTransforms.root.rotation = tfMsg.rotRoot;
-
-            rigTransforms.lHip.position = tfMsg.posLHip;
-            rigTransforms.lHip.rotation = tfMsg.rotLHip;
-
-            rigTransforms.rHip.position = tfMsg.posRHip;
-            rigTransforms.rHip.rotation = tfMsg.rotRHip;
-
-            rigTransforms.lAnkle.position = tfMsg.posLAnkle;
-            rigTransforms.lAnkle.rotation = tfMsg.rotLAnkle;
-
-            rigTransforms.rAnkle.position = tfMsg.posRAnkle;
-            rigTransforms.rAnkle.rotation = tfMsg.rotRAnkle;
-
-            rigTransforms.lKnee.position = tfMsg.posLKnee;
-            rigTransforms.lKnee.rotation = tfMsg.rotLKnee;
-
-            rigTransforms.rKnee.position = tfMsg.posRKnee;
-            rigTransforms.rKnee.rotation = tfMsg.rotRKnee;
-
-            rigTransforms.spine1.position = tfMsg.posSpine1;
-            rigTransforms.spine1.rotation = tfMsg.rotSpine1;
-
-            rigTransforms.spine2.position = tfMsg.posSpine2;
-            rigTransforms.spine2.rotation = tfMsg.rotSpine2;
-
-            rigTransforms.spineTop.position = tfMsg.posSpineTop;
-            rigTransforms.spineTop.rotation = tfMsg.rotSpineTop;
-
-            rigTransforms.lClavicle.position = tfMsg.posLClavicle;
-            rigTransforms.lClavicle.rotation = tfMsg.rotLClavicle;
-
-            rigTransforms.rClavicle.position = tfMsg.posRClavicle;
-            rigTransforms.rClavicle.rotation = tfMsg.rotRClavicle;
-
-            rigTransforms.neck.position = tfMsg.posNeck;
-            rigTransforms.neck.rotation = tfMsg.rotNeck;
-
-            rigTransforms.lShoulder.position = tfMsg.posLShoulder;
-            rigTransforms.lShoulder.rotation = tfMsg.rotLShoulder;
-
-            rigTransforms.rShoulder.position = tfMsg.posRShoulder;
-            rigTransforms.rShoulder.rotation = tfMsg.rotRShoulder;
-
-            rigTransforms.lElbow.position = tfMsg.posLElbow;
-            rigTransforms.lElbow.rotation = tfMsg.rotLElbow;
-
-            rigTransforms.rElbow.position = tfMsg.posRElbow;
-            rigTransforms.rElbow.rotation = tfMsg.rotRElbow;
-
-            rigTransforms.lWrist.position = tfMsg.posLWrist;
-            rigTransforms.lWrist.rotation = tfMsg.rotLWrist;
-
-            rigTransforms.rWrist.position = tfMsg.posRWrist;
-            rigTransforms.rWrist.rotation = tfMsg.rotRWrist;
+            BWUtil.ApplyRigTransform(rigTransforms, tfMsg);
         }
     }
 }
