@@ -115,6 +115,12 @@ namespace MultiplayerMod
 
         static TakeDamageDelegate origTakeDamage;
 
+#if DEBUG
+        // If DEBUG symbol exists, allow for the test representation to be created
+        private bool useTestModel = false;
+        private PlayerRep testRep;
+#endif
+
         private static void Hook(IntPtr orig, IntPtr reflect)
         {
             typeof(Imports).GetMethod("Hook", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { orig, reflect });
@@ -177,131 +183,10 @@ namespace MultiplayerMod
             OnLevelWasLoadedEvent?.Invoke(level);
         }
 
-        private void FixObjectShaders(GameObject obj)
-        {
-            foreach (SkinnedMeshRenderer smr in obj.GetComponentsInChildren<SkinnedMeshRenderer>())
-            {
-                foreach (Material m in smr.sharedMaterials)
-                {
-                    m.shader = Shader.Find("Valve/vr_standard");
-                }
-            }
-
-            foreach (MeshRenderer smr in obj.GetComponentsInChildren<MeshRenderer>())
-            {
-                foreach (Material m in smr.sharedMaterials)
-                {
-                    string sName = m.shader.name;
-                    sName = sName.Replace(" (to_replace)", "");
-                    m.shader = Shader.Find(sName);
-                }
-            }
-        }
-
         public override void OnLevelWasInitialized(int level)
         {
             ui.Recreate();
             MelonModLogger.Log("Initialized scene " + level.ToString());
-        }
-
-#if DEBUG
-        private bool useTestModel = false;
-        private PlayerRep testRep;
-#endif
-
-        public void PrintProps<T>(T t)
-        {
-            MelonModLogger.Log("====== Type " + t.ToString() + "======");
-
-            System.Reflection.PropertyInfo[] props = typeof(T).GetProperties();
-
-            foreach (var pi in props)
-            {
-                //if (pi.PropertyType.IsPrimitive)
-                try
-                {
-                    var val = pi.GetValue(t);
-                    if (val != null)
-                        MelonModLogger.Log(pi.Name + ": " + val.ToString());
-                    else
-                        MelonModLogger.Log(pi.Name + ": null");
-                }
-                catch
-                {
-                    MelonModLogger.LogError("Error tring to get property " + pi.Name);
-                }
-            }
-        }
-
-        public void PrintComponentProps<T>(GameObject go)
-        {
-            try
-            {
-                if (go == null)
-                    MelonModLogger.LogError("go was null???");
-
-                T t = go.GetComponent<T>();
-
-                if (t == null)
-                    MelonModLogger.LogError("Couldn't find component " + t.GetType().Name);
-
-                MelonModLogger.Log("====== Component type " + t.ToString() + "======");
-
-                System.Reflection.PropertyInfo[] props = typeof(T).GetProperties();
-
-                foreach (var pi in props)
-                {
-                    //if (pi.PropertyType.IsPrimitive)
-                    try
-                    {
-                        var val = pi.GetValue(t);
-                        if (val != null)
-                            MelonModLogger.Log(pi.Name + ": " + val.ToString());
-                        else
-                            MelonModLogger.Log(pi.Name + ": null");
-                    }
-                    catch
-                    {
-                        MelonModLogger.LogError("Error tring to get property " + pi.Name);
-                    }
-                }
-            }
-            catch
-            {
-                MelonModLogger.LogError("i don't know anymore");
-            }
-        }
-
-        private void PrintChildHierarchy(GameObject parent, int currentDepth = 0)
-        {
-            string offset = "";
-
-            for (int j = 0; j < currentDepth; j++)
-            {
-                offset += "\t";
-            }
-
-            MelonModLogger.Log(offset + " Has components:");
-
-            foreach (Component c in parent.GetComponents<Component>())
-            {
-                MelonModLogger.Log(offset + c.ToString());
-            }
-
-            for (int i = 0; i < parent.transform.childCount; i++)
-            {
-                GameObject child = parent.transform.GetChild(i).gameObject;
-
-                
-
-                MelonModLogger.Log(offset + "-" + child.name);
-
-                
-
-                PrintChildHierarchy(child, currentDepth + 1);
-
-                
-            }
         }
 
         public override void OnUpdate()
@@ -310,6 +195,7 @@ namespace MultiplayerMod
 
             if (!client.isConnected && !isServer)
             {
+                // If the user is not connected, start their client and attempt a connection
                 if (Input.GetKeyDown(KeyCode.C))
                 {
                     client.Connect(ModPrefs.GetString("MPMod", "HostSteamID"));
@@ -318,6 +204,7 @@ namespace MultiplayerMod
                     SteamFriends.SetRichPresence("steam_player_group", client.ServerId.ToString());
                 }
 
+                // If the user is not hosting, start their server
                 if (Input.GetKeyDown(KeyCode.S))
                 {
                     SteamFriends.SetRichPresence("steam_display", "Hosting multiplayer on " + SceneManager.GetActiveScene().name);
@@ -328,11 +215,11 @@ namespace MultiplayerMod
             }
             else
             {
+                // If the user is connected, disconnect them
                 if (Input.GetKeyDown(KeyCode.C))
-                {
                     client.Disconnect();
-                }
 
+                // If the user is hosting, stop their server
                 if (Input.GetKeyDown(KeyCode.S))
                 {
                     MelonModLogger.Log("Stopping server...");
@@ -340,7 +227,8 @@ namespace MultiplayerMod
                 }
             }
 
-//#if DEBUG
+            #region Debug Code
+            //#if DEBUG
             //if (Input.GetKeyDown(KeyCode.N))
             //{
             //    useTestModel = true;
@@ -383,7 +271,9 @@ namespace MultiplayerMod
             //        magazineObj.transform.position = Camera.current.transform.position + Camera.current.transform.forward + Vector3.up;
             //    }
             //}
+            #endregion
 
+            // Does stuff with the nullbody pool? That's my best guess...
             if (Input.GetKeyDown(KeyCode.P))
             {
                 Pool nullbodyPool = null;
@@ -431,6 +321,7 @@ namespace MultiplayerMod
                 //nullbodyPool.DespawnAll(true);
             }
 
+            #region Unused Code
             //if (useTestModel)
             //{
             //    Vector3 offsetVec = new Vector3(0.0f, 0.0f, 1.0f);
@@ -487,20 +378,24 @@ namespace MultiplayerMod
             //    testRep.UpdateNameplateFacing(Camera.current.transform);
             //}
 
-//#endif
+            //#endif
+            #endregion
         }
 
         public override void OnFixedUpdate()
         {
+            #region Unused Code
             //if (client.isConnected)
             //    client.Update();
 
             //if (isServer)
             //    server.Update();
+            #endregion
         }
 
         public override void OnApplicationQuit()
         {
+            // Stop connections if the game has closed
             if (client.isConnected)
                 client.Disconnect();
 
