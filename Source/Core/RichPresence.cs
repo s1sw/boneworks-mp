@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MultiplayerMod
+namespace MultiplayerMod.Core
 {
     public static class RichPresence
     {

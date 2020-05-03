@@ -15,7 +15,9 @@ using TMPro;
 using UnityEngine;
 using static UnityEngine.Object;
 
-namespace MultiplayerMod
+using MultiplayerMod.Structs;
+
+namespace MultiplayerMod.Representations
 {
     public class PlayerRep
     {

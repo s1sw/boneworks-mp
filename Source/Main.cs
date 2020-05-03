@@ -21,6 +21,10 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Linq;
 
+using MultiplayerMod.Core;
+using MultiplayerMod.Structs;
+using MultiplayerMod.Representations;
+
 namespace MultiplayerMod
 {
     public static class FileInfo
@@ -31,31 +35,6 @@ namespace MultiplayerMod
         public const string Version = "0.11.0";
         public const string DownloadLink = "https://discord.gg/2Wn3N2P";
     }
-
-    public struct BoneworksRigTransforms
-    {
-        public Transform main;
-        public Transform root;
-        public Transform lHip;
-        public Transform rHip;
-        public Transform spine1;
-        public Transform spine2;
-        public Transform spineTop;
-        public Transform lClavicle;
-        public Transform rClavicle;
-        public Transform neck;
-        public Transform lShoulder;
-        public Transform rShoulder;
-        public Transform lElbow;
-        public Transform rElbow;
-        public Transform lKnee;
-        public Transform rKnee;
-        public Transform lAnkle;
-        public Transform rAnkle;
-        public Transform lWrist;
-        public Transform rWrist;
-    }
-
 
     public enum MessageType
     {
@@ -104,51 +83,40 @@ namespace MultiplayerMod
                 MelonModLogger.LogError("Caught exception while initialising Steam client. This is likely a result of having the Boneworks Modding Toolkit installed.");
             }
             MelonModLogger.Log("Multiplayer initialising with SteamID " + SteamClient.SteamId.ToString() + ". Protocol version " + PROTOCOL_VERSION.ToString());
+
+            // Set up prefs
             ModPrefs.RegisterCategory("MPMod", "Multiplayer Settings");
             ModPrefs.RegisterPrefString("MPMod", "HostSteamID", "0");
             ModPrefs.RegisterPrefBool("MPMod", "BaldFord", false, "90% effective hair removal solution");
 
+            // Allows for the networking to fallback onto steam's servers
             SteamNetworking.AllowP2PPacketRelay(true);
+
+            // Create the UI and cache the PlayerRep's model
             ui = new MultiplayerUI();
             PlayerRep.LoadFord();
 
-            PlayerRep.hideBody = false;
+            // Configures if the PlayerRep's are showing or hiding certain parts
+            PlayerRep.showBody = true;
             PlayerRep.showHair = ModPrefs.GetBool("MPMod", "BaldFord");
+
+            // Initialize Discord's RichPresence
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
 
             //PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
             //PlayerHooks.OnPlayerLetGoObject += PlayerHooks_OnPlayerLetGoObject;
             //BWUtil.InitialiseGunPrefabs();
+            #endregion
         }
 
         public override void OnLevelWasLoaded(int level)
         {
             if (level == -1) return;
+
             MelonModLogger.Log("Loaded scene " + level.ToString() + "(" + BoneworksSceneManager.GetSceneNameFromScenePath(level) + ") (from " + SceneManager.GetActiveScene().name + ")");
 
             OnLevelWasLoadedEvent?.Invoke(level);
-        }
-
-        private void FixObjectShaders(GameObject obj)
-        {
-            foreach (SkinnedMeshRenderer smr in obj.GetComponentsInChildren<SkinnedMeshRenderer>())
-            {
-                foreach (Material m in smr.sharedMaterials)
-                {
-                    m.shader = Shader.Find("Valve/vr_standard");
-                }
-            }
-
-            foreach (MeshRenderer smr in obj.GetComponentsInChildren<MeshRenderer>())
-            {
-                foreach (Material m in smr.sharedMaterials)
-                {
-                    string sName = m.shader.name;
-                    sName = sName.Replace(" (to_replace)", "");
-                    m.shader = Shader.Find(sName);
-                }
-            }
         }
 
         public override void OnLevelWasInitialized(int level)
@@ -157,14 +125,13 @@ namespace MultiplayerMod
             MelonModLogger.Log("Initialized scene " + level.ToString());
         }
 
-
-
         public override void OnUpdate()
         {
             RichPresence.Update();
 
             if (!client.isConnected && !isServer)
             {
+                // If the user is not connected, start their client and attempt a connection
                 if (Input.GetKeyDown(KeyCode.C))
                 {
                     client.Connect(ModPrefs.GetString("MPMod", "HostSteamID"));
@@ -173,6 +140,7 @@ namespace MultiplayerMod
                     SteamFriends.SetRichPresence("steam_player_group", client.ServerId.ToString());
                 }
 
+                // If the user is not hosting, start their server
                 if (Input.GetKeyDown(KeyCode.S))
                 {
                     SteamFriends.SetRichPresence("steam_display", "Hosting multiplayer on " + SceneManager.GetActiveScene().name);
@@ -183,11 +151,11 @@ namespace MultiplayerMod
             }
             else
             {
+                // If the user is connected, disconnect them
                 if (Input.GetKeyDown(KeyCode.C))
-                {
                     client.Disconnect();
-                }
 
+                // If the user is hosting, stop their server
                 if (Input.GetKeyDown(KeyCode.S))
                 {
                     MelonModLogger.Log("Stopping server...");

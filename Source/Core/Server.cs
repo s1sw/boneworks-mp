@@ -17,7 +17,10 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using static UnityEngine.Object;
 
-namespace MultiplayerMod
+using MultiplayerMod.Structs;
+using MultiplayerMod.Representations;
+
+namespace MultiplayerMod.Core
 {
     public class Server
     {

@@ -9,6 +9,8 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using static UnityEngine.Object;
 
+using MultiplayerMod.Structs;
+
 namespace MultiplayerMod
 {
     public enum EnemyType
