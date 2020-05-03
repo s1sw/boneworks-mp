@@ -11,8 +11,28 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace MultiplayerMod
+namespace MultiplayerMod.Networking
 {
+    public enum MessageType
+    {
+        Join,
+        PlayerName,
+        OtherPlayerName,
+        PlayerPosition,
+        OtherPlayerPosition,
+        Disconnect,
+        ServerShutdown,
+        JoinRejected,
+        SceneTransition,
+        FullRig,
+        OtherFullRig,
+        HandGunChange,
+        OtherHandGunChange,
+        SetPartyId,
+        EnemyRigTransform,
+        Attack
+    }
+
     public interface INetworkMessage
     {
         P2PMessage MakeMsg();

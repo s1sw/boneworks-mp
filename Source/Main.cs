@@ -27,35 +27,6 @@ using MultiplayerMod.Representations;
 
 namespace MultiplayerMod
 {
-    public static class FileInfo
-    {
-        public const string Name = "Multiplayer Mod";
-        public const string Author = "Someone Somewhere";
-        public const string Company = "Lava Gang";
-        public const string Version = "0.11.0";
-        public const string DownloadLink = "https://discord.gg/2Wn3N2P";
-    }
-
-    public enum MessageType
-    {
-        Join,
-        PlayerName,
-        OtherPlayerName,
-        PlayerPosition,
-        OtherPlayerPosition,
-        Disconnect,
-        ServerShutdown,
-        JoinRejected,
-        SceneTransition,
-        FullRig,
-        OtherFullRig,
-        HandGunChange,
-        OtherHandGunChange,
-        SetPartyId,
-        EnemyRigTransform,
-        Attack
-    }
-
     public partial class MultiplayerMod : MelonMod
     {
         // TODO: Enforce player limit
@@ -81,6 +52,10 @@ namespace MultiplayerMod
             catch (Exception e)
             {
                 MelonModLogger.LogError("Caught exception while initialising Steam client. This is likely a result of having the Boneworks Modding Toolkit installed.");
+
+#if DEBUG
+                MelonModLogger.LogError($"Caught execption {e.Message}");
+#endif
             }
             MelonModLogger.Log("Multiplayer initialising with SteamID " + SteamClient.SteamId.ToString() + ". Protocol version " + PROTOCOL_VERSION.ToString());
 
@@ -104,11 +79,11 @@ namespace MultiplayerMod
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
 
-            #region Unused Code
+#region Unused Code
             //PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
             //PlayerHooks.OnPlayerLetGoObject += PlayerHooks_OnPlayerLetGoObject;
             //BWUtil.InitialiseGunPrefabs();
-            #endregion
+#endregion
         }
 
         public override void OnLevelWasLoaded(int level)

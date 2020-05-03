@@ -3,6 +3,8 @@ using System.Security.Cryptography;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using MultiplayerMod;
 
+using MultiplayerMod.Networking;
+
 namespace Tests
 {
     [TestClass]
