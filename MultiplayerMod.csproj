@@ -269,6 +269,7 @@
     <Compile Include="Discord\StorageManager.cs" />
     <Compile Include="Discord\StoreManager.cs" />
     <Compile Include="Boneworks\EnemyPoolManager.cs" />
+    <Compile Include="Extras\SpecialUsers.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="MultiplayerUI.cs" />
     <Compile Include="Networking\NetworkMessages.cs" />

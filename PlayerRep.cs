@@ -19,7 +19,7 @@ namespace MultiplayerMod
 {
     public class PlayerRep
     {
-        public static bool hideBody = false;
+        public static bool showBody = true;
         public static bool showHair = true;
 
         public GameObject ford;
@@ -42,6 +42,10 @@ namespace MultiplayerMod
 
         private static AssetBundle fordBundle;
 
+        // Async operations
+        Task<Facepunch.Steamworks.Data.Image?> task_asyncLoadPlayerIcon;
+        public bool isPlayerIconLoaded = false;
+
         public static void LoadFord()
         {
             fordBundle = AssetBundle.LoadFromFile("ford.ford");
@@ -53,24 +57,23 @@ namespace MultiplayerMod
                 MelonModLogger.LogError("Failed to load Ford from the asset bundle???");
         }
 
+        // Constructor
         public PlayerRep(string name, SteamId steamId)
         {
             this.steamId = steamId;
+
+            // Create this player's "Ford" to represent them, known as their rep
             GameObject ford = Instantiate(fordBundle.LoadAsset("Assets/Ford.prefab").Cast<GameObject>());
 
-            // attempt to fix shaders
-            foreach (SkinnedMeshRenderer smr in ford.GetComponentsInChildren<SkinnedMeshRenderer>())
-            {
-                foreach (Material m in smr.sharedMaterials)
-                {
-                    m.shader = Shader.Find("Valve/vr_standard");
-                }
-            }
-
+            // Makes sure that the rep isn't destroyed per level change.
             DontDestroyOnLoad(ford);
 
-            GameObject root = ford.transform.Find("Ford/Brett@neutral").gameObject;
-            Transform realRoot = root.transform.Find("SHJntGrp/MAINSHJnt/ROOTSHJnt");
+            
+            GameObject root = ford.transform.Find("Ford/Brett@neutral").gameObject; // Get the rep's head
+            Transform realRoot = root.transform.Find("SHJntGrp/MAINSHJnt/ROOTSHJnt"); // Then get the head's root joint
+
+            #region Unused Code
+            // Networked IK code?
 
             //var ik = root.AddComponent<VRIK>();
 
@@ -172,24 +175,30 @@ namespace MultiplayerMod
             //l.relaxLegTwistSpeed = 400.0f;
             //l.stepInterpolation = InterpolationMode.InOutSine;
             //l.offset = Vector3.zero;
+            #endregion
 
+            // Assign targets for the IK system
             //GameObject lHandTarget = new GameObject("LHand");
             //GameObject rHandTarget = new GameObject("RHand");
             GameObject pelvisTarget = new GameObject("Pelvis");
             //GameObject headTarget = new GameObject("HeadTarget");
             //GameObject lFootTarget = new GameObject("LFoot");
             //GameObject rFootTarget = new GameObject("RFoot");
+
+            // Create an anchor object to hold the rep's gun
             gunParent = new GameObject("gunParent");
             gunParent.transform.parent = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/r_Arm_ClavicleSHJnt/r_AC_AuxSHJnt/r_Arm_ShoulderSHJnt/r_Arm_Elbow_CurveSHJnt/r_WristSHJnt/r_Hand_1SHJnt");
             gunParent.transform.localPosition = Vector3.zero;
             gunParent.transform.localRotation = Quaternion.identity;
 
-            root.transform.Find("geoGrp/brett_body").GetComponent<SkinnedMeshRenderer>().enabled = !hideBody;
+            // If for whatever reason this is needed, show or hide the rep's body
+            root.transform.Find("geoGrp/brett_body").GetComponent<SkinnedMeshRenderer>().enabled = showBody;
 
-            if (!showHair)
-            {
-                root.transform.Find("geoGrp/brett_hair_cards").gameObject.SetActive(false);
-            }
+            // Same here, show or hide the rep's hair
+            root.transform.Find("geoGrp/brett_hair_cards").gameObject.SetActive(showHair);
+
+            #region Unused Code
+            // IK code?
 
             //ik.solver.leftArm.target = lHandTarget.transform;
             //ik.solver.rightArm.target = rHandTarget.transform;
@@ -205,7 +214,9 @@ namespace MultiplayerMod
             //handL = lHandTarget;
             //handR = rHandTarget;
             //pelvis = pelvisTarget;
+            #endregion
 
+            // Assign the transforms for the rep
             rigTransforms = new BoneworksRigTransforms()
             {
                 main = root.transform.Find("SHJntGrp/MAINSHJnt"),
@@ -230,11 +241,13 @@ namespace MultiplayerMod
                 rKnee = realRoot.Find("r_Leg_HipSHJnt/r_Leg_KneeSHJnt"),
             };
 
+            // Grab these body parts from the rigTransforms
             head = rigTransforms.neck.gameObject;
             handL = rigTransforms.lWrist.gameObject;
             handR = rigTransforms.rWrist.gameObject;
             pelvis = rigTransforms.spine1.gameObject;
 
+            // Create the nameplate and assign values to the TMP's vars
             namePlate = new GameObject("Nameplate");
             TextMeshPro tm = namePlate.AddComponent<TextMeshPro>();
             tm.text = name;
@@ -242,51 +255,23 @@ namespace MultiplayerMod
             tm.alignment = TextAlignmentOptions.Center;
             tm.fontSize = 1.0f;
 
+            // Prevents the nameplate from being destroyed during a level change
             DontDestroyOnLoad(namePlate);
 
-            // TODO: Actually make this async
-            var op = SteamFriends.GetLargeAvatarAsync(steamId);
-            op.Wait();
-            if (op.Result.HasValue)
+            task_asyncLoadPlayerIcon = SteamFriends.GetLargeAvatarAsync(steamId);
+
+            // Gives certain user's special appearances
+            Extras.SpecialUsers.GiveUniqueAccessories(steamId, realRoot);
+
+            // Change the shader to the one that's already used in the game
+            // Without this, the player model will only show in one eye
+            foreach (SkinnedMeshRenderer smr in ford.GetComponentsInChildren<SkinnedMeshRenderer>())
             {
-                GameObject avatar = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                UnityEngine.Object.Destroy(avatar.GetComponent<Collider>());
-                var avatarMr = avatar.GetComponent<MeshRenderer>();
-                var avatarMat = avatarMr.material;
-                avatarMat.shader = Shader.Find("Unlit/Texture");
-
-                var val = op.Result.Value;
-
-                Texture2D returnTexture = new Texture2D((int)val.Width, (int)val.Height, TextureFormat.RGBA32, false, true);
-                GCHandle pinnedArray = GCHandle.Alloc(val.Data, GCHandleType.Pinned);
-                IntPtr pointer = pinnedArray.AddrOfPinnedObject();
-                returnTexture.LoadRawTextureData(pointer, val.Data.Length);
-                returnTexture.Apply();
-                pinnedArray.Free();
-
-                avatarMat.mainTexture = returnTexture;
-
-                avatar.transform.SetParent(namePlate.transform);
-                avatar.transform.localScale = new Vector3(0.25f, -0.25f, 0.25f);
-                avatar.transform.localPosition = new Vector3(0.0f, 0.2f, 0.0f);
+                foreach (Material m in smr.sharedMaterials)
+                {
+                    m.shader = Shader.Find("Valve/vr_standard");
+                }
             }
-
-            if (steamId == 76561198078346603)
-            {
-                GameObject crownObj = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt/Neck_02SHJnt/Neck_TopSHJnt/Head_Crown").gameObject;
-                //GameObject glassesObj = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt/Neck_02SHJnt/Neck_TopSHJnt/Head_Glasses").gameObject;
-                crownObj.SetActive(true);
-                //glassesObj.SetActive(true);
-            }
-
-            if (steamId == 76561198383037191)
-            {
-                //GameObject hlLogo = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/HL_Logo").gameObject;
-                //GameObject hlId = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/HL_ID").gameObject;
-                GameObject helmetObj = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt/Neck_02SHJnt/Neck_TopSHJnt/Head_Helmet").gameObject;
-                helmetObj.SetActive(true);
-            }
-
             foreach (MeshRenderer smr in ford.GetComponentsInChildren<MeshRenderer>())
             {
                 foreach (Material m in smr.sharedMaterials)
@@ -295,15 +280,52 @@ namespace MultiplayerMod
                 }
             }
 
+            // And finally, save a reference to the constructed ford...
             this.ford = ford;
+
+            #region Unused Code
+            // More IK stuff?
+
             //lArm = ik.solver.leftArm;
             //rArm = ik.solver.rightArm;
             //spine = ik.solver.spine;
+            #endregion
         }
 
+        // Called during the update loop to check if the player's profile picture is done downloading
+        public void UpdateFetchIcon()
+        {
+            if (task_asyncLoadPlayerIcon.Result.HasValue)
+            {
+                GameObject avatar = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                UnityEngine.Object.Destroy(avatar.GetComponent<Collider>());
+                var avatarMr = avatar.GetComponent<MeshRenderer>();
+                var avatarMat = avatarMr.material;
+                avatarMat.shader = Shader.Find("Unlit/Texture");
+
+                var avatarIcon = task_asyncLoadPlayerIcon.Result.Value;
+
+                Texture2D returnTexture = new Texture2D((int)avatarIcon.Width, (int)avatarIcon.Height, TextureFormat.RGBA32, false, true);
+                GCHandle pinnedArray = GCHandle.Alloc(avatarIcon.Data, GCHandleType.Pinned);
+                IntPtr pointer = pinnedArray.AddrOfPinnedObject();
+                returnTexture.LoadRawTextureData(pointer, avatarIcon.Data.Length);
+                returnTexture.Apply();
+                pinnedArray.Free();
+
+                avatarMat.mainTexture = returnTexture;
+
+                avatar.transform.SetParent(namePlate.transform);
+                avatar.transform.localScale = new Vector3(0.25f, -0.25f, 0.25f);
+                avatar.transform.localPosition = new Vector3(0.0f, 0.2f, 0.0f);
+
+                isPlayerIconLoaded = true;
+            }
+        }
+
+        // Updates the NamePlate's direction to face towards the player's camera
         public void UpdateNameplateFacing(Transform cameraTransform)
         {
-            if (hideBody)
+            if (showBody)
             {
                 namePlate.transform.position = head.transform.position + (Vector3.up * 0.3f);
                 namePlate.transform.rotation = cameraTransform.rotation;
@@ -315,6 +337,7 @@ namespace MultiplayerMod
             }
         }
 
+        // Destroys the GameObjects stored inside this class, preparing this instance for deletion
         public void Destroy()
         {
             UnityEngine.Object.Destroy(ford);
@@ -325,67 +348,10 @@ namespace MultiplayerMod
             UnityEngine.Object.Destroy(namePlate);
         }
 
+        // Applies the information recieved from the Transform packet
         public void ApplyTransformMessage<T>(T tfMsg) where T : RigTFMsgBase
         {
-            rigTransforms.main.position = tfMsg.posMain;
-            rigTransforms.main.rotation = tfMsg.rotMain;
-
-            rigTransforms.root.position = tfMsg.posRoot;
-            rigTransforms.root.rotation = tfMsg.rotRoot;
-
-            rigTransforms.lHip.position = tfMsg.posLHip;
-            rigTransforms.lHip.rotation = tfMsg.rotLHip;
-
-            rigTransforms.rHip.position = tfMsg.posRHip;
-            rigTransforms.rHip.rotation = tfMsg.rotRHip;
-
-            rigTransforms.lAnkle.position = tfMsg.posLAnkle;
-            rigTransforms.lAnkle.rotation = tfMsg.rotLAnkle;
-
-            rigTransforms.rAnkle.position = tfMsg.posRAnkle;
-            rigTransforms.rAnkle.rotation = tfMsg.rotRAnkle;
-
-            rigTransforms.lKnee.position = tfMsg.posLKnee;
-            rigTransforms.lKnee.rotation = tfMsg.rotLKnee;
-
-            rigTransforms.rKnee.position = tfMsg.posRKnee;
-            rigTransforms.rKnee.rotation = tfMsg.rotRKnee;
-
-            rigTransforms.spine1.position = tfMsg.posSpine1;
-            rigTransforms.spine1.rotation = tfMsg.rotSpine1;
-
-            rigTransforms.spine2.position = tfMsg.posSpine2;
-            rigTransforms.spine2.rotation = tfMsg.rotSpine2;
-
-            rigTransforms.spineTop.position = tfMsg.posSpineTop;
-            rigTransforms.spineTop.rotation = tfMsg.rotSpineTop;
-
-            rigTransforms.lClavicle.position = tfMsg.posLClavicle;
-            rigTransforms.lClavicle.rotation = tfMsg.rotLClavicle;
-
-            rigTransforms.rClavicle.position = tfMsg.posRClavicle;
-            rigTransforms.rClavicle.rotation = tfMsg.rotRClavicle;
-
-            rigTransforms.neck.position = tfMsg.posNeck;
-            rigTransforms.neck.rotation = tfMsg.rotNeck;
-
-            rigTransforms.lShoulder.position = tfMsg.posLShoulder;
-            rigTransforms.lShoulder.rotation = tfMsg.rotLShoulder;
-
-            rigTransforms.rShoulder.position = tfMsg.posRShoulder;
-            rigTransforms.rShoulder.rotation = tfMsg.rotRShoulder;
-
-            rigTransforms.lElbow.position = tfMsg.posLElbow;
-            rigTransforms.lElbow.rotation = tfMsg.rotLElbow;
-
-            rigTransforms.rElbow.position = tfMsg.posRElbow;
-            rigTransforms.rElbow.rotation = tfMsg.rotRElbow;
-
-            rigTransforms.lWrist.position = tfMsg.posLWrist;
-            rigTransforms.lWrist.rotation = tfMsg.rotLWrist;
-
-            rigTransforms.rWrist.position = tfMsg.posRWrist;
-            rigTransforms.rWrist.rotation = tfMsg.rotRWrist;
+            BWUtil.ApplyRigTransform(rigTransforms, tfMsg);
         }
     }
 }

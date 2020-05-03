@@ -426,5 +426,15 @@ namespace MultiplayerMod
         {
             SendToServer(msg.MakeMsg(), send);
         }
+
+        // Function that checks if the player's profile pic has been downloaded
+        private void FetchProfilePics()
+        {
+            foreach (PlayerRep player in playerObjects.Values)
+            {
+                if (!player.isPlayerIconLoaded)
+                    FetchProfilePics();
+            }
+        }
     }
 }
