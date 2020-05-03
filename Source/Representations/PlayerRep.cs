@@ -17,6 +17,8 @@ using static UnityEngine.Object;
 
 using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
+using Facepunch.Steamworks.Data;
+using System.Collections;
 
 namespace MultiplayerMod.Representations
 {
@@ -46,8 +48,8 @@ namespace MultiplayerMod.Representations
         private static AssetBundle fordBundle;
 
         // Async operations
-        Task<Facepunch.Steamworks.Data.Image?> task_asyncLoadPlayerIcon;
-        public bool isPlayerIconLoaded = false;
+        //Task<Facepunch.Steamworks.Data.Image?> task_asyncLoadPlayerIcon;
+        //public bool isPlayerIconLoaded = false;
 
         public static void LoadFord()
         {
@@ -254,14 +256,14 @@ namespace MultiplayerMod.Representations
             namePlate = new GameObject("Nameplate");
             TextMeshPro tm = namePlate.AddComponent<TextMeshPro>();
             tm.text = name;
-            tm.color = Color.green;
+            tm.color = UnityEngine.Color.green;
             tm.alignment = TextAlignmentOptions.Center;
             tm.fontSize = 1.0f;
 
             // Prevents the nameplate from being destroyed during a level change
             DontDestroyOnLoad(namePlate);
 
-            task_asyncLoadPlayerIcon = SteamFriends.GetLargeAvatarAsync(steamId);
+            MelonCoroutines.Start(AsyncAvatarRoutine(SteamFriends.GetLargeAvatarAsync(steamId)));
 
             // Gives certain user's special appearances
             Extras.SpecialUsers.GiveUniqueAccessories(steamId, realRoot);
@@ -295,10 +297,15 @@ namespace MultiplayerMod.Representations
             #endregion
         }
 
-        // Called during the update loop to check if the player's profile picture is done downloading
-        public void UpdateFetchIcon()
+        private IEnumerator AsyncAvatarRoutine(Task<Image?> imageTask)
         {
-            if (task_asyncLoadPlayerIcon.Result.HasValue)
+            while(!imageTask.IsCompleted)
+            {
+                // WaitForEndOfFrame is broken in MelonLoader, so use WaitForSeconds
+                yield return new WaitForSeconds(0.011f);
+            }
+
+            if (imageTask.Result.HasValue)
             {
                 GameObject avatar = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 UnityEngine.Object.Destroy(avatar.GetComponent<Collider>());
@@ -306,7 +313,7 @@ namespace MultiplayerMod.Representations
                 var avatarMat = avatarMr.material;
                 avatarMat.shader = Shader.Find("Unlit/Texture");
 
-                var avatarIcon = task_asyncLoadPlayerIcon.Result.Value;
+                var avatarIcon = imageTask.Result.Value;
 
                 Texture2D returnTexture = new Texture2D((int)avatarIcon.Width, (int)avatarIcon.Height, TextureFormat.RGBA32, false, true);
                 GCHandle pinnedArray = GCHandle.Alloc(avatarIcon.Data, GCHandleType.Pinned);
@@ -320,8 +327,6 @@ namespace MultiplayerMod.Representations
                 avatar.transform.SetParent(namePlate.transform);
                 avatar.transform.localScale = new Vector3(0.25f, -0.25f, 0.25f);
                 avatar.transform.localPosition = new Vector3(0.0f, 0.2f, 0.0f);
-
-                isPlayerIconLoaded = true;
             }
         }
 
