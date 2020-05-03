@@ -43,6 +43,13 @@ namespace MultiplayerMod
 
         public unsafe override void OnApplicationStart()
         {
+            // Check if the BoneworksToolkit is installed
+            if (!System.IO.File.Exists(Application.dataPath.Replace("/BONEWORKS_Data", "/Mods/BoneworksModdingToolkit.dll")))
+            {
+                MelonModLogger.LogError("ModdingToolkit not installed, the mod will not work!");
+                return;
+            }
+
             MelonModLogger.Log("Multiplayer initialising with SteamID " + SteamClient.SteamId.ToString() + ". Protocol version " + PROTOCOL_VERSION.ToString());
 
             // Set up prefs
