@@ -157,7 +157,7 @@ namespace MultiplayerMod
             ui = new MultiplayerUI();
             PlayerRep.LoadFord();
 
-            PlayerRep.hideBody = false;
+            PlayerRep.showBody = true;
             PlayerRep.showHair = ModPrefs.GetBool("MPMod", "MrCleanFord");
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
