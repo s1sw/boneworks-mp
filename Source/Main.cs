@@ -52,6 +52,10 @@ namespace MultiplayerMod
             catch (Exception e)
             {
                 MelonModLogger.LogError("Caught exception while initialising Steam client. This is likely a result of having the Boneworks Modding Toolkit installed.");
+
+#if DEBUG
+                MelonModLogger.LogError($"Caught execption {e.Message}");
+#endif
             }
             MelonModLogger.Log("Multiplayer initialising with SteamID " + SteamClient.SteamId.ToString() + ". Protocol version " + PROTOCOL_VERSION.ToString());
 
@@ -75,11 +79,11 @@ namespace MultiplayerMod
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
 
-            #region Unused Code
+#region Unused Code
             //PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
             //PlayerHooks.OnPlayerLetGoObject += PlayerHooks_OnPlayerLetGoObject;
             //BWUtil.InitialiseGunPrefabs();
-            #endregion
+#endregion
         }
 
         public override void OnLevelWasLoaded(int level)

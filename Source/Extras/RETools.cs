@@ -10,10 +10,13 @@ using System.Threading.Tasks;
 using UnityEngine;
 using static UnityEngine.Object;
 
+using MultiplayerMod.Representations;
+
 namespace MultiplayerMod
 {
     class RETools
     {
+        // Prints the properties of a given type
         public static void PrintProps<T>(T t)
         {
             MelonModLogger.Log("====== Type " + t.ToString() + "======");
@@ -38,6 +41,7 @@ namespace MultiplayerMod
             }
         }
 
+        // Prints the properties of a given component type
         public static void PrintComponentProps<T>(GameObject go)
         {
             try
@@ -77,6 +81,7 @@ namespace MultiplayerMod
             }
         }
 
+        // Prints the heirarchy of a given object, with changeable depth
         private void PrintChildHierarchy(GameObject parent, int currentDepth = 0)
         {
             string offset = "";
