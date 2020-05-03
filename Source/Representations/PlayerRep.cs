@@ -33,15 +33,17 @@ namespace MultiplayerMod.Representations
         public GameObject nametag;
         public GameObject footL;
         public GameObject footR;
-        public IKSolverVR.Arm lArm;
-        public IKSolverVR.Arm rArm;
-        public IKSolverVR.Spine spine;
-        public VRIK ik;
         public GameObject namePlate;
         public SteamId steamId;
         public BoneworksRigTransforms rigTransforms;
         public GameObject currentGun;
         public GameObject gunParent;
+
+        //IK vars
+        public IKSolverVR.Arm ik_lArm;
+        public IKSolverVR.Arm ik_rArm;
+        public IKSolverVR.Spine ik_spine;
+        public VRIK ik;
 
         private static AssetBundle fordBundle;
 
@@ -194,10 +196,8 @@ namespace MultiplayerMod.Representations
             gunParent.transform.localPosition = Vector3.zero;
             gunParent.transform.localRotation = Quaternion.identity;
 
-            // If for whatever reason this is needed, show or hide the rep's body
+            // If for whatever reason this is needed, show or hide the rep's body and hair
             root.transform.Find("geoGrp/brett_body").GetComponent<SkinnedMeshRenderer>().enabled = showBody;
-
-            // Same here, show or hide the rep's hair
             root.transform.Find("geoGrp/brett_hair_cards").gameObject.SetActive(showHair);
 
             #region Unused Code
@@ -283,7 +283,6 @@ namespace MultiplayerMod.Representations
                 }
             }
 
-            // And finally, save a reference to the constructed ford...
             this.ford = ford;
 
             #region Unused Code
