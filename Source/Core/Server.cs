@@ -34,8 +34,14 @@ namespace MultiplayerMod.Core
         private string partyId = "";
         private byte smallIdCounter = 0;
         private BoneworksRigTransforms localRigTransforms;
+        private readonly MultiplayerUI ui;
 
         public bool IsRunning { get; private set; }
+
+        public Server(MultiplayerUI ui)
+        {
+            this.ui = ui;
+        }
 
         public void Update()
         {
@@ -536,6 +542,7 @@ namespace MultiplayerMod.Core
 
         public void StartServer()
         {
+            ui.SetState(MultiplayerUIState.Server);
             MelonModLogger.Log("Starting server...");
             localRigTransforms = BWUtil.GetLocalRigTransforms();
             partyId = SteamClient.SteamId + "P" + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
@@ -569,6 +576,7 @@ namespace MultiplayerMod.Core
 
         public void StopServer()
         {
+            ui.SetState(MultiplayerUIState.PreConnect);
             IsRunning = false;
 
             try
