@@ -150,9 +150,9 @@ namespace MultiplayerMod.Networking
                 // represent the same rotation. We only need to send the index of the single element whose value
                 // is 1f in order to recreate an equivalent rotation on the receiver.
                 WriteByte((byte)(maxIndex + 4));
-                WriteShort(0);
-                WriteShort(0);
-                WriteShort(0);
+                WriteByte(0);
+                WriteByte(0);
+                WriteByte(0);
                 return;
             }
 
@@ -210,9 +210,9 @@ namespace MultiplayerMod.Networking
                 var z = (maxIndex == 6) ? 1f : 0f;
                 var w = (maxIndex == 7) ? 1f : 0f;
 
-                ReadShort();
-                ReadShort();
-                ReadShort();
+                ReadByte();
+                ReadByte();
+                ReadByte();
                 return new Quaternion(x, y, z, w);
             }
 
