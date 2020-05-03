@@ -47,6 +47,7 @@ namespace MultiplayerMod.Core
             }
         }
 
+        // Recreates the UI...
         public void Recreate()
         {
             GameObject uiPrefab = uiBundle.LoadAsset("Assets/Prefabs/Canvas.prefab").Cast<GameObject>();
@@ -85,18 +86,6 @@ namespace MultiplayerMod.Core
         {
             if (uiState == MultiplayerUIState.Server)
                 statusText.text = $"Currently hosting {nPlayers} players";
-        }
-
-        // Recreates the UI canvas
-        public void Recreate()
-        {
-            uiObj = GameObject.Instantiate(uiBundle.LoadAsset("Assets/Prefabs/Canvas.prefab").Cast<GameObject>());
-            uiObj.GetComponent<Canvas>().worldCamera = Camera.current;
-            UnityEngine.Object.DontDestroyOnLoad(uiObj);
-
-            Transform panelTransform = uiObj.transform.Find("Panel");
-
-            clientStatusText = panelTransform.Find("PlayerCountText").GetComponent<Text>();
         }
     }
 }
