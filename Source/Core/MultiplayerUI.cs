@@ -11,18 +11,19 @@ using static UnityEngine.Object;
 
 namespace MultiplayerMod.Core
 {
-    enum MultiplayerUIState
+    public enum MultiplayerUIState
     {
         PreConnect,
         Server,
         Client
     }
 
-    class MultiplayerUI
+    public class MultiplayerUI
     {
         private readonly AssetBundle uiBundle;
         private GameObject uiObj;
         private Text statusText;
+        private MultiplayerUIState currentState = MultiplayerUIState.PreConnect;
 
         public MultiplayerUI()
         {
@@ -58,11 +59,13 @@ namespace MultiplayerMod.Core
             Transform panelTransform = uiObj.transform.Find("Panel");
 
             statusText = panelTransform.Find("StatusText").GetComponent<Text>();
+            SetState(currentState);
         }
 
         // Updates the UI based on the client's status
         public void SetState(MultiplayerUIState uiState)
         {
+            currentState = uiState;
             statusText.enabled = true;
 
             switch (uiState)

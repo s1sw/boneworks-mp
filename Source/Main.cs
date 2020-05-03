@@ -35,8 +35,8 @@ namespace MultiplayerMod
         private bool isServer = false;
 
         private MultiplayerUI ui;
-        private readonly Client client = new Client();
-        private readonly Server server = new Server();
+        private Client client;
+        private Server server;
 
         internal static event Action<int> OnLevelWasLoadedEvent;
         internal static event Action<int> OnLevelWasInitializedEvent;
@@ -55,6 +55,8 @@ namespace MultiplayerMod
 
             // Create the UI and cache the PlayerRep's model
             ui = new MultiplayerUI();
+            client = new Client(ui);
+            server = new Server(ui);
             PlayerRep.LoadFord();
 
             // Configures if the PlayerRep's are showing or hiding certain parts

@@ -35,7 +35,13 @@ namespace MultiplayerMod.Core
         private readonly Dictionary<byte, SteamId> largePlayerIds = new Dictionary<byte, SteamId>(MultiplayerMod.MAX_PLAYERS);
         private readonly Dictionary<SteamId, byte> smallPlayerIds = new Dictionary<SteamId, byte>(MultiplayerMod.MAX_PLAYERS);
         private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
+        private readonly MultiplayerUI ui;
         public bool isConnected = false;
+
+        public Client(MultiplayerUI ui)
+        {
+            this.ui = ui;
+        }
 
         public void SetupRP()
         {
@@ -85,12 +91,14 @@ namespace MultiplayerMod.Core
 
             SteamNetworking.OnP2PSessionRequest = OnP2PSessionRequest;
             SteamNetworking.OnP2PConnectionFailed = OnP2PConnectionFailed;
+            ui.SetState(MultiplayerUIState.Client);
         }
 
         private void OnP2PConnectionFailed(SteamId id, P2PSessionError err)
         {
             if (id == ServerId)
             {
+                ui.SetState(MultiplayerUIState.PreConnect);
                 MelonModLogger.LogError("Got P2P connection error " + err.ToString());
                 foreach (PlayerRep pr in playerObjects.Values)
                 {
@@ -145,6 +153,7 @@ namespace MultiplayerMod.Core
 
         public void Disconnect()
         {
+            ui.SetState(MultiplayerUIState.PreConnect);
             try
             {
                 foreach (PlayerRep r in playerObjects.Values)
