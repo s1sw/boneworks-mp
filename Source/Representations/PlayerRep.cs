@@ -244,7 +244,7 @@ namespace MultiplayerMod.Representations
             MelonCoroutines.Start(AsyncAvatarRoutine(steamId));
 
             // Gives certain users special appearances
-            Extras.SpecialUsers.GiveUniqueAccessories(steamId, realRoot);
+            Extras.SpecialUsers.GiveUniqueAppearances(steamId, realRoot, tm);
 
             // Change the shader to the one that's already used in the game
             // Without this, the player model will only show in one eye

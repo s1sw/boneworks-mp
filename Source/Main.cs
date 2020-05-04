@@ -39,6 +39,10 @@ namespace MultiplayerMod
         internal static event Action<int> OnLevelWasLoadedEvent;
         internal static event Action<int> OnLevelWasInitializedEvent;
 
+#if DEBUG
+        PlayerRep dummyRep;
+#endif
+
         public unsafe override void OnApplicationStart()
         {
             // Check if the BoneworksToolkit is installed
@@ -47,6 +51,10 @@ namespace MultiplayerMod
                 MelonModLogger.LogError("ModdingToolkit not installed, the mod will not work!");
                 return;
             }
+
+#if DEBUG
+            MelonModLogger.Log(ConsoleColor.Red, "Debug build!");
+#endif
 
             MelonModLogger.Log("Multiplayer initialising with SteamID " + SteamClient.SteamId.ToString() + ". Protocol version " + PROTOCOL_VERSION.ToString());
 
@@ -131,6 +139,16 @@ namespace MultiplayerMod
                     server.StopServer();
                 }
             }
+
+#if DEBUG
+            if (Input.GetKeyDown(KeyCode.R))
+            {
+                if (dummyRep == null)
+                    dummyRep = new PlayerRep("Dummy", SteamClient.SteamId);
+                else
+                    dummyRep.Destroy();
+            }
+#endif
         }
 
         public override void OnFixedUpdate()
