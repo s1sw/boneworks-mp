@@ -48,8 +48,8 @@ namespace MultiplayerMod
             // Check if the BoneworksToolkit is installed
             if (!System.IO.File.Exists(Application.dataPath.Replace("/BONEWORKS_Data", "/Mods/BoneworksModdingToolkit.dll")))
             {
-                MelonModLogger.LogError("ModdingToolkit not installed, the mod will not work!");
-                return;
+                MelonModLogger.Log("ModdingToolkit not installed, initializing Steam...");
+                SteamClient.Init(823500);
             }
 
 #if DEBUG
