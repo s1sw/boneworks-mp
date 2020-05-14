@@ -263,6 +263,10 @@ namespace MultiplayerMod.Representations
                 }
             }
 
+#if DEBUG
+            Accessories.Accessories.CreateDummies(realRoot.parent);
+#endif
+
             this.ford = ford;
 
             #region Unused Code

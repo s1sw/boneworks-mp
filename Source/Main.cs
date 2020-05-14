@@ -148,6 +148,17 @@ namespace MultiplayerMod
                 else
                     dummyRep.Destroy();
             }
+
+            // This ugly, fugly, mess of a statement creates accessories for debugging...
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                Accessories.Accessories.CreateDummies
+                    (
+                        GameObject.Find(
+                        "[RigManager (Default Brett)]").transform.Find(
+                        "[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt")
+                    );
+            }
 #endif
         }
 
