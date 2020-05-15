@@ -281,6 +281,8 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Boneworks\BWUtil.cs" />
     <Compile Include="Source\Accessories\Accessories.cs" />
+    <Compile Include="Source\Accessories\Enums.cs" />
+    <Compile Include="Source\Accessories\SerializedParameters.cs" />
     <Compile Include="Source\Extras\RETools.cs" />
     <Compile Include="Source\Core\Client.cs" />
     <Compile Include="Discord\ActivityManager.cs" />

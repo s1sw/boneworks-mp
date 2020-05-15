@@ -159,6 +159,17 @@ namespace MultiplayerMod
                         "[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt")
                     );
             }
+
+            // Ugly too, but only for debugging
+            if (Input.GetKeyDown(KeyCode.Q))
+            {
+                AssetBundle bundle = AssetBundle.LoadFromFile(Application.dataPath.Replace("/BONEWORKS_Data", "/capper.accessory"));
+                Accessories.Accessories.CreateAccessories(bundle, (
+                        GameObject.Find(
+                        "[RigManager (Default Brett)]").transform.Find(
+                        "[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt")
+                    ));
+            }
 #endif
         }
 
