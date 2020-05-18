@@ -140,6 +140,9 @@ namespace MultiplayerMod
                 }
             }
 
+            if (Input.GetKeyDown(KeyCode.X))
+                Globals.Toggles.areNametagsVisible = !Globals.Toggles.areNametagsVisible;
+
 #if DEBUG
             if (Input.GetKeyDown(KeyCode.R))
             {

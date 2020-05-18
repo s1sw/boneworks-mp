@@ -315,15 +315,21 @@ namespace MultiplayerMod.Representations
         // Updates the NamePlate's direction to face towards the player's camera
         public void UpdateNameplateFacing(Transform cameraTransform)
         {
-            if (showBody)
+            if (namePlate.activeInHierarchy != Globals.Toggles.areNametagsVisible)
+                namePlate.SetActive(Globals.Toggles.areNametagsVisible);
+
+            if (namePlate.activeInHierarchy)
             {
-                namePlate.transform.position = head.transform.position + (Vector3.up * 0.3f);
-                namePlate.transform.rotation = cameraTransform.rotation;
-            }
-            else
-            {
-                namePlate.transform.position = rigTransforms.neck.transform.position + (Vector3.up * 0.3f);
-                namePlate.transform.rotation = cameraTransform.rotation;
+                if (showBody)
+                {
+                    namePlate.transform.position = head.transform.position + (Vector3.up * 0.3f);
+                    namePlate.transform.rotation = cameraTransform.rotation;
+                }
+                else
+                {
+                    namePlate.transform.position = rigTransforms.neck.transform.position + (Vector3.up * 0.3f);
+                    namePlate.transform.rotation = cameraTransform.rotation;
+                }
             }
         }
 
