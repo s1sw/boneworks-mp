@@ -152,7 +152,7 @@ namespace MultiplayerMod
                     dummyRep.Destroy();
             }
 
-            // This ugly, fugly, mess of a statement creates accessories for debugging...
+            // This ugly, fugly, mess of a statement creates dummy accessories for debugging...
             if (Input.GetKeyDown(KeyCode.A))
             {
                 Accessories.Accessories.CreateDummies
@@ -166,12 +166,7 @@ namespace MultiplayerMod
             // Ugly too, but only for debugging
             if (Input.GetKeyDown(KeyCode.Q))
             {
-                AssetBundle bundle = AssetBundle.LoadFromFile(Application.dataPath.Replace("/BONEWORKS_Data", "/capper.accessory"));
-                Accessories.Accessories.CreateAccessories(bundle, (
-                        GameObject.Find(
-                        "[RigManager (Default Brett)]").transform.Find(
-                        "[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt")
-                    ));
+                Accessories.Accessories.CreateAccessories();
             }
 #endif
         }
