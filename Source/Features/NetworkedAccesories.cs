@@ -26,6 +26,8 @@ namespace MultiplayerMod.Features
             string tempGuid = System.Guid.NewGuid().ToString();
             string fileLocation = $"{Main.AccessoryDataPath}/TEMP_{tempGuid}.accessory";
 
+            MelonModLogger.Log("Starting download of TempFile!");
+
             webClient.DownloadFileTaskAsync(new System.Uri(link), fileLocation).Wait(); //MAKE THIS ASYNC SOME TIME LATER!!!
 
             UnityEngine.AssetBundle bundle = UnityEngine.AssetBundle.LoadFromFile(fileLocation);
@@ -33,7 +35,7 @@ namespace MultiplayerMod.Features
             if (File.Exists(fileLocation))
                 File.Delete(fileLocation);
 
-            MelonModLogger.Log("Downloaded File!");
+            MelonModLogger.Log("Downloaded TempFile!");
 
             return bundle;
         }

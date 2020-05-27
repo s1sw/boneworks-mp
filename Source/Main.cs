@@ -46,6 +46,8 @@ namespace MultiplayerMod
 
         public unsafe override void OnApplicationStart()
         {
+            SteamClient.Init(823500);
+
 #if DEBUG
             MelonModLogger.Log(ConsoleColor.Red, "Debug build!");
 #endif
@@ -148,16 +150,20 @@ namespace MultiplayerMod
                     dummyRep.Destroy();
             }
 
-            // This ugly, fugly, mess of a statement creates dummy accessories for debugging...
             if (Input.GetKeyDown(KeyCode.A))
             {
                 zCubed.Accessories.Accessory.CreateDummies(zCubed.Accessories.Accessory.GetPlayerRoot());
             }
 
-            // Ugly too, but only for debugging
             if (Input.GetKeyDown(KeyCode.Q))
             {
-                zCubed.Accessories.Accessory.CreateAccessories(zCubed.Accessories.Accessory.GetPlayerRoot());
+                zCubed.Accessories.Accessory.CreateLocalAccessories(zCubed.Accessories.Accessory.GetPlayerRoot());
+            }
+
+            if (Input.GetKeyDown(KeyCode.W))
+            {
+                AssetBundle testRemBundle = Features.NetworkedAccesories.GetRemoteBundle("https://drive.google.com/uc?export=download&id=166cIslmM62PvKKmSWmTAmBDYgHWECpaZ");
+                zCubed.Accessories.Accessory.CreateAccessories(zCubed.Accessories.Accessory.GetPlayerRoot(), testRemBundle);
             }
 #endif
         }
