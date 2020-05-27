@@ -1,12 +1,41 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using zCubed.Accessories;
+using System.IO;
+using System.Net;
+using MelonLoader;
 
-namespace MultiplayerMod.Accessories
+using Main = zCubed.Accessories.Main;
+
+namespace MultiplayerMod.Features
 {
-    class NetworkedAccesories
+    public static class NetworkedAccesories
     {
+        public static string[] GetLocalList()
+        {
+            string filePath = Main.AccessoryDataPath + "/remote_accessories.list";
+
+            if (!File.Exists(filePath))
+                File.WriteAllText(filePath, "");
+
+            return File.ReadAllText(filePath).Split('\n');
+        }
+
+        public static UnityEngine.AssetBundle GetRemoteBundle(string link)
+        {
+            WebClient webClient = new WebClient();
+
+            string tempGuid = System.Guid.NewGuid().ToString();
+            string fileLocation = $"{Main.AccessoryDataPath}/TEMP_{tempGuid}.accessory";
+
+            webClient.DownloadFileTaskAsync(new System.Uri(link), fileLocation).Wait(); //MAKE THIS ASYNC SOME TIME LATER!!!
+
+            UnityEngine.AssetBundle bundle = UnityEngine.AssetBundle.LoadFromFile(fileLocation);
+
+            if (File.Exists(fileLocation))
+                File.Delete(fileLocation);
+
+            MelonModLogger.Log("Downloaded File!");
+
+            return bundle;
+        }
     }
 }
