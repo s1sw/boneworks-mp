@@ -3,7 +3,6 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using System;
-using NET_SDK;
 using Facepunch.Steamworks;
 using Discord;
 using StressLevelZero.Props;
@@ -23,7 +22,6 @@ using System.Linq;
 using MultiplayerMod.Core;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Representations;
-using MultiplayerMod.Globals;
 
 namespace MultiplayerMod
 {
@@ -47,6 +45,9 @@ namespace MultiplayerMod
         public unsafe override void OnApplicationStart()
         {
             SteamClient.Init(823500);
+
+            Features.Guard.GetSteamFriends();
+            Features.Guard.GetLocalGuard();
 
 #if DEBUG
             MelonModLogger.Log(ConsoleColor.Red, "Debug build!");
@@ -76,8 +77,6 @@ namespace MultiplayerMod
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
             
-            
-
             #region Unused Code
             //PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
             //PlayerHooks.OnPlayerLetGoObject += PlayerHooks_OnPlayerLetGoObject;
@@ -162,8 +161,14 @@ namespace MultiplayerMod
 
             if (Input.GetKeyDown(KeyCode.W))
             {
-                AssetBundle testRemBundle = Features.NetworkedAccesories.GetRemoteBundle("https://drive.google.com/uc?export=download&id=166cIslmM62PvKKmSWmTAmBDYgHWECpaZ");
-                zCubed.Accessories.Accessory.CreateAccessories(zCubed.Accessories.Accessory.GetPlayerRoot(), testRemBundle);
+                string[] accessoryPaths = Features.NetworkedAccesories.GetLocalList();
+                byte[] rawData = Features.NetworkedAccesories.BundleToNetBundle(accessoryPaths[0]);
+            }
+
+            if (Input.GetKeyDown(KeyCode.B))
+            {
+                Features.Guard.AddUserToList(Guid.NewGuid().ToString(), Features.Guard.Lists.Blocked);
+                Features.Guard.AddUserToList(Guid.NewGuid().ToString(), Features.Guard.Lists.Trusted);
             }
 #endif
         }

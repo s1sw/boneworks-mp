@@ -17,6 +17,7 @@ using static UnityEngine.Object;
 
 using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
+using MultiplayerMod.Features;
 using Facepunch.Steamworks.Data;
 using System.Collections;
 
@@ -315,8 +316,8 @@ namespace MultiplayerMod.Representations
         // Updates the NamePlate's direction to face towards the player's camera
         public void UpdateNameplateFacing(Transform cameraTransform)
         {
-            if (namePlate.activeInHierarchy != Globals.Toggles.areNametagsVisible)
-                namePlate.SetActive(Globals.Toggles.areNametagsVisible);
+            if (namePlate.activeInHierarchy != ClientSettings.hiddenNametags)
+                namePlate.SetActive(ClientSettings.hiddenNametags);
 
             if (namePlate.activeInHierarchy)
             {

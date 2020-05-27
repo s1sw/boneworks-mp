@@ -1,7 +1,7 @@
 ﻿using zCubed.Accessories;
 using System.IO;
-using System.Net;
 using MelonLoader;
+using UnityEngine;
 
 using Main = zCubed.Accessories.Main;
 
@@ -11,33 +11,21 @@ namespace MultiplayerMod.Features
     {
         public static string[] GetLocalList()
         {
-            string filePath = Main.AccessoryDataPath + "/remote_accessories.list";
+            string[] rawPaths = Directory.GetFiles(Main.AccessoryDataPath);
+            string[] correctedPaths = new string[rawPaths.Length];
 
-            if (!File.Exists(filePath))
-                File.WriteAllText(filePath, "");
+            for (int p = 0; p < rawPaths.Length; p++)
+                correctedPaths[p] = rawPaths[p].Replace("\\", "/");
 
-            return File.ReadAllText(filePath).Split('\n');
+            return correctedPaths;
         }
 
-        public static UnityEngine.AssetBundle GetRemoteBundle(string link)
+        public static byte[] BundleToNetBundle(string path)
         {
-            WebClient webClient = new WebClient();
+            if (!File.Exists(path))
+                return null;
 
-            string tempGuid = System.Guid.NewGuid().ToString();
-            string fileLocation = $"{Main.AccessoryDataPath}/TEMP_{tempGuid}.accessory";
-
-            MelonModLogger.Log("Starting download of TempFile!");
-
-            webClient.DownloadFileTaskAsync(new System.Uri(link), fileLocation).Wait(); //MAKE THIS ASYNC SOME TIME LATER!!!
-
-            UnityEngine.AssetBundle bundle = UnityEngine.AssetBundle.LoadFromFile(fileLocation);
-
-            if (File.Exists(fileLocation))
-                File.Delete(fileLocation);
-
-            MelonModLogger.Log("Downloaded TempFile!");
-
-            return bundle;
+            return File.ReadAllBytes(path);
         }
     }
 }

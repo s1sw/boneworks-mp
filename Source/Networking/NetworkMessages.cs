@@ -11,8 +11,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-using MultiplayerMod.Globals;
-
 using Convert = System.Convert;
 
 namespace MultiplayerMod.Networking
@@ -731,7 +729,7 @@ namespace MultiplayerMod.Networking
         {
             P2PMessage msg = new P2PMessage();
 
-            msg.WriteUnicodeString("NULL");
+            //msg.WriteByte();
 
             return msg;
         }
