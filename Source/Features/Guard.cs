@@ -56,18 +56,21 @@ namespace MultiplayerMod.Features
 
             try
             {
-                string path = UnityEngine.Application.dataPath.Replace("BONEWORKS_Data", "UserData/Guard");
+                string path = UnityEngine.Application.dataPath.Replace("BONEWORKS_Data", "UserData/Mutliplayer/Guard");
+
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
 
                 string trustedPath = $"{path}/Trusted.users";
                 string blockedPath = $"{path}/Blocked.users";
 
-                if (!File.Exists(path))
-                    File.WriteAllText(path, "");
+                if (!File.Exists(trustedPath))
+                    File.WriteAllText(trustedPath, "");
 
                 if (!File.Exists(blockedPath))
                     File.WriteAllText(blockedPath, "");
 
-                string[] local_trustedUsers = File.ReadAllLines(path);
+                string[] local_trustedUsers = File.ReadAllLines(trustedPath);
                 string[] local_blockedUsers = File.ReadAllLines(blockedPath);
 
                 foreach (string user in local_trustedUsers)
@@ -96,7 +99,7 @@ namespace MultiplayerMod.Features
 
         public static void AddUserToList(string entry, Lists list)
         {
-            string path = UnityEngine.Application.dataPath.Replace("BONEWORKS_Data", "UserData/Guard");
+            string path = UnityEngine.Application.dataPath.Replace("BONEWORKS_Data", "UserData/Mutliplayer/Guard");
 
             switch (list)
             {

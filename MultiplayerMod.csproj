@@ -299,6 +299,7 @@
     <Compile Include="Boneworks\EnemyPoolManager.cs" />
     <Compile Include="Source\Extras\SpecialUsers.cs" />
     <Compile Include="Source\Features\ServerSettings.cs" />
+    <Compile Include="Source\Features\UI.cs" />
     <Compile Include="Source\FileInfo.cs" />
     <Compile Include="Source\Main.cs" />
     <Compile Include="Source\Core\MultiplayerUI.cs" />

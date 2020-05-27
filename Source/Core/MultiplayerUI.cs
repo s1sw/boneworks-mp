@@ -20,7 +20,7 @@ namespace MultiplayerMod.Core
 
     public class MultiplayerUI
     {
-        private readonly AssetBundle uiBundle;
+        public static AssetBundle uiBundle;
         private GameObject uiObj;
         private Text statusText;
         private MultiplayerUIState currentState = MultiplayerUIState.PreConnect;
