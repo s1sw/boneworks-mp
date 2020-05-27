@@ -20,6 +20,7 @@ using StressLevelZero.AI;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
+//using BoneworksModdingToolkit;
 
 namespace MultiplayerMod.Core
 {
@@ -126,29 +127,33 @@ namespace MultiplayerMod.Core
 
         private void PlayerHooks_OnPlayerLetGoObject(GameObject obj)
         {
-            HandGunChangeMessage hgcm = new HandGunChangeMessage()
-            {
-                isForOtherPlayer = false,
-                destroy = true
-            };
+            //HandGunChangeMessage hgcm = new HandGunChangeMessage()
+            //{
+            //    isForOtherPlayer = false,
+            //    destroy = true
+            //};
 
-            SendToServer(hgcm, P2PSend.Reliable);
+            //SendToServer(hgcm, P2PSend.Reliable);
         }
 
         private void PlayerHooks_OnPlayerGrabObject(GameObject obj)
         {
-            GunType? gt = BWUtil.GetGunType(obj.transform.root.gameObject);
-            if (gt != null)
-            {
-                HandGunChangeMessage hgcm = new HandGunChangeMessage()
-                {
-                    isForOtherPlayer = false,
-                    type = gt.Value,
-                    destroy = false
-                };
+            //GunType? gt = BWUtil.GetGunType(obj.transform.root.gameObject);
+            //if (gt != null)
+            //{
+            //    HandGunChangeMessage hgcm = new HandGunChangeMessage()
+            //    {
+            //        isForOtherPlayer = false,
+            //        type = gt.Value,
+            //        destroy = false
+            //    };
 
-                SendToServer(hgcm, P2PSend.Reliable);
-            }
+            //    SendToServer(hgcm, P2PSend.Reliable);
+            //}
+
+            // Send off an ID request to the server
+            IDRequestMessage requestMessage = new IDRequestMessage();
+            
         }
 
         public void Disconnect()

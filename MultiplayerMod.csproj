@@ -43,9 +43,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="BoneworksModdingToolkit">
-      <HintPath>Dependencies\BoneworksModdingToolkit.dll</HintPath>
-    </Reference>
     <Reference Include="ch.sycoforge.Decal, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\ch.sycoforge.Decal.dll</HintPath>
@@ -280,6 +277,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Boneworks\BWUtil.cs" />
+    <Compile Include="Source\Extras\BasicFABRIK.cs" />
     <Compile Include="Source\Extras\RETools.cs" />
     <Compile Include="Source\Core\Client.cs" />
     <Compile Include="Discord\ActivityManager.cs" />
@@ -294,8 +292,10 @@
     <Compile Include="Source\FileInfo.cs" />
     <Compile Include="Source\Main.cs" />
     <Compile Include="Source\Core\MultiplayerUI.cs" />
+    <Compile Include="Source\Networking\ITransportLayer.cs" />
     <Compile Include="Source\Networking\NetworkMessages.cs" />
     <Compile Include="Source\Networking\P2PMessage.cs" />
+    <Compile Include="Source\Networking\SteamTransportLayer.cs" />
     <Compile Include="Source\Representations\PlayerRep.cs" />
     <Compile Include="Source\Core\RichPresence.cs" />
     <Compile Include="Source\Core\Server.cs" />
