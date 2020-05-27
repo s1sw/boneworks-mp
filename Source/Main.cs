@@ -23,6 +23,7 @@ using System.Linq;
 using MultiplayerMod.Core;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Representations;
+using MultiplayerMod.Globals;
 
 namespace MultiplayerMod
 {
@@ -45,13 +46,6 @@ namespace MultiplayerMod
 
         public unsafe override void OnApplicationStart()
         {
-            // Check if the BoneworksToolkit is installed
-            if (!System.IO.File.Exists(Application.dataPath.Replace("/BONEWORKS_Data", "/Mods/BoneworksModdingToolkit.dll")))
-            {
-                MelonModLogger.Log("ModdingToolkit not installed, initializing Steam...");
-                SteamClient.Init(823500);
-            }
-
 #if DEBUG
             MelonModLogger.Log(ConsoleColor.Red, "Debug build!");
 #endif
@@ -79,6 +73,8 @@ namespace MultiplayerMod
             // Initialize Discord's RichPresence
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
+            
+            
 
             #region Unused Code
             //PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
@@ -141,7 +137,7 @@ namespace MultiplayerMod
             }
 
             if (Input.GetKeyDown(KeyCode.X))
-                Globals.Toggles.areNametagsVisible = !Globals.Toggles.areNametagsVisible;
+                Features.ClientSettings.hiddenNametags = !Features.ClientSettings.hiddenNametags;
 
 #if DEBUG
             if (Input.GetKeyDown(KeyCode.R))
@@ -155,18 +151,13 @@ namespace MultiplayerMod
             // This ugly, fugly, mess of a statement creates dummy accessories for debugging...
             if (Input.GetKeyDown(KeyCode.A))
             {
-                Accessories.Accessories.CreateDummies
-                    (
-                        GameObject.Find(
-                        "[RigManager (Default Brett)]").transform.Find(
-                        "[SkeletonRig (GameWorld Brett)]/Brett@neutral/SHJntGrp/MAINSHJnt")
-                    );
+                zCubed.Accessories.Accessory.CreateDummies(zCubed.Accessories.Accessory.GetPlayerRoot());
             }
 
             // Ugly too, but only for debugging
             if (Input.GetKeyDown(KeyCode.Q))
             {
-                Accessories.Accessories.CreateAccessories();
+                zCubed.Accessories.Accessory.CreateAccessories(zCubed.Accessories.Accessory.GetPlayerRoot());
             }
 #endif
         }

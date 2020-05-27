@@ -35,6 +35,9 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Accessories">
+      <HintPath>Dependencies\Accessories.dll</HintPath>
+    </Reference>
     <Reference Include="Assembly-CSharp, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\Assembly-CSharp.dll</HintPath>
@@ -280,9 +283,8 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Boneworks\BWUtil.cs" />
-    <Compile Include="Source\Accessories\Accessories.cs" />
-    <Compile Include="Source\Accessories\Constants.cs" />
-    <Compile Include="Source\Accessories\Enums.cs" />
+    <Compile Include="Source\Features\ClientSettings.cs" />
+    <Compile Include="Source\Features\NetworkedAccesories.cs" />
     <Compile Include="Source\Extras\RETools.cs" />
     <Compile Include="Source\Core\Client.cs" />
     <Compile Include="Discord\ActivityManager.cs" />
@@ -293,10 +295,8 @@
     <Compile Include="Discord\StorageManager.cs" />
     <Compile Include="Discord\StoreManager.cs" />
     <Compile Include="Boneworks\EnemyPoolManager.cs" />
-    <Compile Include="Source\Extras\ShaderFixer.cs" />
     <Compile Include="Source\Extras\SpecialUsers.cs" />
     <Compile Include="Source\FileInfo.cs" />
-    <Compile Include="Source\Globals\Toggles.cs" />
     <Compile Include="Source\Main.cs" />
     <Compile Include="Source\Core\MultiplayerUI.cs" />
     <Compile Include="Source\Networking\NetworkMessages.cs" />
@@ -305,6 +305,7 @@
     <Compile Include="Source\Core\RichPresence.cs" />
     <Compile Include="Source\Core\Server.cs" />
     <Compile Include="Source\Structs\RigTransforms.cs" />
+    <Compile Include="Toggles.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Facepunch.Steamworks\Facepunch.Steamworks.Win64.csproj">

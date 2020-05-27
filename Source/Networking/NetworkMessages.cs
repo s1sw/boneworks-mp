@@ -11,6 +11,10 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+using MultiplayerMod.Globals;
+
+using Convert = System.Convert;
+
 namespace MultiplayerMod.Networking
 {
     public enum MessageType
@@ -30,7 +34,8 @@ namespace MultiplayerMod.Networking
         OtherHandGunChange,
         SetPartyId,
         EnemyRigTransform,
-        Attack
+        Attack,
+        SetServerSetting
     }
 
     public interface INetworkMessage
@@ -310,7 +315,6 @@ namespace MultiplayerMod.Networking
         public Quaternion rotLWrist;
         public Quaternion rotRWrist;
     }
-
 
     public class FullRigTransformMessage : RigTFMsgBase, INetworkMessage
     {
@@ -721,6 +725,18 @@ namespace MultiplayerMod.Networking
         }
     }
 
+    public class SyncAccessoryMessage
+    {
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+
+            msg.WriteUnicodeString("NULL");
+
+            return msg;
+        }
+    }
+
     //public class HoverJunkerUpdateMessage : INetworkMessage
     //{ 
     //    public HoverJunkerUpdateMessage()
@@ -739,5 +755,4 @@ namespace MultiplayerMod.Networking
 
     //    }
     //}
-
 }

@@ -9,5 +9,6 @@ namespace MultiplayerMod.Globals
     public static class Toggles
     {
         public static bool areNametagsVisible = true;
+        public static bool areAccessoriesSynced = true;
     }
 }

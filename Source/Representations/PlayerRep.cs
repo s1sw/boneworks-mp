@@ -264,7 +264,7 @@ namespace MultiplayerMod.Representations
             }
 
 #if DEBUG
-            Accessories.Accessories.CreateDummies(realRoot.parent);
+            zCubed.Accessories.Accessory.CreateAccessories(realRoot.parent);
 #endif
 
             this.ford = ford;
