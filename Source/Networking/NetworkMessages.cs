@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+using Convert = System.Convert;
+
 namespace MultiplayerMod.Networking
 {
     public enum MessageType
@@ -31,6 +33,7 @@ namespace MultiplayerMod.Networking
         SetPartyId,
         EnemyRigTransform,
         Attack,
+        SetServerSetting,
         IdAllocation,
         IdRequest,
         ObjectSync
@@ -313,7 +316,6 @@ namespace MultiplayerMod.Networking
         public Quaternion rotLWrist;
         public Quaternion rotRWrist;
     }
-
 
     public class FullRigTransformMessage : RigTFMsgBase, INetworkMessage
     {
@@ -721,6 +723,18 @@ namespace MultiplayerMod.Networking
         public P2PMessage MakeMsg()
         {
             throw new NotImplementedException();
+        }
+    }
+
+    public class SyncAccessoryMessage
+    {
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+
+            //msg.WriteByte();
+
+            return msg;
         }
     }
 

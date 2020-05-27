@@ -17,6 +17,7 @@ using static UnityEngine.Object;
 
 using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
+using MultiplayerMod.Features;
 using Facepunch.Steamworks.Data;
 using System.Collections;
 
@@ -263,6 +264,10 @@ namespace MultiplayerMod.Representations
                 }
             }
 
+#if DEBUG
+            zCubed.Accessories.Accessory.CreateDummies(realRoot.parent);
+#endif
+
             this.ford = ford;
 
             #region Unused Code
@@ -311,15 +316,21 @@ namespace MultiplayerMod.Representations
         // Updates the NamePlate's direction to face towards the player's camera
         public void UpdateNameplateFacing(Transform cameraTransform)
         {
-            if (showBody)
+            if (namePlate.activeInHierarchy != ClientSettings.hiddenNametags)
+                namePlate.SetActive(ClientSettings.hiddenNametags);
+
+            if (namePlate.activeInHierarchy)
             {
-                namePlate.transform.position = head.transform.position + (Vector3.up * 0.3f);
-                namePlate.transform.rotation = cameraTransform.rotation;
-            }
-            else
-            {
-                namePlate.transform.position = rigTransforms.neck.transform.position + (Vector3.up * 0.3f);
-                namePlate.transform.rotation = cameraTransform.rotation;
+                if (showBody)
+                {
+                    namePlate.transform.position = head.transform.position + (Vector3.up * 0.3f);
+                    namePlate.transform.rotation = cameraTransform.rotation;
+                }
+                else
+                {
+                    namePlate.transform.position = rigTransforms.neck.transform.position + (Vector3.up * 0.3f);
+                    namePlate.transform.rotation = cameraTransform.rotation;
+                }
             }
         }
 
