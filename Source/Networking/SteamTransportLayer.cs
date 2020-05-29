@@ -1,4 +1,5 @@
 ﻿using Facepunch.Steamworks;
+using Facepunch.Steamworks.Data;
 using MelonLoader;
 using System;
 using System.Collections.Generic;
@@ -12,8 +13,10 @@ namespace MultiplayerMod.Networking
     public class SteamTransportConnection : ITransportConnection
     {
         public ulong ConnectedTo { get; private set; }
+        public bool IsConnected => IsValid;
 
         internal bool IsValid { get; private set; } = true;
+
 
         internal SteamTransportConnection(ulong id, P2PMessage initialMessage)
         {
@@ -40,10 +43,16 @@ namespace MultiplayerMod.Networking
 
     public class SteamTransportLayer : ITransportLayer
     {
-        public event Action<ITransportConnection> OnConnect;
         public event Action<ITransportConnection, ConnectionClosedReason> OnConnectionClosed;
+        public event Action<ITransportConnection, P2PMessage> OnMessageReceived;
 
         private readonly Dictionary<ulong, SteamTransportConnection> connections = new Dictionary<ulong, SteamTransportConnection>();
+
+        public SteamTransportLayer()
+        {
+            // Allows for the networking to fallback onto steam's servers
+            SteamNetworking.AllowP2PPacketRelay(true);
+        }
 
         private ConnectionClosedReason GetConnectionClosedReason(P2PSessionError error)
         {
@@ -114,6 +123,19 @@ namespace MultiplayerMod.Networking
         {
             SteamNetworking.OnP2PConnectionFailed = null;
             SteamNetworking.OnP2PSessionRequest = null;
+        }
+
+        public void Update()
+        {
+            while (SteamNetworking.IsP2PPacketAvailable(0))
+            {
+                P2Packet? packet = SteamNetworking.ReadP2PPacket(0);
+
+                if (packet.HasValue)
+                {
+                    OnMessageReceived?.Invoke(connections[packet.Value.SteamId], new P2PMessage(packet.Value.Data));
+                }
+            }
         }
     }
 }

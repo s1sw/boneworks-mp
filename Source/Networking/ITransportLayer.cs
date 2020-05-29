@@ -19,19 +19,27 @@ namespace MultiplayerMod.Networking
         Other
     }
 
+    public enum TransportLayers
+    {
+        Steam,
+        Discord
+    }
+
     public interface ITransportConnection
     {
         ulong ConnectedTo { get; }
+        bool IsConnected { get; }
         void SendMessage(P2PMessage msg, MessageSendType sendType);
         void Disconnect();
     }
 
     public interface ITransportLayer
     {
-        event Action<ITransportConnection> OnConnect;
+        event Action<ITransportConnection, P2PMessage> OnMessageReceived;
         event Action<ITransportConnection, ConnectionClosedReason> OnConnectionClosed;
         void StartListening();
         void StopListening();
+        void Update();
         ITransportConnection ConnectTo(ulong id, P2PMessage initialMessage);
     }
 }

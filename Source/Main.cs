@@ -22,6 +22,7 @@ using System.Linq;
 using MultiplayerMod.Core;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Representations;
+using MultiplayerMod.Networking;
 
 namespace MultiplayerMod
 {
@@ -37,6 +38,7 @@ namespace MultiplayerMod
 
         internal static event Action<int> OnLevelWasLoadedEvent;
         internal static event Action<int> OnLevelWasInitializedEvent;
+        internal static ITransportLayer TransportLayer;
 
 #if DEBUG
         PlayerRep dummyRep;
@@ -53,20 +55,19 @@ namespace MultiplayerMod
             MelonModLogger.LogWarning("Debug build!");
 #endif
 
-            MelonModLogger.Log("Multiplayer initialising with SteamID " + SteamClient.SteamId.ToString() + ". Protocol version " + PROTOCOL_VERSION.ToString());
+            MelonModLogger.Log($"Multiplayer initialising with protocol version {PROTOCOL_VERSION}.");
 
             // Set up prefs
             ModPrefs.RegisterCategory("MPMod", "Multiplayer Settings");
-            ModPrefs.RegisterPrefString("MPMod", "HostSteamID", "0");
             ModPrefs.RegisterPrefBool("MPMod", "BaldFord", false, "90% effective hair removal solution");
 
-            // Allows for the networking to fallback onto steam's servers
-            SteamNetworking.AllowP2PPacketRelay(true);
+            // Initialise transport layer
+            TransportLayer = new SteamTransportLayer();
 
             // Create the UI and cache the PlayerRep's model
             ui = new MultiplayerUI();
-            client = new Client(ui);
-            server = new Server(ui);
+            client = new Client(ui, TransportLayer);
+            server = new Server(ui, TransportLayer);
             PlayerRep.LoadFord();
 
             // Configures if the PlayerRep's are showing or hiding certain parts
@@ -105,21 +106,16 @@ namespace MultiplayerMod
 
             if (!client.isConnected && !server.IsRunning)
             {
-                // If the user is not connected, start their client and attempt a connection
+                // This used to be used to connect to a server by using the SteamID in a config file,
+                // but now it only causes confusion.
                 if (Input.GetKeyDown(KeyCode.C))
                 {
-                    client.Connect(ModPrefs.GetString("MPMod", "HostSteamID"));
-                    SteamFriends.SetRichPresence("steam_display", "Playing multiplayer on " + SceneManager.GetActiveScene().name);
-                    SteamFriends.SetRichPresence("connect", "--boneworks-multiplayer-id-connect " + client.ServerId);
-                    SteamFriends.SetRichPresence("steam_player_group", client.ServerId.ToString());
+                    MelonModLogger.LogError("Manually connection to a server with the C keybind has been removed. Please use Discord invites.");
                 }
 
                 // If the user is not hosting, start their server
                 if (Input.GetKeyDown(KeyCode.S))
                 {
-                    SteamFriends.SetRichPresence("steam_display", "Hosting multiplayer on " + SceneManager.GetActiveScene().name);
-                    SteamFriends.SetRichPresence("connect", "--boneworks-multiplayer-id-connect " + SteamClient.SteamId);
-                    SteamFriends.SetRichPresence("steam_player_group", SteamClient.SteamId.ToString());
                     server.StartServer();
                 }
             }
