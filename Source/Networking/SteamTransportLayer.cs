@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Permissions;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace MultiplayerMod.Networking
@@ -16,7 +17,6 @@ namespace MultiplayerMod.Networking
         public bool IsConnected => IsValid;
 
         internal bool IsValid { get; private set; } = true;
-
 
         internal SteamTransportConnection(ulong id, P2PMessage initialMessage)
         {
@@ -37,21 +37,31 @@ namespace MultiplayerMod.Networking
 
         public void SendMessage(P2PMessage msg, MessageSendType sendType)
         {
-            SteamNetworking.SendP2PPacket(ConnectedTo, msg.GetBytes(), -1, 0, sendType == MessageSendType.Reliable ? P2PSend.Reliable : P2PSend.Unreliable);
+            SteamTransportLayer.messageSendCmds.Enqueue(new SteamTransportLayer.MessageSendCmd() { msg = msg, sendType = sendType, id = ConnectedTo });
         }
     }
 
     public class SteamTransportLayer : ITransportLayer
     {
+        internal struct MessageSendCmd
+        {
+            public P2PMessage msg;
+            public MessageSendType sendType;
+            public ulong id;
+        }
+
         public event Action<ITransportConnection, ConnectionClosedReason> OnConnectionClosed;
         public event Action<ITransportConnection, P2PMessage> OnMessageReceived;
 
+        private readonly Thread msgThread;
         private readonly Dictionary<ulong, SteamTransportConnection> connections = new Dictionary<ulong, SteamTransportConnection>();
+        internal static readonly Queue<MessageSendCmd> messageSendCmds = new Queue<MessageSendCmd>();
 
         public SteamTransportLayer()
         {
             // Allows for the networking to fallback onto steam's servers
             SteamNetworking.AllowP2PPacketRelay(true);
+            msgThread = new Thread(SendMessagesThread);
         }
 
         private ConnectionClosedReason GetConnectionClosedReason(P2PSessionError error)
@@ -134,6 +144,22 @@ namespace MultiplayerMod.Networking
                 if (packet.HasValue)
                 {
                     OnMessageReceived?.Invoke(connections[packet.Value.SteamId], new P2PMessage(packet.Value.Data));
+                }
+            }
+        }
+
+        // Horrid multithreading to hopefully speed things up a little
+        private void SendMessagesThread()
+        {
+            while (true)
+            {
+                if (messageSendCmds.Count == 0)
+                    Thread.Sleep(5);
+
+                while (messageSendCmds.Count > 0)
+                {
+                    MessageSendCmd sendCmd = messageSendCmds.Dequeue();
+                    SteamNetworking.SendP2PPacket(sendCmd.id, sendCmd.msg.GetBytes(), -1, 0, sendCmd.sendType == MessageSendType.Reliable ? P2PSend.Reliable : P2PSend.Unreliable);
                 }
             }
         }
