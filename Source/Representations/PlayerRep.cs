@@ -42,12 +42,6 @@ namespace MultiplayerMod.Representations
         public GameObject currentGun;
         public GameObject gunParent;
 
-        //IK vars
-        public IKSolverVR.Arm ik_lArm;
-        public IKSolverVR.Arm ik_rArm;
-        public IKSolverVR.Spine ik_spine;
-        public VRIK ik;
-
         private static AssetBundle fordBundle;
 
         // Async operations
@@ -80,118 +74,9 @@ namespace MultiplayerMod.Representations
             GameObject root = ford.transform.Find("Ford/Brett@neutral").gameObject; // Get the rep's head
             Transform realRoot = root.transform.Find("SHJntGrp/MAINSHJnt/ROOTSHJnt"); // Then get the head's root joint
 
-            #region Unused Code
-            // Networked IK code?
-
-            //var ik = root.AddComponent<VRIK>();
-
-            //VRIK.References bipedReferences = new VRIK.References
-            //{
-            //    root = root.transform.Find("SHJntGrp"),
-
-            //    spine = realRoot.Find("Spine_01SHJnt"),
-            //    pelvis = realRoot,
-
-            //    leftThigh = realRoot.Find("l_Leg_HipSHJnt"),
-            //    leftCalf = realRoot.Find("l_Leg_HipSHJnt/l_Leg_KneeSHJnt"),
-            //    leftFoot = realRoot.Find("l_Leg_HipSHJnt/l_Leg_KneeSHJnt/l_Leg_AnkleSHJnt"),
-            //    leftToes = realRoot.Find("l_Leg_HipSHJnt/l_Leg_KneeSHJnt/l_Leg_AnkleSHJnt/l_Leg_BallSHJnt"),
-
-            //    rightThigh = realRoot.Find("r_Leg_HipSHJnt"),
-            //    rightCalf = realRoot.Find("r_Leg_HipSHJnt/r_Leg_KneeSHJnt"),
-            //    rightFoot = realRoot.Find("r_Leg_HipSHJnt/r_Leg_KneeSHJnt/r_Leg_AnkleSHJnt"),
-            //    rightToes = realRoot.Find("r_Leg_HipSHJnt/r_Leg_KneeSHJnt/r_Leg_AnkleSHJnt/r_Leg_BallSHJnt"),
-
-            //    leftUpperArm = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/l_Arm_ClavicleSHJnt/l_AC_AuxSHJnt/l_Arm_ShoulderSHJnt"),
-            //    leftForearm = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/l_Arm_ClavicleSHJnt/l_AC_AuxSHJnt/l_Arm_ShoulderSHJnt/l_Arm_Elbow_CurveSHJnt"),
-            //    leftHand = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/l_Arm_ClavicleSHJnt/l_AC_AuxSHJnt/l_Arm_ShoulderSHJnt/l_Arm_Elbow_CurveSHJnt/l_WristSHJnt/l_Hand_1SHJnt"),
-            //    //leftShoulder = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/l_Arm_ClavicleSHJnt/l_AC_AuxSHJnt/l_Arm_ShoulderSHJnt"),
-
-            //    rightUpperArm = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/r_Arm_ClavicleSHJnt/r_AC_AuxSHJnt/r_Arm_ShoulderSHJnt"),
-            //    rightForearm = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/r_Arm_ClavicleSHJnt/r_AC_AuxSHJnt/r_Arm_ShoulderSHJnt/r_Arm_Elbow_CurveSHJnt"),
-            //    rightHand = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/r_Arm_ClavicleSHJnt/r_AC_AuxSHJnt/r_Arm_ShoulderSHJnt/r_Arm_Elbow_CurveSHJnt/r_WristSHJnt/r_Hand_1SHJnt"),
-            //    //rightShoulder = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/r_Arm_ClavicleSHJnt/r_AC_AuxSHJnt/r_Arm_ShoulderSHJnt"),
-
-            //    head = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt")
-            //};
-
-            ////ik.AutoDetectReferences();
-            //ik.enabled = false;
-            //ik.references = bipedReferences;
-            ////ik.solver.plantFeet = false;
-            //ik.fixTransforms = false;
-
-            //ik.solver.leftLeg.positionWeight = 1.0f;
-            //ik.solver.leftLeg.swivelOffset = 0.0f;
-            //ik.solver.leftLeg.bendToTargetWeight = 0.0f;
-            //ik.solver.leftLeg.legLengthMlp = 1.0f;
-
-            //ik.solver.rightLeg.positionWeight = 1.0f;
-            //ik.solver.rightLeg.swivelOffset = 0.0f;
-            //ik.solver.rightLeg.bendToTargetWeight = 0.0f;
-            //ik.solver.rightLeg.legLengthMlp = 1.0f;
-
-            //ik.solver.hasChest = false;
-            //ik.solver.spine.chestGoalWeight = 0.0f;
-            //ik.solver.spine.pelvisPositionWeight = 0.0f;
-            //ik.solver.spine.pelvisRotationWeight = 0.0f;
-            //ik.solver.spine.positionWeight = 1.0f;
-            //ik.solver.spine.rotationWeight = 1.0f;
-            //ik.solver.spine.minHeadHeight = 0.8f;
-            //ik.solver.spine.bodyPosStiffness = 0.55f;
-            //ik.solver.spine.bodyRotStiffness = 0.1f;
-            //ik.solver.spine.neckStiffness = 0.3f;
-            //ik.solver.spine.rotateChestByHands = 1.0f;
-            //ik.solver.spine.chestClampWeight = 0.5f;
-            //ik.solver.spine.headClampWeight = 0.6f;
-            //ik.solver.spine.moveBodyBackWhenCrouching = 0.5f;
-            //ik.solver.spine.maintainPelvisPosition = 0.2f;
-            //ik.solver.spine.maxRootAngle = 25.0f;
-
-            //ik.solver.leftArm.positionWeight = 1.0f;
-            //ik.solver.leftArm.rotationWeight = 1.0f;
-            //ik.solver.leftArm.shoulderRotationMode = IKSolverVR.Arm.ShoulderRotationMode.YawPitch;
-            //ik.solver.leftArm.shoulderRotationWeight = 0.5f;
-            //ik.solver.leftArm.shoulderTwistWeight = 1.0f;
-            //ik.solver.leftArm.bendGoalWeight = 0.0f;
-            //ik.solver.leftArm.swivelOffset = 20.0f;
-            //ik.solver.leftArm.armLengthMlp = 1.0f;
-
-            //ik.solver.rightArm.positionWeight = 1.0f;
-            //ik.solver.rightArm.rotationWeight = 1.0f;
-            //ik.solver.rightArm.shoulderRotationMode = IKSolverVR.Arm.ShoulderRotationMode.YawPitch;
-            //ik.solver.rightArm.shoulderRotationWeight = 0.5f;
-            //ik.solver.rightArm.shoulderTwistWeight = 1.0f;
-            //ik.solver.rightArm.bendGoalWeight = 0.0f;
-            //ik.solver.rightArm.swivelOffset = 20.0f;
-            //ik.solver.rightArm.armLengthMlp = 1.0f;
-
-            //IKSolverVR.Locomotion l = ik.solver.locomotion;
-            //l.weight = 0.0f;
-            //l.blockingEnabled = false;
-            //l.blockingLayers = LayerMask.NameToLayer("Default");
-            //l.footDistance = 0.3f;
-            //l.stepThreshold = 0.35f;
-            //l.angleThreshold = 60.0f;
-            //l.comAngleMlp = 0.5f;
-            //l.maxVelocity = 0.3f;
-            //l.velocityFactor = 0.3f;
-            //l.maxLegStretch = 0.98f;
-            //l.rootSpeed = 20.0f;
-            //l.stepSpeed = 2.8f;
-            //l.relaxLegTwistMinAngle = 20.0f;
-            //l.relaxLegTwistSpeed = 400.0f;
-            //l.stepInterpolation = InterpolationMode.InOutSine;
-            //l.offset = Vector3.zero;
-            #endregion
 
             // Assign targets for the IK system
-            //GameObject lHandTarget = new GameObject("LHand");
-            //GameObject rHandTarget = new GameObject("RHand");
             GameObject pelvisTarget = new GameObject("Pelvis");
-            //GameObject headTarget = new GameObject("HeadTarget");
-            //GameObject lFootTarget = new GameObject("LFoot");
-            //GameObject rFootTarget = new GameObject("RFoot");
 
             // Create an anchor object to hold the rep's gun
             gunParent = new GameObject("gunParent");
@@ -202,25 +87,6 @@ namespace MultiplayerMod.Representations
             // If for whatever reason this is needed, show or hide the rep's body and hair
             root.transform.Find("geoGrp/brett_body").GetComponent<SkinnedMeshRenderer>().enabled = showBody;
             root.transform.Find("geoGrp/brett_hairCards").gameObject.SetActive(showHair);
-
-            #region Unused Code
-            // IK code?
-
-            //ik.solver.leftArm.target = lHandTarget.transform;
-            //ik.solver.rightArm.target = rHandTarget.transform;
-            //ik.solver.spine.pelvisTarget = pelvisTarget.transform;
-            //ik.solver.spine.headTarget = headTarget.transform;
-            //ik.solver.leftLeg.target = lFootTarget.transform;
-            //ik.solver.rightLeg.target = rFootTarget.transform;
-
-            //footL = ik.solver.leftLeg.target.gameObject;
-            //footR = ik.solver.rightLeg.target.gameObject;
-
-            //head = headTarget;
-            //handL = lHandTarget;
-            //handR = rHandTarget;
-            //pelvis = pelvisTarget;
-            #endregion
 
             // Assign the transforms for the rep
             rigTransforms = BWUtil.GetHumanoidRigTransforms(root);
@@ -269,14 +135,6 @@ namespace MultiplayerMod.Representations
 #endif
 
             this.ford = ford;
-
-            #region Unused Code
-            // More IK stuff?
-
-            //lArm = ik.solver.leftArm;
-            //rArm = ik.solver.rightArm;
-            //spine = ik.solver.spine;
-            #endregion
         }
 
         private IEnumerator AsyncAvatarRoutine(SteamId id)
@@ -285,7 +143,7 @@ namespace MultiplayerMod.Representations
             while (!imageTask.IsCompleted)
             {
                 // WaitForEndOfFrame is broken in MelonLoader, so use WaitForSeconds
-                yield return new WaitForSeconds(0.011f);
+                yield return new WaitForSeconds(0.1f);
             }
 
             if (imageTask.Result.HasValue)
