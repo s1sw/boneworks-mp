@@ -712,55 +712,10 @@ namespace MultiplayerMod.Networking
             return msg;
         }
     }
-
-    public class AttackMessage : INetworkMessage
-    {
-        public AttackMessage()
-        {
-            
-        }
-
-        public P2PMessage MakeMsg()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class SyncAccessoryMessage
-    {
-        public P2PMessage MakeMsg()
-        {
-            P2PMessage msg = new P2PMessage();
-
-            //msg.WriteByte();
-
-            return msg;
-        }
-    }
-
-    //public class HoverJunkerUpdateMessage : INetworkMessage
-    //{ 
-    //    public HoverJunkerUpdateMessage()
-    //    {
-
-    //    }
-
-    //    public HoverJunkerUpdateMessage(P2PMessage msg)
-    //    {
-
-    //    }
-
-    //    public P2PMessage MakeMsg()
-    //    {
-    //        P2PMessage msg = new P2PMessage();
-
-    //    }
-    //}
     
     public class IDAllocationMessage : INetworkMessage
     {
         public string namePath;
-        public string childIdxPath;
         public ushort allocatedId;
 
         public IDAllocationMessage()
@@ -771,7 +726,6 @@ namespace MultiplayerMod.Networking
         public IDAllocationMessage(P2PMessage msg)
         {
             namePath = msg.ReadUnicodeString();
-            childIdxPath = msg.ReadUnicodeString();
             allocatedId = msg.ReadUShort();
         }
 
@@ -781,7 +735,6 @@ namespace MultiplayerMod.Networking
 
             msg.WriteByte((byte)MessageType.IdAllocation);
             msg.WriteUnicodeString(namePath);
-            msg.WriteUnicodeString(childIdxPath);
             msg.WriteUShort(allocatedId);
 
             return msg;
@@ -791,7 +744,6 @@ namespace MultiplayerMod.Networking
     public class IDRequestMessage : INetworkMessage
     {
         public string namePath;
-        public string childIdxPath;
 
         public IDRequestMessage()
         {
@@ -801,7 +753,6 @@ namespace MultiplayerMod.Networking
         public IDRequestMessage(P2PMessage msg)
         {
             namePath = msg.ReadUnicodeString();
-            childIdxPath = msg.ReadUnicodeString();
         }
 
         public P2PMessage MakeMsg()
@@ -810,7 +761,6 @@ namespace MultiplayerMod.Networking
 
             msg.WriteByte((byte)MessageType.IdRequest);
             msg.WriteUnicodeString(namePath);
-            msg.WriteUnicodeString(childIdxPath);
 
             return msg;
         }
