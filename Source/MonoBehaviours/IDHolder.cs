@@ -7,6 +7,6 @@ namespace MultiplayerMod.MonoBehaviours
     {
         public IDHolder(IntPtr ptr) : base(ptr) { }
 
-        public short ID;
+        public ushort ID;
     }
 }
