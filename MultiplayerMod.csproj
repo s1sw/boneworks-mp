@@ -281,6 +281,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Boneworks\BWUtil.cs" />
+    <Compile Include="Source\Core\ObjectIDManager.cs" />
     <Compile Include="Source\Extras\BasicFABRIK.cs" />
     <Compile Include="Source\Features\ClientSettings.cs" />
     <Compile Include="Source\Features\Guard.cs" />
