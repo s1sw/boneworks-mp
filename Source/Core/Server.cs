@@ -20,6 +20,7 @@ using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
 using Oculus.Platform;
 using Oculus.Platform.Samples.VrHoops;
+using MultiplayerMod.MonoBehaviours;
 
 namespace MultiplayerMod.Core
 {
@@ -32,6 +33,7 @@ namespace MultiplayerMod.Core
         private readonly Dictionary<byte, SteamId> largePlayerIds = new Dictionary<byte, SteamId>(MultiplayerMod.MAX_PLAYERS);
         private readonly Dictionary<ulong, ITransportConnection> playerConnections = new Dictionary<ulong, ITransportConnection>(MultiplayerMod.MAX_PLAYERS);
         private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
+        private readonly Dictionary<GameObject, ServerSyncedObject> syncedObjectCache = new Dictionary<GameObject, ServerSyncedObject>();
         private string partyId = "";
         private byte smallIdCounter = 0;
         private BoneworksRigTransforms localRigTransforms;
@@ -135,6 +137,17 @@ namespace MultiplayerMod.Core
             foreach (PlayerRep pr in playerObjects.Values)
             {
                 pr.UpdateNameplateFacing(Camera.current.transform);
+            }
+
+            foreach (var pair in ObjectIDManager.objects)
+            {
+                if (!syncedObjectCache.ContainsKey(pair.Value))
+                    syncedObjectCache.Add(pair.Value, pair.Value.GetComponent<ServerSyncedObject>());
+                ServerSyncedObject sso = syncedObjectCache[pair.Value];
+                if (sso.NeedsSync())
+                {
+
+                }
             }
             // Disabled temporarily
 #if false
@@ -537,6 +550,13 @@ namespace MultiplayerMod.Core
 
                         hgcm.isForOtherPlayer = true;
                         ServerSendToAllExcept(hgcm, MessageSendType.Reliable, connection.ConnectedTo);
+                        break;
+                    }
+                case MessageType.IdRequest:
+                    {
+                        IDRequestMessage idrqm = new IDRequestMessage(msg);
+                        MelonModLogger.Log("ID request: " + idrqm.namePath);
+                        BWUtil.GetObjectFromFullPath(idrqm.namePath);
                         break;
                     }
                 default:

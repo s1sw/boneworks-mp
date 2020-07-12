@@ -9,7 +9,7 @@ namespace MultiplayerMod.Core
 {
     public static class ObjectIDManager
     {
-        private static Dictionary<ushort, GameObject> objects = new Dictionary<ushort, GameObject>();
+        public static Dictionary<ushort, GameObject> objects = new Dictionary<ushort, GameObject>();
 
         public static void Reset()
         {

@@ -766,16 +766,16 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class ObjectSync : INetworkMessage
+    public class ObjectSyncMessage : INetworkMessage
     {
         public ushort id;
         public Vector3 position;
         public Quaternion rotation;
 
-        public ObjectSync()
+        public ObjectSyncMessage()
         { }
 
-        public ObjectSync(P2PMessage msg)
+        public ObjectSyncMessage(P2PMessage msg)
         {
             id = msg.ReadUShort();
             position = msg.ReadVector3();

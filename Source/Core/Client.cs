@@ -20,6 +20,7 @@ using StressLevelZero.AI;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
+using MultiplayerMod.MonoBehaviours;
 //using BoneworksModdingToolkit;
 
 namespace MultiplayerMod.Core
@@ -241,6 +242,30 @@ namespace MultiplayerMod.Core
                         BWUtil.ApplyRigTransform(brt, ertm);
                         break;
                     }
+                case MessageType.IdAllocation:
+                    {
+                        IDAllocationMessage iam = new IDAllocationMessage(msg);
+                        GameObject obj = BWUtil.GetObjectFromFullPath(iam.namePath);
+                        ObjectIDManager.AddObject(iam.allocatedId, obj);
+                        obj.AddComponent<IDHolder>().ID = iam.allocatedId;
+                        break;
+                    }
+                case MessageType.ObjectSync:
+                    {
+                        ObjectSyncMessage osm = new ObjectSyncMessage(msg);
+                        GameObject obj = ObjectIDManager.GetObject(osm.id);
+
+                        if (!obj)
+                        {
+                            MelonModLogger.LogError($"Couldn't find object with ID {osm.id}");
+                        }
+                        else
+                        {
+                            obj.transform.position = osm.position;
+                            obj.transform.rotation = osm.rotation;
+                        }
+                        break;
+                    }
             }
         }
 
@@ -293,7 +318,8 @@ namespace MultiplayerMod.Core
 
             // Send off an ID request to the server
             IDRequestMessage requestMessage = new IDRequestMessage();
-            
+            requestMessage.namePath = BWUtil.GetFullNamePath(obj);
+            SendToServer(requestMessage, MessageSendType.Reliable);
         }
 
         public void Disconnect()
