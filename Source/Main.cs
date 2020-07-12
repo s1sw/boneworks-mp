@@ -22,7 +22,10 @@ using System.Linq;
 using MultiplayerMod.Core;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Representations;
-using MultiplayerMod.Networking;
+using UnhollowerRuntimeLib;
+using Valve.VR.InteractionSystem;
+using StressLevelZero.Player;
+using BoneworksModdingToolkit;
 
 namespace MultiplayerMod
 {
@@ -38,7 +41,6 @@ namespace MultiplayerMod
 
         internal static event Action<int> OnLevelWasLoadedEvent;
         internal static event Action<int> OnLevelWasInitializedEvent;
-        internal static ITransportLayer TransportLayer;
 
 #if DEBUG
         PlayerRep dummyRep;
@@ -48,26 +50,24 @@ namespace MultiplayerMod
         {
             SteamClient.Init(823500);
 
-            Features.Guard.GetSteamFriends();
-            Features.Guard.GetLocalGuard();
-
 #if DEBUG
-            MelonModLogger.LogWarning("Debug build!");
+            MelonModLogger.Log(ConsoleColor.Red, "Debug build!");
 #endif
 
-            MelonModLogger.Log($"Multiplayer initialising with protocol version {PROTOCOL_VERSION}.");
+            MelonModLogger.Log("Multiplayer initialising with SteamID " + SteamClient.SteamId.ToString() + ". Protocol version " + PROTOCOL_VERSION.ToString());
 
             // Set up prefs
             ModPrefs.RegisterCategory("MPMod", "Multiplayer Settings");
+            ModPrefs.RegisterPrefString("MPMod", "HostSteamID", "0");
             ModPrefs.RegisterPrefBool("MPMod", "BaldFord", false, "90% effective hair removal solution");
 
-            // Initialise transport layer
-            TransportLayer = new SteamTransportLayer();
+            // Allows for the networking to fallback onto steam's servers
+            SteamNetworking.AllowP2PPacketRelay(true);
 
             // Create the UI and cache the PlayerRep's model
             ui = new MultiplayerUI();
-            client = new Client(ui, TransportLayer);
-            server = new Server(ui, TransportLayer);
+            client = new Client(ui);
+            server = new Server(ui);
             PlayerRep.LoadFord();
 
             // Configures if the PlayerRep's are showing or hiding certain parts
@@ -93,11 +93,14 @@ namespace MultiplayerMod
 
             OnLevelWasLoadedEvent?.Invoke(level);
         }
-
         public override void OnLevelWasInitialized(int level)
         {
             ui.Recreate();
             MelonModLogger.Log("Initialized scene " + level.ToString());
+            Server.brett = GameObject.Find("[RigManager (Default Brett)]");
+            Server.brett_Health = Server.brett.GetComponent<Player_Health>();
+            Client.brett = GameObject.Find("[RigManager (Default Brett)]");
+            Client.brett_Health = Client.brett.GetComponent<Player_Health>();
         }
 
         public override void OnUpdate()
@@ -106,16 +109,21 @@ namespace MultiplayerMod
 
             if (!client.isConnected && !server.IsRunning)
             {
-                // This used to be used to connect to a server by using the SteamID in a config file,
-                // but now it only causes confusion.
+                // If the user is not connected, start their client and attempt a connection
                 if (Input.GetKeyDown(KeyCode.C))
                 {
-                    MelonModLogger.LogError("Manually connection to a server with the C keybind has been removed. Please use Discord invites.");
+                    client.Connect(ModPrefs.GetString("MPMod", "HostSteamID"));
+                    SteamFriends.SetRichPresence("steam_display", "Playing multiplayer on " + SceneManager.GetActiveScene().name);
+                    SteamFriends.SetRichPresence("connect", "--boneworks-multiplayer-id-connect " + client.ServerId);
+                    SteamFriends.SetRichPresence("steam_player_group", client.ServerId.ToString());
                 }
 
                 // If the user is not hosting, start their server
                 if (Input.GetKeyDown(KeyCode.S))
                 {
+                    SteamFriends.SetRichPresence("steam_display", "Hosting multiplayer on " + SceneManager.GetActiveScene().name);
+                    SteamFriends.SetRichPresence("connect", "--boneworks-multiplayer-id-connect " + SteamClient.SteamId);
+                    SteamFriends.SetRichPresence("steam_player_group", SteamClient.SteamId.ToString());
                     server.StartServer();
                 }
             }
@@ -135,14 +143,9 @@ namespace MultiplayerMod
 
             if (Input.GetKeyDown(KeyCode.X))
                 Features.ClientSettings.hiddenNametags = !Features.ClientSettings.hiddenNametags;
-        }
 
-        public override void OnGUI()
-        {
 #if DEBUG
-            GUILayout.BeginVertical(null);
-
-            if (GUILayout.Button("Create Dummy", null))
+            if (Input.GetKeyDown(KeyCode.R))
             {
                 if (dummyRep == null)
                     dummyRep = new PlayerRep("Dummy", SteamClient.SteamId);
@@ -150,34 +153,21 @@ namespace MultiplayerMod
                     dummyRep.Destroy();
             }
 
-            if (GUILayout.Button("Create Dummy Accessories", null))
+            /*if (Input.GetKeyDown(KeyCode.A))
             {
                 zCubed.Accessories.Accessory.CreateDummies(zCubed.Accessories.Accessory.GetPlayerRoot());
             }
 
-            if (GUILayout.Button("Create Local Accessories", null))
+            if (Input.GetKeyDown(KeyCode.Q))
             {
                 zCubed.Accessories.Accessory.CreateLocalAccessories(zCubed.Accessories.Accessory.GetPlayerRoot());
             }
 
-            if (GUILayout.Button("Create Net Accessories", null))
+            if (Input.GetKeyDown(KeyCode.W))
             {
                 string[] accessoryPaths = Features.NetworkedAccesories.GetLocalList();
                 byte[] rawData = Features.NetworkedAccesories.BundleToNetBundle(accessoryPaths[0]);
-            }
-
-            if (GUILayout.Button("Test Guard Lists", null))
-            {
-                Features.Guard.AddUserToList(Guid.NewGuid().ToString(), Features.Guard.Lists.Blocked);
-                Features.Guard.AddUserToList(Guid.NewGuid().ToString(), Features.Guard.Lists.Trusted);
-            }
-
-            if (GUILayout.Button("Create Main Panel", null))
-            {
-                Features.UI.CreateMainPanel();
-            }
-
-            GUILayout.EndVertical();
+            }*/
 #endif
         }
 
@@ -198,5 +188,6 @@ namespace MultiplayerMod
             if (server.IsRunning)
                 server.StopServer();
         }
+
     }
 }
