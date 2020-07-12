@@ -38,6 +38,7 @@ namespace MultiplayerMod
         private MultiplayerUI ui;
         private Client client;
         private Server server;
+        public static AssetBundle gunBundle;
 
         internal static event Action<int> OnLevelWasLoadedEvent;
         internal static event Action<int> OnLevelWasInitializedEvent;
@@ -50,6 +51,9 @@ namespace MultiplayerMod
         {
             SteamClient.Init(823500);
 
+            gunBundle = AssetBundle.LoadFromFile("gun.fx");
+            if (gunBundle == null)
+                MelonModLogger.LogError("Failed to load gunFX asset bundle");
 #if DEBUG
             MelonModLogger.Log(ConsoleColor.Red, "Debug build!");
 #endif

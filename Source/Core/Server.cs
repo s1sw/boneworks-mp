@@ -52,17 +52,17 @@ namespace MultiplayerMod.Core
                 BulletObject bobj = obj.chamberedBulletGameObject.GetComponent<BulletObject>();
                 GunFireMessage gfm = new GunFireMessage()
                 {
-                    fireDirection = obj.firePointTransform.rotation,
+                    fireDirection = obj.firePointTransform.forward,
                     fireOrigin = obj.firePointTransform.position,
                     bulletDamage = 2
                     
                 };
-                GameObject instance = GameObject.Instantiate(lineHolder);
+                /*GameObject instance = GameObject.Instantiate(lineHolder);
                 LineRenderer lineRenderer = instance.GetComponent<LineRenderer>();
                 lineRenderer.widthMultiplier = 0.2f;
                 lineRenderer.SetPosition(0, gfm.fireOrigin);
-                lineRenderer.SetPosition(1, gfm.fireOrigin + (gfm.fireDirection.eulerAngles * 999));
-                GameObject.Destroy(instance, 10);
+                lineRenderer.SetPosition(1, gfm.fireOrigin + (gfm.fireDirection * 999));
+                GameObject.Destroy(instance, 10);*/
                 ServerSendToAll(gfm, P2PSend.Unreliable);
         }
 
@@ -82,25 +82,38 @@ namespace MultiplayerMod.Core
 
                     switch (type)
                     {
+                        case MessageType.GunFireHit:
+                            {
+                                byte playerId = smallPlayerIds[packet.Value.SteamId];
+                                if (playerObjects.ContainsKey(playerId))
+                                {
+                                    PlayerRep pr = playerObjects[playerId];
+
+                                    if (pr.rigTransforms.main != null)
+                                    {
+                                        GameObject instance = GameObject.Instantiate(brettSfx, pr.rigTransforms.main);
+                                        Destroy(instance, 3);
+                                    }
+                                }
+                                GunFireFeedback gff = new GunFireFeedback();
+                                ServerSendToAllExcept(gff, P2PSend.Unreliable, packet.Value.SteamId);
+                                break;
+                            }
                         case MessageType.GunFire:
                             {
                                 GunFireMessage gfm = new GunFireMessage(msg);
-                                Ray ray = new Ray(gfm.fireOrigin, gfm.fireDirection.eulerAngles);
+                                Ray ray = new Ray(gfm.fireOrigin, gfm.fireDirection);
                                 
                                 RaycastHit hit;
-                                GameObject instance = GameObject.Instantiate(lineHolder);
-                                LineRenderer lineRenderer = instance.GetComponent<LineRenderer>();
-                                lineRenderer.widthMultiplier = 0.2f;
-                                lineRenderer.SetPosition(0, gfm.fireOrigin);
-                                lineRenderer.SetPosition(1, gfm.fireOrigin + (gfm.fireDirection.eulerAngles * 999));
-                                GameObject.Destroy(instance, 10);
                                 if (Physics.Raycast(ray, out hit, int.MaxValue, ~0, QueryTriggerInteraction.Ignore))
                                 {
-                                    if (hit.transform.root == brett)
+                                    if (hit.transform.root.gameObject == brett)
                                     {
                                         MelonModLogger.Log("Hit BRETT!");
                                         int random = UnityEngine.Random.Range(0, 10);
                                         brett_Health.TAKEDAMAGE(gfm.bulletDamage, random == 0);
+                                        GunFireFeedback gff = new GunFireFeedback();
+                                        ServerSendToAll(gff, P2PSend.Unreliable);
                                     }
                                     else
                                     {
@@ -111,6 +124,13 @@ namespace MultiplayerMod.Core
                                 {
                                     MelonModLogger.Log("Did not hit!");
                                 }
+
+                                GameObject instance = GameObject.Instantiate(lineHolder);
+                                LineRenderer lineRenderer = instance.GetComponent<LineRenderer>();
+                                lineRenderer.SetPosition(0, gfm.fireOrigin);
+                                lineRenderer.SetPosition(1, hit.transform.position);
+                                GameObject.Destroy(instance, 3);
+
                                 ServerSendToAllExcept(gfm, P2PSend.Unreliable, packet.Value.SteamId);
                                 MelonModLogger.Log("Pew serber send");
                                 break;
@@ -596,15 +616,16 @@ namespace MultiplayerMod.Core
             };
             ServerSendToAll(stm, P2PSend.Reliable);
             enemyPoolManager.FindAllPools();
-            brett = GameObject.Find("[RigManager (Default Brett)]");
-            brett_Health = brett.GetComponent<Player_Health>();
         }
 
+        GameObject brettSfx;
         GameObject lineHolder;
         public void StartServer()
         {
-            lineHolder = new GameObject();
-            lineHolder.AddComponent<LineRenderer>();
+            lineHolder = MultiplayerMod.gunBundle.LoadAsset("Assets/bulletTrail.prefab").Cast<GameObject>();
+            brettSfx = MultiplayerMod.gunBundle.LoadAsset("Assets/fordHurt.prefab").Cast<GameObject>();
+            DontDestroyOnLoad(lineHolder);
+            DontDestroyOnLoad(brettSfx);
 
             brett = GameObject.Find("[RigManager (Default Brett)]");
             brett_Health = brett.GetComponent<Player_Health>();

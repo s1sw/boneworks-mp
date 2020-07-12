@@ -34,13 +34,14 @@ namespace MultiplayerMod.Networking
         EnemyRigTransform,
         Attack,
         SetServerSetting,
-        GunFire
+        GunFire,
+        GunFireHit
     }
 
     public class GunFireBase
     {
         public Vector3 fireOrigin;
-        public Quaternion fireDirection;
+        public Vector3 fireDirection;
         public float bulletDamage;
     }
 
@@ -54,7 +55,7 @@ namespace MultiplayerMod.Networking
         public GunFireMessage(P2PMessage msg)
         {
             fireOrigin = msg.ReadVector3();
-            fireDirection = msg.ReadQuaternion();
+            fireDirection = msg.ReadVector3();
             bulletDamage = msg.ReadFloat();
         }
 
@@ -63,8 +64,18 @@ namespace MultiplayerMod.Networking
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.GunFire);
             msg.WriteVector3(fireOrigin);
-            msg.WriteQuaternion(fireDirection);
+            msg.WriteVector3(fireDirection);
             msg.WriteFloat(bulletDamage);
+            return msg;
+        }
+    }
+
+    public class GunFireFeedback : INetworkMessage
+    {
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.GunFireHit);
             return msg;
         }
     }

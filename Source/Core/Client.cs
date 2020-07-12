@@ -75,9 +75,15 @@ namespace MultiplayerMod.Core
                 playerObjects[id] = new PlayerRep(playerNames[id], steamIds[i]);
             }
         }
-
+        GameObject brettSfx;
+        GameObject lineHolder;
         public void Connect(string obj)
         {
+            lineHolder = MultiplayerMod.gunBundle.LoadAsset("Assets/bulletTrail.prefab").Cast<GameObject>();
+            brettSfx = MultiplayerMod.gunBundle.LoadAsset("Assets/fordHurt.prefab").Cast<GameObject>();
+            DontDestroyOnLoad(lineHolder);
+            DontDestroyOnLoad(brettSfx);
+
             brett = GameObject.Find("[RigManager (Default Brett)]");
             brett_Health = brett.GetComponent<Player_Health>();
             MelonModLogger.Log("Starting client and connecting");
@@ -207,18 +213,36 @@ namespace MultiplayerMod.Core
 
                     switch (type)
                     {
+                        case MessageType.GunFireHit:
+                            {
+                                byte playerId = smallPlayerIds[packet.Value.SteamId];
+                                if (playerObjects.ContainsKey(playerId))
+                                {
+                                    PlayerRep pr = playerObjects[playerId];
+
+                                    if (pr.rigTransforms.main != null)
+                                    {
+                                        GameObject instance = GameObject.Instantiate(brettSfx, pr.rigTransforms.main);
+                                        Destroy(instance, 3);
+                                    }
+                                }
+                                GunFireFeedback gff = new GunFireFeedback();
+                                break;
+                            }
                         case MessageType.GunFire:
                             {
                                 GunFireMessage gfm = new GunFireMessage(msg);
-                                Ray ray = new Ray(gfm.fireOrigin, gfm.fireDirection.eulerAngles);
+                                Ray ray = new Ray(gfm.fireOrigin, gfm.fireDirection);
                                 RaycastHit hit;
                                 if (Physics.Raycast(ray, out hit, int.MaxValue, ~0, QueryTriggerInteraction.Ignore))
                                 {
-                                    if (hit.transform.root == brett)
+                                    if (hit.transform.root.gameObject == brett)
                                     {
                                         MelonModLogger.Log("Hit BRETT!");
                                         int random = UnityEngine.Random.Range(0, 10);
                                         brett_Health.TAKEDAMAGE(gfm.bulletDamage, random == 0);
+                                        GunFireFeedback gff = new GunFireFeedback();
+                                        SendToServer(gff, P2PSend.Unreliable);
                                     }
                                     else
                                     {
@@ -229,6 +253,13 @@ namespace MultiplayerMod.Core
                                 {
                                     MelonModLogger.Log("Did not hit!");
                                 }
+                                
+                                GameObject instance = GameObject.Instantiate(lineHolder);
+                                LineRenderer lineRenderer = instance.GetComponent<LineRenderer>();
+                                lineRenderer.SetPosition(0, gfm.fireOrigin);
+                                lineRenderer.SetPosition(1, hit.transform.position);
+                                GameObject.Destroy(instance, 3);
+
                                 MelonModLogger.Log("Pew complete!");
                                 break;
                             }
@@ -461,7 +492,7 @@ namespace MultiplayerMod.Core
             BulletObject bobj = obj.chamberedBulletGameObject.GetComponent<BulletObject>();
                 GunFireMessage gfm = new GunFireMessage()
                 {
-                    fireDirection = obj.firePointTransform.rotation,
+                    fireDirection = obj.firePointTransform.forward,
                     fireOrigin = obj.firePointTransform.position,
                     bulletDamage = 2
                 };
