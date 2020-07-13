@@ -70,12 +70,37 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class GunFireFeedback : INetworkMessage
+    public class GunFireFeedbackToServer : INetworkMessage
     {
         public P2PMessage MakeMsg()
         {
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.GunFireHit);
+            return msg;
+        }
+    }
+
+    public class GunFireFeedbackBase {
+        public byte playerId;
+    }
+
+    public class GunFireFeedback : GunFireFeedbackBase, INetworkMessage
+    {
+        public GunFireFeedback()
+        {
+
+        }
+
+        public GunFireFeedback(P2PMessage msg)
+        {
+            playerId = msg.ReadByte();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.GunFireHit);
+            msg.WriteByte(playerId);
             return msg;
         }
     }

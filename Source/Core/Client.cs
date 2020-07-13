@@ -215,10 +215,10 @@ namespace MultiplayerMod.Core
                     {
                         case MessageType.GunFireHit:
                             {
-                                byte playerId = smallPlayerIds[packet.Value.SteamId];
-                                if (playerObjects.ContainsKey(playerId))
+                                GunFireFeedback gfm = new GunFireFeedback(msg);
+                                if (playerObjects.ContainsKey(gfm.playerId))
                                 {
-                                    PlayerRep pr = playerObjects[playerId];
+                                    PlayerRep pr = playerObjects[gfm.playerId];
 
                                     if (pr.rigTransforms.main != null)
                                     {
@@ -226,11 +226,11 @@ namespace MultiplayerMod.Core
                                         Destroy(instance, 3);
                                     }
                                 }
-                                GunFireFeedback gff = new GunFireFeedback();
                                 break;
                             }
                         case MessageType.GunFire:
                             {
+                                bool didHit;
                                 GunFireMessage gfm = new GunFireMessage(msg);
                                 Ray ray = new Ray(gfm.fireOrigin, gfm.fireDirection);
                                 RaycastHit hit;
@@ -241,23 +241,29 @@ namespace MultiplayerMod.Core
                                         MelonModLogger.Log("Hit BRETT!");
                                         int random = UnityEngine.Random.Range(0, 10);
                                         brett_Health.TAKEDAMAGE(gfm.bulletDamage, random == 0);
-                                        GunFireFeedback gff = new GunFireFeedback();
+                                        GunFireFeedbackToServer gff = new GunFireFeedbackToServer();
                                         SendToServer(gff, P2PSend.Unreliable);
                                     }
                                     else
                                     {
                                         MelonModLogger.Log("Hit!");
                                     }
+                                    didHit = true;
                                 }
                                 else
                                 {
+                                    didHit = false;
                                     MelonModLogger.Log("Did not hit!");
+                                    
                                 }
                                 
                                 GameObject instance = GameObject.Instantiate(lineHolder);
                                 LineRenderer lineRenderer = instance.GetComponent<LineRenderer>();
                                 lineRenderer.SetPosition(0, gfm.fireOrigin);
-                                lineRenderer.SetPosition(1, hit.transform.position);
+                                if (didHit)
+                                    lineRenderer.SetPosition(1, hit.transform.position);
+                                else
+                                    lineRenderer.SetPosition(1, gfm.fireOrigin + (gfm.fireDirection * int.MaxValue));
                                 GameObject.Destroy(instance, 3);
 
                                 MelonModLogger.Log("Pew complete!");
