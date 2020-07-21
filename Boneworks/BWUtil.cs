@@ -43,7 +43,7 @@ namespace MultiplayerMod
     static class BWUtil
     {
         private static readonly Dictionary<GunType, GameObject> gunPrefabs = new Dictionary<GunType, GameObject>()
-        { };
+        {};
 
         public static void InitialiseGunPrefabs()
         {
@@ -178,14 +178,6 @@ namespace MultiplayerMod
 
             rigTransforms.rWrist.position = tfMsg.posRWrist;
             rigTransforms.rWrist.rotation = tfMsg.rotRWrist;
-        }
-
-        public static string GetFullNamePath(GameObject obj)
-        {
-            if (obj.transform.parent != null)
-                return obj.name;
-
-            return GetFullNamePath(obj.transform.parent.gameObject) + "/" + obj.name;
         }
     }
 }

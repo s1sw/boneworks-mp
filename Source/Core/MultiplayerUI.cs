@@ -20,7 +20,7 @@ namespace MultiplayerMod.Core
 
     public class MultiplayerUI
     {
-        public static AssetBundle uiBundle;
+        private readonly AssetBundle uiBundle;
         private GameObject uiObj;
         private Text statusText;
         private MultiplayerUIState currentState = MultiplayerUIState.PreConnect;
@@ -58,7 +58,7 @@ namespace MultiplayerMod.Core
 
             Transform panelTransform = uiObj.transform.Find("Panel");
 
-            statusText = panelTransform.Find("StatusText").GetComponent<Text>();
+            statusText = panelTransform.Find("PlayerCountText").GetComponent<Text>();
             SetState(currentState);
         }
 

@@ -88,11 +88,6 @@ namespace MultiplayerMod.Networking
             byteChunks.Add(BitConverter.GetBytes(s));
         }
 
-        public void WriteUShort(ushort s)
-        {
-            byteChunks.Add(BitConverter.GetBytes(s));
-        }
-
         public void WriteVector3(Vector3 v3)
         {
             WriteFloat(v3.x);
@@ -307,13 +302,6 @@ namespace MultiplayerMod.Networking
         {
             short x = BitConverter.ToInt16(rBytes, rPos);
             rPos += sizeof(short);
-            return x;
-        }
-
-        public ushort ReadUShort()
-        {
-            ushort x = BitConverter.ToUInt16(rBytes, rPos);
-            rPos += sizeof(ushort);
             return x;
         }
 

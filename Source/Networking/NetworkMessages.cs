@@ -34,9 +34,75 @@ namespace MultiplayerMod.Networking
         EnemyRigTransform,
         Attack,
         SetServerSetting,
-        IdAllocation,
-        IdRequest,
-        ObjectSync
+        GunFire,
+        GunFireHit
+    }
+
+    public class GunFireBase
+    {
+        public Vector3 fireOrigin;
+        public Vector3 fireDirection;
+        public float bulletDamage;
+    }
+
+    public class GunFireMessage : GunFireBase, INetworkMessage
+    {
+        public GunFireMessage()
+        {
+
+        }
+
+        public GunFireMessage(P2PMessage msg)
+        {
+            fireOrigin = msg.ReadVector3();
+            fireDirection = msg.ReadVector3();
+            bulletDamage = msg.ReadFloat();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.GunFire);
+            msg.WriteVector3(fireOrigin);
+            msg.WriteVector3(fireDirection);
+            msg.WriteFloat(bulletDamage);
+            return msg;
+        }
+    }
+
+    public class GunFireFeedbackToServer : INetworkMessage
+    {
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.GunFireHit);
+            return msg;
+        }
+    }
+
+    public class GunFireFeedbackBase {
+        public byte playerId;
+    }
+
+    public class GunFireFeedback : GunFireFeedbackBase, INetworkMessage
+    {
+        public GunFireFeedback()
+        {
+
+        }
+
+        public GunFireFeedback(P2PMessage msg)
+        {
+            playerId = msg.ReadByte();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.GunFireHit);
+            msg.WriteByte(playerId);
+            return msg;
+        }
     }
 
     public interface INetworkMessage
@@ -756,91 +822,4 @@ namespace MultiplayerMod.Networking
 
     //    }
     //}
-    
-    public class IDAllocationMessage : INetworkMessage
-    {
-        public string namePath;
-        public string childIdxPath;
-        public ushort allocatedId;
-
-        public IDAllocationMessage()
-        {
-
-        }
-
-        public IDAllocationMessage(P2PMessage msg)
-        {
-            namePath = msg.ReadUnicodeString();
-            childIdxPath = msg.ReadUnicodeString();
-            allocatedId = msg.ReadUShort();
-        }
-
-        public P2PMessage MakeMsg()
-        {
-            P2PMessage msg = new P2PMessage();
-
-            msg.WriteByte((byte)MessageType.IdAllocation);
-            msg.WriteUnicodeString(namePath);
-            msg.WriteUnicodeString(childIdxPath);
-            msg.WriteUShort(allocatedId);
-
-            return msg;
-        }
-    }
-
-    public class IDRequestMessage : INetworkMessage
-    {
-        public string namePath;
-        public string childIdxPath;
-
-        public IDRequestMessage()
-        {
-
-        }
-
-        public IDRequestMessage(P2PMessage msg)
-        {
-            namePath = msg.ReadUnicodeString();
-            childIdxPath = msg.ReadUnicodeString();
-        }
-
-        public P2PMessage MakeMsg()
-        {
-            P2PMessage msg = new P2PMessage();
-
-            msg.WriteByte((byte)MessageType.IdRequest);
-            msg.WriteUnicodeString(namePath);
-            msg.WriteUnicodeString(childIdxPath);
-
-            return msg;
-        }
-    }
-
-    public class ObjectSync : INetworkMessage
-    {
-        public ushort id;
-        public Vector3 position;
-        public Quaternion rotation;
-
-        public ObjectSync()
-        { }
-
-        public ObjectSync(P2PMessage msg)
-        {
-            id = msg.ReadUShort();
-            position = msg.ReadVector3();
-            rotation = msg.ReadCompressedQuaternion();
-        }
-
-        public P2PMessage MakeMsg()
-        {
-            P2PMessage msg = new P2PMessage();
-            msg.WriteByte((byte)MessageType.ObjectSync);
-            msg.WriteUShort(id);
-            msg.WriteVector3(position);
-            msg.WriteCompressedQuaternion(rotation);
-
-            return msg;
-        }
-    }
 }
