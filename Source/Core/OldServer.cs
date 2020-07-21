@@ -18,13 +18,11 @@ using static UnityEngine.Object;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
-using Oculus.Platform;
-using Oculus.Platform.Samples.VrHoops;
 using MultiplayerMod.MonoBehaviours;
 
 namespace MultiplayerMod.Core
 {
-    public class Server
+    public class OldServer
     {
         private readonly Dictionary<byte, PlayerRep> playerObjects = new Dictionary<byte, PlayerRep>(MultiplayerMod.MAX_PLAYERS);
         private readonly Dictionary<byte, string> playerNames = new Dictionary<byte, string>(MultiplayerMod.MAX_PLAYERS);
@@ -42,7 +40,7 @@ namespace MultiplayerMod.Core
 
         public bool IsRunning { get; private set; }
 
-        public Server(MultiplayerUI ui, ITransportLayer transportLayer)
+        public OldServer(MultiplayerUI ui, ITransportLayer transportLayer)
         {
             this.ui = ui;
             this.transportLayer = transportLayer;
@@ -149,6 +147,8 @@ namespace MultiplayerMod.Core
 
                 }
             }
+
+            transportLayer.Update();
             // Disabled temporarily
 #if false
             {

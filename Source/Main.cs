@@ -33,8 +33,8 @@ namespace MultiplayerMod
         public const byte PROTOCOL_VERSION = 30;
 
         private MultiplayerUI ui;
-        private Client client;
-        private Server server;
+        private OldClient client;
+        private OldServer server;
 
         internal static event Action<int> OnLevelWasLoadedEvent;
         internal static event Action<int> OnLevelWasInitializedEvent;
@@ -66,8 +66,8 @@ namespace MultiplayerMod
 
             // Create the UI and cache the PlayerRep's model
             ui = new MultiplayerUI();
-            client = new Client(ui, TransportLayer);
-            server = new Server(ui, TransportLayer);
+            client = new OldClient(ui, TransportLayer);
+            server = new OldServer(ui, TransportLayer);
             PlayerRep.LoadFord();
 
             // Configures if the PlayerRep's are showing or hiding certain parts

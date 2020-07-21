@@ -281,13 +281,15 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Boneworks\BWUtil.cs" />
+    <Compile Include="Source\Core\MessageHandlers\JoinMessageHandler.cs" />
+    <Compile Include="Source\Core\NetController.cs" />
     <Compile Include="Source\Core\ObjectIDManager.cs" />
     <Compile Include="Source\Extras\BasicFABRIK.cs" />
     <Compile Include="Source\Features\ClientSettings.cs" />
     <Compile Include="Source\Features\Guard.cs" />
     <Compile Include="Source\Features\NetworkedAccesories.cs" />
     <Compile Include="Source\Extras\RETools.cs" />
-    <Compile Include="Source\Core\Client.cs" />
+    <Compile Include="Source\Core\OldClient.cs" />
     <Compile Include="Discord\ActivityManager.cs" />
     <Compile Include="Discord\Constants.cs" />
     <Compile Include="Discord\Core.cs" />
@@ -304,13 +306,15 @@
     <Compile Include="Source\Core\MultiplayerUI.cs" />
     <Compile Include="Source\MonoBehaviours\IDHolder.cs" />
     <Compile Include="Source\MonoBehaviours\ServerSyncedObject.cs" />
+    <Compile Include="Source\Networking\IMessageHandler.cs" />
     <Compile Include="Source\Networking\ITransportLayer.cs" />
+    <Compile Include="Source\Networking\MessageRouter.cs" />
     <Compile Include="Source\Networking\NetworkMessages.cs" />
     <Compile Include="Source\Networking\P2PMessage.cs" />
     <Compile Include="Source\Networking\SteamTransportLayer.cs" />
     <Compile Include="Source\Representations\PlayerRep.cs" />
     <Compile Include="Source\Core\RichPresence.cs" />
-    <Compile Include="Source\Core\Server.cs" />
+    <Compile Include="Source\Core\OldServer.cs" />
     <Compile Include="Source\Structs\RigTransforms.cs" />
   </ItemGroup>
   <ItemGroup>
