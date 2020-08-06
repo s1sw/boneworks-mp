@@ -21,6 +21,8 @@ using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
 using StressLevelZero.Combat;
+using MultiplayerMod.Boneworks;
+using StressLevelZero.AI;
 
 namespace MultiplayerMod.Core
 {
@@ -36,7 +38,8 @@ namespace MultiplayerMod.Core
         private readonly Dictionary<byte, SteamId> largePlayerIds = new Dictionary<byte, SteamId>(MultiplayerMod.MAX_PLAYERS);
         private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
         private string partyId = "";
-        private byte smallIdCounter = 0;
+        private byte smallIdCounter = 1;
+        private Pool zombiePool;
         private BoneworksRigTransforms localRigTransforms;
         private readonly MultiplayerUI ui;
 
@@ -49,26 +52,45 @@ namespace MultiplayerMod.Core
 
         private void GunHooks_OnGunFire(Gun obj)
         {
-                BulletObject bobj = obj.chamberedBulletGameObject.GetComponent<BulletObject>();
-                GunFireMessage gfm = new GunFireMessage()
-                {
-                    fireDirection = obj.firePointTransform.forward,
-                    fireOrigin = obj.firePointTransform.position,
-                    bulletDamage = 2
-                    
-                };
-                /*GameObject instance = GameObject.Instantiate(lineHolder);
-                LineRenderer lineRenderer = instance.GetComponent<LineRenderer>();
-                lineRenderer.widthMultiplier = 0.2f;
-                lineRenderer.SetPosition(0, gfm.fireOrigin);
-                lineRenderer.SetPosition(1, gfm.fireOrigin + (gfm.fireDirection * 999));
-                GameObject.Destroy(instance, 10);*/
-                ServerSendToAll(gfm, P2PSend.Unreliable);
+            if (!obj.chamberedBulletGameObject) return;
+            BulletObject bobj = obj.chamberedBulletGameObject.GetComponent<BulletObject>();
+            if (!bobj) return;
+            if (!obj.firePointTransform) return;
+
+            GunFireMessage gfm = new GunFireMessage()
+            {
+                fireDirection = obj.firePointTransform.forward,
+                fireOrigin = obj.firePointTransform.position,
+                bulletDamage = bobj.ammoVariables.AttackDamage
+            };
+            /*GameObject instance = GameObject.Instantiate(lineHolder);
+            LineRenderer lineRenderer = instance.GetComponent<LineRenderer>();
+            lineRenderer.widthMultiplier = 0.2f;
+            lineRenderer.SetPosition(0, gfm.fireOrigin);
+            lineRenderer.SetPosition(1, gfm.fireOrigin + (gfm.fireDirection * 999));
+            GameObject.Destroy(instance, 10);*/
+            ServerSendToAll(gfm, P2PSend.Reliable);
         }
 
         public void Update()
         {
             if (SceneLoader.loading) return;
+
+            if (!zombiePool)
+            {
+                if (PoolManager.DynamicPools != null)
+                {
+                    foreach (var poolPair in PoolManager.DynamicPools)
+                    {
+                        if (poolPair.value._pooledObjects.Count == 0) continue;
+                        if (poolPair.value.Prefab.name == "Ford_EarlyExit_headset")
+                        {
+                            zombiePool = poolPair.value;
+                        }
+                    }
+                }
+            }
+
             //ui.SetPlayerCount(players.Count);
             while (SteamNetworking.IsP2PPacketAvailable(0))
             {
@@ -95,10 +117,11 @@ namespace MultiplayerMod.Core
                                         Destroy(instance, 3);
                                     }
                                 }
-                                GunFireFeedback gff = new GunFireFeedback() {
+                                GunFireFeedback gff = new GunFireFeedback()
+                                {
                                     playerId = playerId
                                 };
-                                ServerSendToAllExcept(gff, P2PSend.Unreliable, packet.Value.SteamId);
+                                ServerSendToAllExcept(gff, P2PSend.Reliable, packet.Value.SteamId);
                                 break;
                             }
                         case MessageType.GunFire:
@@ -106,9 +129,8 @@ namespace MultiplayerMod.Core
                                 bool didHit;
                                 GunFireMessage gfm = new GunFireMessage(msg);
                                 Ray ray = new Ray(gfm.fireOrigin, gfm.fireDirection);
-                                
-                                RaycastHit hit;
-                                if (Physics.Raycast(ray, out hit, int.MaxValue, ~0, QueryTriggerInteraction.Ignore))
+
+                                if (Physics.Raycast(ray, out RaycastHit hit, int.MaxValue, ~0, QueryTriggerInteraction.Ignore))
                                 {
                                     if (hit.transform.root.gameObject == brett)
                                     {
@@ -139,7 +161,7 @@ namespace MultiplayerMod.Core
                                     lineRenderer.SetPosition(1, gfm.fireOrigin + (gfm.fireDirection * int.MaxValue));
                                 GameObject.Destroy(instance, 1);
 
-                                ServerSendToAllExcept(gfm, P2PSend.Unreliable, packet.Value.SteamId);
+                                ServerSendToAllExcept(gfm, P2PSend.Reliable, packet.Value.SteamId);
                                 MelonModLogger.Log("Pew serber send");
                                 break;
                             }
@@ -194,6 +216,8 @@ namespace MultiplayerMod.Core
                                         steamId = packet.Value.SteamId
                                     };
                                     ServerSendToAllExcept(cjm3, P2PSend.Reliable, packet.Value.SteamId);
+
+                                    MelonModLogger.Log($"New player has ID of {newPlayerId}");
 
                                     playerObjects.Add(newPlayerId, new PlayerRep(name, packet.Value.SteamId));
 
@@ -361,7 +385,7 @@ namespace MultiplayerMod.Core
                                             rotRWrist = frtm.rotRWrist
                                         };
 
-                                        ServerSendToAllExcept(ofrtm, P2PSend.Unreliable, packet.Value.SteamId);
+                                        ServerSendToAllExcept(ofrtm, P2PSend.UnreliableNoDelay, packet.Value.SteamId);
                                     }
                                 }
                                 break;
@@ -397,6 +421,13 @@ namespace MultiplayerMod.Core
                                 ServerSendToAllExcept(hgcm, P2PSend.Reliable, packet.Value.SteamId);
                                 break;
                             }
+                        case MessageType.ZWPuppetDeath:
+                            {
+                                ZWPuppetDeath puppetDeath = new ZWPuppetDeath(msg);
+                                zombiePool._pooledObjects[puppetDeath.puppetId].GetComponent<AIBrain>().puppetMaster.Kill();
+                                ServerSendToAllExcept(puppetDeath, P2PSend.Reliable, packet.Value.SteamId);
+                                break;
+                            }
                         default:
                             MelonModLogger.Log("Unknown message type: " + type.ToString());
                             break;
@@ -404,32 +435,6 @@ namespace MultiplayerMod.Core
 
                 }
             }
-
-            #region Unused Code
-            //if (localHead != null && !enableFullRig)
-            //{
-            //    OtherPlayerPositionMessage oppm = new OtherPlayerPositionMessage
-            //    {
-            //        playerId = 0,
-            //        headPos = localHead.transform.position,
-            //        lHandPos = localHandL.transform.position,
-            //        rHandPos = localHandR.transform.position,
-            //        pelvisPos = localPelvis.transform.position,
-            //        lFootPos = localFootL.transform.position,
-            //        rFootPos = localFootR.transform.position,
-
-            //        headRot = localHead.transform.rotation,
-            //        lHandRot = localHandL.transform.rotation,
-            //        rHandRot = localHandR.transform.rotation,
-            //        pelvisRot = localPelvis.transform.rotation,
-            //        lFootRot = localFootL.transform.rotation,
-            //        rFootRot = localFootR.transform.rotation
-            //    };
-
-            //    ServerSendToAll(oppm, P2PSend.Unreliable);
-            //} 
-            //else if(enableFullRig && localHead != null)
-            #endregion
 
             if (localRigTransforms.main == null)
                 localRigTransforms = BWUtil.GetLocalRigTransforms();
@@ -483,76 +488,27 @@ namespace MultiplayerMod.Core
                     rotRWrist = localRigTransforms.rWrist.rotation
                 };
 
-                ServerSendToAll(ofrtm, P2PSend.Unreliable);
+                ServerSendToAll(ofrtm, P2PSend.UnreliableNoDelay);
             }
 
             foreach (PlayerRep pr in playerObjects.Values)
             {
                 pr.UpdateNameplateFacing(Camera.current.transform);
             }
-            // Disabled temporarily
-#if false
+            
             {
-                enemyPoolManager.FindMissingPools();
-                Pool pool = enemyPoolManager.GetPool(EnemyType.NullBody);
-                for (int i = 0; i < pool.transform.childCount; i++)
+                foreach (var spawnedObj in zombiePool._pooledObjects)
                 {
-                    GameObject childEnemy = pool.transform.GetChild(i).gameObject;
-
-                    BoneworksRigTransforms brt = BWUtil.GetHumanoidRigTransforms(childEnemy.transform.Find("brettEnemy@neutral").gameObject);
-
-                    EnemyRigTransformMessage ertf = new EnemyRigTransformMessage()
-                    {
-                        poolChildIdx = (byte)i,
-                        enemyType = EnemyType.NullBody,
-                        posMain = localRigTransforms.main.position,
-                        posRoot = localRigTransforms.root.position,
-                        posLHip = localRigTransforms.lHip.position,
-                        posRHip = localRigTransforms.rHip.position,
-                        posLKnee = localRigTransforms.lKnee.position,
-                        posRKnee = localRigTransforms.rKnee.position,
-                        posLAnkle = localRigTransforms.lAnkle.position,
-                        posRAnkle = localRigTransforms.rAnkle.position,
-
-                        posSpine1 = localRigTransforms.spine1.position,
-                        posSpine2 = localRigTransforms.spine2.position,
-                        posSpineTop = localRigTransforms.spineTop.position,
-                        posLClavicle = localRigTransforms.lClavicle.position,
-                        posRClavicle = localRigTransforms.rClavicle.position,
-                        posNeck = localRigTransforms.neck.position,
-                        posLShoulder = localRigTransforms.lShoulder.position,
-                        posRShoulder = localRigTransforms.rShoulder.position,
-                        posLElbow = localRigTransforms.lElbow.position,
-                        posRElbow = localRigTransforms.rElbow.position,
-                        posLWrist = localRigTransforms.lWrist.position,
-                        posRWrist = localRigTransforms.rWrist.position,
-
-                        rotMain = localRigTransforms.main.rotation,
-                        rotRoot = localRigTransforms.root.rotation,
-                        rotLHip = localRigTransforms.lHip.rotation,
-                        rotRHip = localRigTransforms.rHip.rotation,
-                        rotLKnee = localRigTransforms.lKnee.rotation,
-                        rotRKnee = localRigTransforms.rKnee.rotation,
-                        rotLAnkle = localRigTransforms.lAnkle.rotation,
-                        rotRAnkle = localRigTransforms.rAnkle.rotation,
-                        rotSpine1 = localRigTransforms.spine1.rotation,
-                        rotSpine2 = localRigTransforms.spine2.rotation,
-                        rotSpineTop = localRigTransforms.spineTop.rotation,
-                        rotLClavicle = localRigTransforms.lClavicle.rotation,
-                        rotRClavicle = localRigTransforms.rClavicle.rotation,
-                        rotNeck = localRigTransforms.neck.rotation,
-                        rotLShoulder = localRigTransforms.lShoulder.rotation,
-                        rotRShoulder = localRigTransforms.rShoulder.rotation,
-                        rotLElbow = localRigTransforms.lElbow.rotation,
-                        rotRElbow = localRigTransforms.rElbow.rotation,
-                        rotLWrist = localRigTransforms.lWrist.rotation,
-                        rotRWrist = localRigTransforms.rWrist.rotation
-                    };
+                    int id = int.Parse(spawnedObj.gameObject.name.Split('[')[1].Split(']')[0]);
+                    GameObject childEnemy = spawnedObj.gameObject;
+                    BWUtil.RigTransformsToMessage(
+                        BWUtil.GetNpcRigTransforms(childEnemy.transform.Find("Physics").gameObject),
+                        out EnemyRigTransformMessage ertf);
+                    ertf.poolChildIdx = (byte)id;
 
                     ServerSendToAll(ertf, P2PSend.UnreliableNoDelay);
                 }
             }
-#endif
         }
 
         private void OnP2PSessionRequest(SteamId id)
@@ -666,9 +622,75 @@ namespace MultiplayerMod.Core
             SteamNetworking.OnP2PSessionRequest = OnP2PSessionRequest;
             SteamNetworking.OnP2PConnectionFailed = OnP2PConnectionFailed;
 
+            ZombieGameControlHooks.OnPuppetDeath += ZombieGameControlHooks_OnPuppetDeath;
+            ZombieGameControlHooks.OnModeStart += ZombieGameControlHooks_OnModeStart;
+            ZombieGameControlHooks.OnDifficultyChanged += ZombieGameControlHooks_OnDifficultyChanged;
+            ZombieGameControlHooks.OnPlayerTakeDamage += ZombieGameControlHooks_OnPlayerTakeDamage;
+            ZombieGameControlHooks.OnWaveStart += ZombieGameControlHooks_OnWaveStart;
             MultiplayerMod.OnLevelWasLoadedEvent += MultiplayerMod_OnLevelWasLoadedEvent;
             BoneworksModdingToolkit.BoneHook.GunHooks.OnGunFire += GunHooks_OnGunFire;
             IsRunning = true;
+        }
+
+        private void ZombieGameControlHooks_OnWaveStart(int waveIdx)
+        {
+            MelonModLogger.Log("ZWSetWave (client)");
+            ZWSetWave setWave = new ZWSetWave();
+            setWave.wave = waveIdx;
+            setWave.enemyCount = Zombie_GameControl.instance.currentWave.enemyCount;
+            setWave.showWave = Zombie_GameControl.instance.currentWave.showWave;
+            MelonModLogger.Log($"Wave {waveIdx}");
+            MelonModLogger.Log($"Enemy count: {setWave.enemyCount}");
+            MelonModLogger.Log($"Show wave: {setWave.showWave}");
+            foreach (var profile in Zombie_GameControl.instance.currentWave.enemyProfilesList)
+            {
+                MelonModLogger.Log($"Enemy profile: {profile.enemyType}, {profile.entranceType}, {profile.showEnemy}");
+                setWave.enemyProfiles.Add(profile);
+            }
+
+            ServerSendToAll(setWave, P2PSend.Reliable);
+        }
+
+        private void ZombieGameControlHooks_OnPlayerTakeDamage(float arg1, bool arg2)
+        {
+            ZWPlayerDamage playerDamage = new ZWPlayerDamage()
+            {
+                damage = arg1,
+                crit = arg2
+            };
+
+            ServerSendToAll(playerDamage, P2PSend.Reliable);
+        }
+
+        private void ZombieGameControlHooks_OnDifficultyChanged(Zombie_GameControl.Difficulty obj)
+        {
+            ZWDifficultyChange difficultyChange = new ZWDifficultyChange
+            {
+                difficulty = (int)obj
+            };
+            ServerSendToAll(difficultyChange, P2PSend.Reliable);
+        }
+
+        private void ZombieGameControlHooks_OnModeStart()
+        {
+            ZWModeStartMessage modeStartMessage = new ZWModeStartMessage();
+            modeStartMessage.mode = (int)Zombie_GameControl.instance.gameMode;
+            ServerSendToAll(modeStartMessage, P2PSend.Reliable);
+
+            ZWSetCustomEnemies setCustomEnemies = new ZWSetCustomEnemies()
+            {
+                enemyTypes = Zombie_GameControl.instance.customEnemyTypeList.ToArray()
+            };
+
+            ServerSendToAll(setCustomEnemies, P2PSend.Reliable);
+        }
+
+        private void ZombieGameControlHooks_OnPuppetDeath(int obj, EnemyType eType)
+        {
+            ZWPuppetDeath puppetDeath = new ZWPuppetDeath();
+            puppetDeath.puppetId = obj;
+            puppetDeath.enemyType = eType;
+            ServerSendToAll(puppetDeath, P2PSend.Reliable);
         }
 
         public void StopServer()
@@ -706,6 +728,8 @@ namespace MultiplayerMod.Core
             players.Clear();
 
             MultiplayerMod.OnLevelWasLoadedEvent -= MultiplayerMod_OnLevelWasLoadedEvent;
+            ZombieGameControlHooks.OnPuppetDeath -= ZombieGameControlHooks_OnPuppetDeath;
+            ZombieGameControlHooks.OnModeStart -= ZombieGameControlHooks_OnModeStart;
             BoneworksModdingToolkit.BoneHook.GunHooks.OnGunFire -= GunHooks_OnGunFire;
 
             SteamNetworking.OnP2PSessionRequest = null;

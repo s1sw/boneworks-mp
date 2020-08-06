@@ -20,7 +20,7 @@ namespace MultiplayerMod.Core
 
     public class MultiplayerUI
     {
-        private readonly AssetBundle uiBundle;
+        private AssetBundle uiBundle;
         private GameObject uiObj;
         private Text statusText;
         private MultiplayerUIState currentState = MultiplayerUIState.PreConnect;
@@ -43,7 +43,7 @@ namespace MultiplayerMod.Core
             else
             {
                 MelonModLogger.Log("Loaded canvas bundle");
-                Recreate();
+                //Recreate();
 
             }
         }
@@ -51,12 +51,17 @@ namespace MultiplayerMod.Core
         // Recreates the UI...
         public void Recreate()
         {
-            GameObject uiPrefab = uiBundle.LoadAsset("Assets/Prefabs/Canvas.prefab").Cast<GameObject>();
+            var obj = uiBundle.LoadAsset("Assets/Prefabs/Canvas.prefab");
+            GameObject uiPrefab = obj.Cast<GameObject>();
+            if (!uiPrefab)
+                MelonModLogger.LogError("Couldn't find Canvas prefab????");
             uiObj = Instantiate(uiPrefab);
             uiObj.GetComponent<Canvas>().worldCamera = Camera.current;
             DontDestroyOnLoad(uiObj);
 
             Transform panelTransform = uiObj.transform.Find("Panel");
+            if (!panelTransform)
+                MelonModLogger.LogError("Couldn't find panel transform");
 
             statusText = panelTransform.Find("PlayerCountText").GetComponent<Text>();
             SetState(currentState);

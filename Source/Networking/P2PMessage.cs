@@ -223,6 +223,18 @@ namespace MultiplayerMod.Networking
             byteChunks.Add(bArr);
         }
 
+        public void WriteInt(int i)
+        {
+            byte[] bArr = BitConverter.GetBytes(i);
+            byteChunks.Add(bArr);
+        }
+
+        public void WriteBool(bool b)
+        {
+            byte[] bArr = BitConverter.GetBytes(b);
+            byteChunks.Add(bArr);
+        }
+
         public Quaternion ReadCompressedQuaternion()
         {
             // Read the index of the omitted field from the stream.
@@ -321,6 +333,20 @@ namespace MultiplayerMod.Networking
             ulong id = BitConverter.ToUInt64(rBytes, rPos);
             rPos += sizeof(ulong);
             return id;
+        }
+
+        public int ReadInt()
+        {
+            int i = BitConverter.ToInt32(rBytes, rPos);
+            rPos += sizeof(int);
+            return i;
+        }
+
+        public bool ReadBool()
+        {
+            bool b = BitConverter.ToBoolean(rBytes, rPos);
+            rPos += sizeof(bool);
+            return b;
         }
 
         public string ReadString()

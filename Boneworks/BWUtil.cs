@@ -18,7 +18,8 @@ namespace MultiplayerMod
     {
         NullBody,
         FordEarlyExit,
-        CorruptedNullBody
+        CorruptedNullBody,
+        Crablet
     }
 
     public enum GunType
@@ -117,6 +118,144 @@ namespace MultiplayerMod
             return brt;
         }
 
+        public static NpcRigTransforms GetNpcRigTransforms(GameObject physicsObj)
+        {
+            Transform physTransform = physicsObj.transform;
+
+            NpcRigTransforms nrt = new NpcRigTransforms()
+            {
+                root = physTransform.Find("Root_M"),
+                lHip = physTransform.Find("Root_M/Hip_L"),
+                rHip = physTransform.Find("Root_M/Hip_R"),
+                lKnee = physTransform.Find("Root_M/Hip_L/Knee_L"),
+                rKnee = physTransform.Find("Root_M/Hip_R/Knee_R"),
+                lAnkle = physTransform.Find("Root_M/Hip_L/Knee_L/Ankle_L"),
+                rAnkle = physTransform.Find("Root_M/Hip_R/Knee_R/Ankle_R"),
+                spine = physTransform.Find("Root_M/Spine_M"),
+                chest = physTransform.Find("Root_M/Spine_M/Chest_M"),
+                lShoulder = physTransform.Find("Root_M/Spine_M/Chest_M/Shoulder_L"),
+                rShoulder = physTransform.Find("Root_M/Spine_M/Chest_M/Shoulder_R"),
+                lElbow = physTransform.Find("Root_M/Spine_M/Chest_M/Shoulder_L/Elbow_L"),
+                rElbow = physTransform.Find("Root_M/Spine_M/Chest_M/Shoulder_R/Elbow_R"),
+                lWrist = physTransform.Find("Root_M/Spine_M/Chest_M/Shoulder_L/Elbow_L/Wrist_L"),
+                rWrist = physTransform.Find("Root_M/Spine_M/Chest_M/Shoulder_R/Elbow_R/Wrist_R")
+            };
+
+            return nrt;
+        }
+
+        public static void RigTransformsToMessage(NpcRigTransforms rigTransforms, out EnemyRigTransformMessage ertf)
+        {
+            ertf = new EnemyRigTransformMessage();
+            
+            ertf.rootPos = rigTransforms.root.position;
+            ertf.lHipPos = rigTransforms.lHip.position;
+            ertf.rHipPos = rigTransforms.rHip.position;
+            ertf.lKneePos = rigTransforms.lKnee.position;
+            ertf.rKneePos = rigTransforms.rKnee.position;
+            ertf.lAnklePos = rigTransforms.lAnkle.position;
+            ertf.rAnklePos = rigTransforms.rAnkle.position;
+            ertf.spinePos = rigTransforms.spine.position;
+            ertf.chestPos = rigTransforms.chest.position;
+            ertf.lShoulderPos = rigTransforms.lShoulder.position;
+            ertf.rShoulderPos = rigTransforms.rShoulder.position;
+            ertf.lElbowPos = rigTransforms.lElbow.position;
+            ertf.rElbowPos = rigTransforms.rElbow.position;
+            ertf.lWristPos = rigTransforms.lWrist.position;
+            ertf.rWristPos = rigTransforms.rWrist.position;
+
+            ertf.rootRot = rigTransforms.root.rotation;
+            ertf.lHipRot = rigTransforms.lHip.rotation;
+            ertf.rHipRot = rigTransforms.rHip.rotation;
+            ertf.lKneeRot = rigTransforms.lKnee.rotation;
+            ertf.rKneeRot = rigTransforms.rKnee.rotation;
+            ertf.lAnkleRot = rigTransforms.lAnkle.rotation;
+            ertf.rAnkleRot = rigTransforms.rAnkle.rotation;
+            ertf.spineRot =  rigTransforms.spine.rotation;
+            ertf.chestRot = rigTransforms.chest.rotation;
+            ertf.lShoulderRot = rigTransforms.lShoulder.rotation;
+            ertf.rShoulderRot = rigTransforms.rShoulder.rotation;
+            ertf.lElbowRot = rigTransforms.lElbow.rotation;
+            ertf.rElbowRot = rigTransforms.rElbow.rotation;
+            ertf.lWristRot = rigTransforms.lWrist.rotation;
+            ertf.rWristRot = rigTransforms.rWrist.rotation;
+        }
+
+        public static EnemyRigTransformMessage LerpTransformMessage(EnemyRigTransformMessage a, EnemyRigTransformMessage b, float t)
+        {
+            EnemyRigTransformMessage ertf = new EnemyRigTransformMessage
+            {
+                rootPos = Vector3.Lerp(a.rootPos, b.rootPos, t),
+                lHipPos = Vector3.Lerp(a.lHipPos, b.lHipPos, t),
+                rHipPos = Vector3.Lerp(a.rHipPos, b.rHipPos, t),
+                lKneePos = Vector3.Lerp(a.lKneePos, b.lKneePos, t),
+                rKneePos = Vector3.Lerp(a.rKneePos, b.rKneePos, t),
+                lAnklePos = Vector3.Lerp(a.lAnklePos, b.lAnklePos, t),
+                rAnklePos = Vector3.Lerp(a.rAnklePos, b.rAnklePos, t),
+                spinePos = Vector3.Lerp(a.spinePos, b.spinePos, t),
+                chestPos = Vector3.Lerp(a.chestPos, b.chestPos, t),
+                lShoulderPos = Vector3.Lerp(a.lShoulderPos, b.lShoulderPos, t),
+                rShoulderPos = Vector3.Lerp(a.rShoulderPos, b.rShoulderPos, t),
+                lElbowPos = Vector3.Lerp(a.lElbowPos, b.lElbowPos, t),
+                rElbowPos = Vector3.Lerp(a.rElbowPos, b.rElbowPos, t),
+                lWristPos = Vector3.Lerp(a.lWristPos, b.lWristPos, t),
+                rWristPos = Vector3.Lerp(a.rWristPos, b.rWristPos, t),
+
+                rootRot = Quaternion.Slerp(a.rootRot, b.rootRot, t),
+                lHipRot = Quaternion.Slerp(a.lHipRot, b.lHipRot, t),
+                rHipRot = Quaternion.Slerp(a.rHipRot, b.rHipRot, t),
+                lKneeRot = Quaternion.Slerp(a.lKneeRot, b.rKneeRot, t),
+                rKneeRot = Quaternion.Slerp(a.rKneeRot, b.rKneeRot, t),
+                lAnkleRot = Quaternion.Slerp(a.lAnkleRot, b.lAnkleRot, t),
+                rAnkleRot = Quaternion.Slerp(a.rAnkleRot, b.rAnkleRot, t),
+                spineRot = Quaternion.Slerp(a.spineRot, b.spineRot, t),
+                chestRot = Quaternion.Slerp(a.chestRot, b.chestRot, t),
+                lShoulderRot = Quaternion.Slerp(a.lShoulderRot, b.lShoulderRot, t),
+                rShoulderRot = Quaternion.Slerp(a.rShoulderRot, b.rShoulderRot, t),
+                lElbowRot = Quaternion.Slerp(a.lElbowRot, b.lElbowRot, t),
+                rElbowRot = Quaternion.Slerp(a.rElbowRot, b.rElbowRot, t),
+                lWristRot = Quaternion.Slerp(a.lWristRot, b.lWristRot, t),
+                rWristRot = Quaternion.Slerp(a.rWristRot, b.rWristRot, t)
+            };
+
+            return ertf;
+        }
+
+        public static void ApplyNpcRigTransform(NpcRigTransforms rigTransforms, EnemyRigTransformMessage tfMsg)
+        {
+            rigTransforms.root.position = tfMsg.rootPos;
+            rigTransforms.lHip.position = tfMsg.lHipPos;
+            rigTransforms.rHip.position = tfMsg.rHipPos;
+            rigTransforms.lKnee.position = tfMsg.lKneePos;
+            rigTransforms.rKnee.position = tfMsg.rKneePos;
+            rigTransforms.lAnkle.position = tfMsg.lAnklePos;
+            rigTransforms.rAnkle.position = tfMsg.rAnklePos;
+            rigTransforms.spine.position = tfMsg.spinePos;
+            rigTransforms.chest.position = tfMsg.chestPos;
+            rigTransforms.lShoulder.position = tfMsg.lShoulderPos;
+            rigTransforms.rShoulder.position = tfMsg.rShoulderPos;
+            rigTransforms.lElbow.position = tfMsg.lElbowPos;
+            rigTransforms.rElbow.position = tfMsg.rElbowPos;
+            rigTransforms.lWrist.position = tfMsg.lWristPos;
+            rigTransforms.rWrist.position = tfMsg.rWristPos;
+
+            rigTransforms.root.rotation = tfMsg.rootRot;
+            rigTransforms.lHip.rotation = tfMsg.lHipRot;
+            rigTransforms.rHip.rotation = tfMsg.rHipRot;
+            rigTransforms.lKnee.rotation = tfMsg.lKneeRot;
+            rigTransforms.rKnee.rotation = tfMsg.rKneeRot;
+            rigTransforms.lAnkle.rotation = tfMsg.lAnkleRot;
+            rigTransforms.rAnkle.rotation = tfMsg.rAnkleRot;
+            rigTransforms.spine.rotation = tfMsg.spineRot;
+            rigTransforms.chest.rotation = tfMsg.chestRot;
+            rigTransforms.lShoulder.rotation = tfMsg.lShoulderRot;
+            rigTransforms.rShoulder.rotation = tfMsg.rShoulderRot;
+            rigTransforms.lElbow.rotation = tfMsg.lElbowRot;
+            rigTransforms.rElbow.rotation = tfMsg.rElbowRot;
+            rigTransforms.lWrist.rotation = tfMsg.lWristRot;
+            rigTransforms.rWrist.rotation = tfMsg.rWristRot;
+        }
+
         public static void ApplyRigTransform(BoneworksRigTransforms rigTransforms, RigTFMsgBase tfMsg)
         {
             rigTransforms.main.position = tfMsg.posMain;
@@ -176,8 +315,11 @@ namespace MultiplayerMod
             rigTransforms.lWrist.position = tfMsg.posLWrist;
             rigTransforms.lWrist.rotation = tfMsg.rotLWrist;
 
-            rigTransforms.rWrist.position = tfMsg.posRWrist;
-            rigTransforms.rWrist.rotation = tfMsg.rotRWrist;
+            if (rigTransforms.rWrist)
+            {
+                rigTransforms.rWrist.position = tfMsg.posRWrist;
+                rigTransforms.rWrist.rotation = tfMsg.rotRWrist;
+            }
         }
     }
 }

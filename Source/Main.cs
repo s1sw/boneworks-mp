@@ -26,6 +26,9 @@ using UnhollowerRuntimeLib;
 using Valve.VR.InteractionSystem;
 using StressLevelZero.Player;
 using BoneworksModdingToolkit;
+using MultiplayerMod.Boneworks;
+
+using Harmony;
 
 namespace MultiplayerMod
 {
@@ -81,6 +84,8 @@ namespace MultiplayerMod
             // Initialize Discord's RichPresence
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
+
+            ZombieGameControlHooks.PatchMethods();
             
             #region Unused Code
             //PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
@@ -107,6 +112,28 @@ namespace MultiplayerMod
             Client.brett_Health = Client.brett.GetComponent<Player_Health>();
         }
 
+        private void PrintComponents(GameObject go, int level = 0)
+        {
+            string indent = "";
+
+            for (int i = 0; i < level; i++)
+            {
+                indent += "\t";
+            }
+
+            MelonModLogger.Log("GameObject: " + go.name);
+
+            foreach (Component c in go.GetComponents<Component>())
+            {
+                MelonModLogger.Log($"Component {c.GetIl2CppType().FullName}");
+            }
+
+            for (int i = 0; i < go.transform.childCount; i++)
+            {
+                PrintComponents(go.transform.GetChild(i).gameObject, level + 1);
+            }
+        }
+
         public override void OnUpdate()
         {
             RichPresence.Update();
@@ -116,10 +143,7 @@ namespace MultiplayerMod
                 // If the user is not connected, start their client and attempt a connection
                 if (Input.GetKeyDown(KeyCode.C))
                 {
-                    client.Connect(ModPrefs.GetString("MPMod", "HostSteamID"));
-                    SteamFriends.SetRichPresence("steam_display", "Playing multiplayer on " + SceneManager.GetActiveScene().name);
-                    SteamFriends.SetRichPresence("connect", "--boneworks-multiplayer-id-connect " + client.ServerId);
-                    SteamFriends.SetRichPresence("steam_player_group", client.ServerId.ToString());
+                    MelonModLogger.LogError("Connecting with SteamIDs is deprecated. Please use Discord invites.");
                 }
 
                 // If the user is not hosting, start their server

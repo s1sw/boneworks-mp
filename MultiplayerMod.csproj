@@ -35,10 +35,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Accessories, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dependencies\Accessories.dll</HintPath>
-    </Reference>
     <Reference Include="Assembly-CSharp, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\Assembly-CSharp.dll</HintPath>
@@ -284,6 +280,8 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Boneworks\BWUtil.cs" />
+    <Compile Include="Boneworks\ZombieGameControlHooks.cs" />
+    <Compile Include="Source\Extras\BasicFABRIK.cs" />
     <Compile Include="Source\Core\LineRnederer.cs" />
     <Compile Include="Source\Features\ClientSettings.cs" />
     <Compile Include="Source\Features\NetworkedAccesories.cs" />
