@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using static UnityEngine.Object;
-using Valve.VR;
 using StressLevelZero.Interaction;
 using StressLevelZero.Utilities;
 using StressLevelZero.Pool;
@@ -20,6 +19,8 @@ using StressLevelZero.AI;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
+using BoneworksModdingToolkit.BoneHook;
+using Oculus.Platform;
 //using BoneworksModdingToolkit;
 
 namespace MultiplayerMod.Core
@@ -95,6 +96,7 @@ namespace MultiplayerMod.Core
             isConnected = true;
             //PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
             //PlayerHooks.OnPlayerLetGoObject += PlayerHooks_OnPlayerLetGoObject;
+            PlayerHooks.OnPlayerDeath += OnDeath;
             localRigTransforms = BWUtil.GetLocalRigTransforms();
 
             //SteamNetworking.OnP2PSessionRequest = OnP2PSessionRequest;
@@ -241,6 +243,11 @@ namespace MultiplayerMod.Core
                         BWUtil.ApplyRigTransform(brt, ertm);
                         break;
                     }
+                case MessageType.Death:
+                    {
+                        MelonLogger.Log(msg.ReadUnicodeString() + " has died");
+                        break;
+                    }
             }
         }
 
@@ -294,6 +301,16 @@ namespace MultiplayerMod.Core
             // Send off an ID request to the server
             IDRequestMessage requestMessage = new IDRequestMessage();
             
+        }
+
+        private void OnDeath()
+        {
+            Death deathMessage = new Death()
+            {
+                player = SteamClient.Name
+            };
+
+            SendToServer(deathMessage.MakeMsg(), MessageSendType.Reliable);
         }
 
         public void Disconnect()

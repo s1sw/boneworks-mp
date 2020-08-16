@@ -2,7 +2,6 @@
 using Oculus.Platform;
 using Oculus.Platform.Models;
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -36,7 +35,8 @@ namespace MultiplayerMod.Networking
         SetServerSetting,
         IdAllocation,
         IdRequest,
-        ObjectSync
+        ObjectSync,
+        Death
     }
 
     public interface INetworkMessage
@@ -840,6 +840,29 @@ namespace MultiplayerMod.Networking
             msg.WriteVector3(position);
             msg.WriteCompressedQuaternion(rotation);
 
+            return msg;
+        }
+    }
+
+    public class Death : INetworkMessage
+    {
+        public string player;
+
+        public Death()
+        {
+
+        }
+
+        public Death(P2PMessage msg)
+        {
+            player = msg.ReadUnicodeString();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.Death);
+            msg.WriteUnicodeString(player);
             return msg;
         }
     }

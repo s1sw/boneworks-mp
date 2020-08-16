@@ -20,6 +20,7 @@ using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
 using Oculus.Platform;
 using Oculus.Platform.Samples.VrHoops;
+using BoneworksModdingToolkit.BoneHook;
 
 namespace MultiplayerMod.Core
 {
@@ -44,6 +45,7 @@ namespace MultiplayerMod.Core
         {
             this.ui = ui;
             this.transportLayer = transportLayer;
+            PlayerHooks.OnPlayerDeath += OnDeath;
         }
 
         public void Update()
@@ -209,6 +211,18 @@ namespace MultiplayerMod.Core
             };
             ServerSendToAll(stm, MessageSendType.Reliable);
             enemyPoolManager.FindAllPools();
+        }
+
+        private void OnDeath()
+        {
+            Death deathMessage = new Death()
+            {
+                player = SteamClient.Name
+            };
+
+            MelonLogger.Log(deathMessage.player + " has died");
+
+            ServerSendToAll(deathMessage, MessageSendType.Reliable);
         }
 
         public void StartServer()
@@ -537,6 +551,17 @@ namespace MultiplayerMod.Core
 
                         hgcm.isForOtherPlayer = true;
                         ServerSendToAllExcept(hgcm, MessageSendType.Reliable, connection.ConnectedTo);
+                        break;
+                    }
+                case MessageType.Death:
+                    {
+                        Death deathMessage = new Death(msg)
+                        {
+                            player = playerNames[smallPlayerIds[connection.ConnectedTo]]
+                        };
+
+                        MelonLogger.Log(deathMessage.player + " has died");
+                        ServerSendToAllExcept(deathMessage, MessageSendType.Reliable, connection.ConnectedTo);
                         break;
                     }
                 default:
