@@ -280,7 +280,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="Boneworks\BWUtil.cs" />
+    <Compile Include="Source\Boneworks\BWUtil.cs" />
     <Compile Include="Source\Core\ObjectIDManager.cs" />
     <Compile Include="Source\Extras\BasicFABRIK.cs" />
     <Compile Include="Source\Extras\GunResources.cs" />
@@ -296,12 +296,12 @@
     <Compile Include="Discord\LobbyManager.cs" />
     <Compile Include="Discord\StorageManager.cs" />
     <Compile Include="Discord\StoreManager.cs" />
-    <Compile Include="Boneworks\EnemyPoolManager.cs" />
+    <Compile Include="Source\Boneworks\EnemyPoolManager.cs" />
     <Compile Include="Source\Extras\SpecialUsers.cs" />
     <Compile Include="Source\Features\ServerSettings.cs" />
     <Compile Include="Source\Features\UI.cs" />
     <Compile Include="Source\FileInfo.cs" />
-    <Compile Include="Source\Main.cs" />
+    <Compile Include="Source\Core\Main.cs" />
     <Compile Include="Source\Core\MultiplayerUI.cs" />
     <Compile Include="Source\MonoBehaviours\IDHolder.cs" />
     <Compile Include="Source\MonoBehaviours\ServerSyncedObject.cs" />
