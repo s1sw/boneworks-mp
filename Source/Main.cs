@@ -46,6 +46,7 @@ namespace MultiplayerMod
 
         public unsafe override void OnApplicationStart()
         {
+            if (!SteamClient.IsValid)
             SteamClient.Init(823500);
 
             Features.Guard.GetSteamFriends();
@@ -77,12 +78,8 @@ namespace MultiplayerMod
             // Initialize Discord's RichPresence
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
-            
-            #region Unused Code
-            //PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
-            //PlayerHooks.OnPlayerLetGoObject += PlayerHooks_OnPlayerLetGoObject;
-            //BWUtil.InitialiseGunPrefabs();
-            #endregion
+
+            Extras.GunResources.Load();
         }
 
         public override void OnLevelWasLoaded(int level)
@@ -110,7 +107,7 @@ namespace MultiplayerMod
                 // but now it only causes confusion.
                 if (Input.GetKeyDown(KeyCode.C))
                 {
-                    MelonModLogger.LogError("Manually connection to a server with the C keybind has been removed. Please use Discord invites.");
+                    MelonModLogger.LogError("Manually connecting to a server with the C keybind has been removed. Please use Discord invites.");
                 }
 
                 // If the user is not hosting, start their server

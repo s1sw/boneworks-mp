@@ -21,6 +21,7 @@ using MultiplayerMod.Representations;
 using Oculus.Platform;
 using Oculus.Platform.Samples.VrHoops;
 using MultiplayerMod.MonoBehaviours;
+using MultiplayerMod.Extras;
 
 namespace MultiplayerMod.Core
 {
@@ -112,16 +113,7 @@ namespace MultiplayerMod.Core
                 pr.UpdateNameplateFacing(Camera.current.transform);
             }
 
-            foreach (var pair in ObjectIDManager.objects)
-            {
-                if (!syncedObjectCache.ContainsKey(pair.Value))
-                    syncedObjectCache.Add(pair.Value, pair.Value.GetComponent<ServerSyncedObject>());
-                ServerSyncedObject sso = syncedObjectCache[pair.Value];
-                if (sso.NeedsSync())
-                {
-
-                }
-            }
+            transportLayer.Update();
         }
 
         private void MultiplayerMod_OnLevelWasLoadedEvent(int level)
@@ -205,6 +197,67 @@ namespace MultiplayerMod.Core
 
             switch (type)
             {
+                case MessageType.GunFireHit:
+                    {
+                        byte playerId = smallPlayerIds[connection.ConnectedTo];
+                        if (playerObjects.ContainsKey(playerId))
+                        {
+                            PlayerRep pr = playerObjects[playerId];
+
+                            if (pr.rigTransforms.main != null)
+                            {
+                                GameObject instance = Instantiate(GunResources.HurtSFX, pr.rigTransforms.main);
+                                Destroy(instance, 3);
+                            }
+                        }
+                        GunFireHit gff = new GunFireHit()
+                        {
+                            playerId = playerId
+                        };
+                        ServerSendToAllExcept(gff, MessageSendType.Unreliable, connection.ConnectedTo);
+                        break;
+                    }
+                case MessageType.GunFire:
+                    {
+                        bool didHit;
+                        GunFireMessage gfm = new GunFireMessage(msg);
+                        Ray ray = new Ray(gfm.fireOrigin, gfm.fireDirection);
+
+                        if (Physics.Raycast(ray, out RaycastHit hit, int.MaxValue, ~0, QueryTriggerInteraction.Ignore))
+                        {
+                            if (hit.transform.root.gameObject == BWUtil.RigManager)
+                            {
+                                MelonModLogger.Log("Hit BRETT!");
+                                int random = UnityEngine.Random.Range(0, 10);
+                                BWUtil.LocalPlayerHealth.TAKEDAMAGE(gfm.bulletDamage, random == 0);
+                                GunFireHit gff = new GunFireHit();
+                                ServerSendToAll(gff, MessageSendType.Reliable);
+                            }
+                            else
+                            {
+                                MelonModLogger.Log("Hit!");
+                            }
+                            didHit = true;
+                        }
+                        else
+                        {
+                            MelonModLogger.Log("Did not hit!");
+                            didHit = false;
+                        }
+
+                        GameObject instance = Instantiate(GunResources.LinePrefab);
+                        LineRenderer lineRenderer = instance.GetComponent<LineRenderer>();
+                        lineRenderer.SetPosition(0, gfm.fireOrigin);
+                        if (didHit)
+                            lineRenderer.SetPosition(1, hit.transform.position);
+                        else
+                            lineRenderer.SetPosition(1, gfm.fireOrigin + (gfm.fireDirection * int.MaxValue));
+                        GameObject.Destroy(instance, 1);
+
+                        ServerSendToAllExcept(gfm, MessageSendType.Reliable, connection.ConnectedTo);
+                        MelonModLogger.Log("Pew serber send");
+                        break;
+                    }
                 case MessageType.Join:
                     {
                         if (msg.ReadByte() != MultiplayerMod.PROTOCOL_VERSION)

@@ -36,12 +36,82 @@ namespace MultiplayerMod.Networking
         SetServerSetting,
         IdAllocation,
         IdRequest,
-        ObjectSync
+        ObjectSync,
+        GunFire,
+        GunFireHit
     }
 
     public interface INetworkMessage
     {
         P2PMessage MakeMsg();
+    }
+
+    public class GunFireBase
+    {
+        public Vector3 fireOrigin;
+        public Vector3 fireDirection;
+        public float bulletDamage;
+    }
+
+    public class GunFireMessage : GunFireBase, INetworkMessage
+    {
+        public GunFireMessage()
+        {
+
+        }
+
+        public GunFireMessage(P2PMessage msg)
+        {
+            fireOrigin = msg.ReadVector3();
+            fireDirection = msg.ReadVector3();
+            bulletDamage = msg.ReadFloat();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.GunFire);
+            msg.WriteVector3(fireOrigin);
+            msg.WriteVector3(fireDirection);
+            msg.WriteFloat(bulletDamage);
+            return msg;
+        }
+    }
+
+    public class GunFireHitToServer : INetworkMessage
+    {
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.GunFireHit);
+            return msg;
+        }
+    }
+
+    public class GunFireHitBase
+    {
+        public byte playerId;
+    }
+
+    public class GunFireHit : GunFireHitBase, INetworkMessage
+    {
+        public GunFireHit()
+        {
+
+        }
+
+        public GunFireHit(P2PMessage msg)
+        {
+            playerId = msg.ReadByte();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.GunFireHit);
+            msg.WriteByte(playerId);
+            return msg;
+        }
     }
 
     // Server -> clients

@@ -10,6 +10,8 @@ using UnityEngine.Rendering;
 using static UnityEngine.Object;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
+using Harmony;
+using StressLevelZero.Props.Weapons;
 
 namespace MultiplayerMod
 {
@@ -41,8 +43,48 @@ namespace MultiplayerMod
 
     static class BWUtil
     {
+        public static event Action<Gun> OnFire;
+
+        public static Player_Health LocalPlayerHealth
+        {
+            get
+            {
+                if (!localPlayerHealth)
+                {
+                    localPlayerHealth = FindRigManager().GetComponent<Player_Health>();
+                }
+
+                return localPlayerHealth;
+            }
+        }
+
+        public static GameObject RigManager
+        {
+            get
+            {
+                if (!rigManager)
+                    rigManager = FindRigManager();
+
+                return rigManager;
+            }
+        }
+
+        private static Player_Health localPlayerHealth;
+        private static GameObject rigManager;
+
         private static readonly Dictionary<GunType, GameObject> gunPrefabs = new Dictionary<GunType, GameObject>()
         { };
+
+        public static void Hook()
+        {
+            var harmonyInst = HarmonyInstance.Create("BWMP");
+            harmonyInst.Patch(typeof(Gun).GetMethod("Fire"), new HarmonyMethod(typeof(BWUtil), "OnFireHook"));
+        }
+
+        private static void OnFireHook(Gun __instance)
+        {
+            OnFire?.Invoke(__instance);
+        }
 
         public static void InitialiseGunPrefabs()
         {
@@ -227,6 +269,11 @@ namespace MultiplayerMod
             }
 
             return currentObj;
+        }
+
+        private static GameObject FindRigManager()
+        {
+            return GameObject.Find("[RigManager (Default Brett)]");
         }
     }
 }

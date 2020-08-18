@@ -283,6 +283,7 @@
     <Compile Include="Boneworks\BWUtil.cs" />
     <Compile Include="Source\Core\ObjectIDManager.cs" />
     <Compile Include="Source\Extras\BasicFABRIK.cs" />
+    <Compile Include="Source\Extras\GunResources.cs" />
     <Compile Include="Source\Features\ClientSettings.cs" />
     <Compile Include="Source\Features\Guard.cs" />
     <Compile Include="Source\Features\NetworkedAccesories.cs" />

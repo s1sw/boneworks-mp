@@ -21,6 +21,9 @@ using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
 using MultiplayerMod.MonoBehaviours;
+using StressLevelZero.Props.Weapons;
+using StressLevelZero.Combat;
+using MultiplayerMod.Extras;
 //using BoneworksModdingToolkit;
 
 namespace MultiplayerMod.Core
@@ -28,11 +31,13 @@ namespace MultiplayerMod.Core
     public class Client
     {
         private BoneworksRigTransforms localRigTransforms;
+        private Player_Health localHealth;
 
         public SteamId ServerId
         {
             get; private set;
         }
+
         private readonly Dictionary<byte, PlayerRep> playerObjects = new Dictionary<byte, PlayerRep>(MultiplayerMod.MAX_PLAYERS);
         private readonly Dictionary<byte, string> playerNames = new Dictionary<byte, string>(MultiplayerMod.MAX_PLAYERS);
         private readonly Dictionary<byte, SteamId> largePlayerIds = new Dictionary<byte, SteamId>(MultiplayerMod.MAX_PLAYERS);
@@ -52,11 +57,6 @@ namespace MultiplayerMod.Core
         public void SetupRP()
         {
             RichPresence.OnJoin += RichPresence_OnJoin;
-        }
-
-        public void SetLocalRigTransforms(BoneworksRigTransforms rigTransforms)
-        {
-            localRigTransforms = rigTransforms;
         }
 
         public void RecreatePlayers()
@@ -97,6 +97,20 @@ namespace MultiplayerMod.Core
             localRigTransforms = BWUtil.GetLocalRigTransforms();
 
             ui.SetState(MultiplayerUIState.Client);
+            BWUtil.OnFire += BWUtil_OnFire;
+        }
+
+        private void BWUtil_OnFire(Gun obj)
+        {
+            BulletObject bobj = obj.chamberedBulletGameObject.GetComponent<BulletObject>();
+            GunFireMessage gfm = new GunFireMessage()
+            {
+                fireDirection = obj.firePointTransform.forward,
+                fireOrigin = obj.firePointTransform.position,
+                bulletDamage = bobj.ammoVariables.AttackDamage
+            };
+
+            SendToServer(gfm.MakeMsg(), MessageSendType.Reliable);
         }
 
         private void TransportLayer_OnMessageReceived(ITransportConnection arg1, P2PMessage msg)
@@ -105,6 +119,62 @@ namespace MultiplayerMod.Core
 
             switch (type)
             {
+                case MessageType.GunFireHit:
+                    {
+                        GunFireHit gfm = new GunFireHit(msg);
+                        if (playerObjects.ContainsKey(gfm.playerId))
+                        {
+                            PlayerRep pr = playerObjects[gfm.playerId];
+
+                            MelonModLogger.Log("Hit local player");
+                            if (pr.rigTransforms.main != null)
+                            {
+                                GameObject instance = GameObject.Instantiate(GunResources.HurtSFX, pr.rigTransforms.main);
+                                Destroy(instance, 3);
+                            }
+                        }
+                        break;
+                    }
+                case MessageType.GunFire:
+                    {
+                        bool didHit;
+                        GunFireMessage gfm = new GunFireMessage(msg);
+                        Ray ray = new Ray(gfm.fireOrigin, gfm.fireDirection);
+                        if (Physics.Raycast(ray, out RaycastHit hit, int.MaxValue, ~0, QueryTriggerInteraction.Ignore))
+                        {
+                            if (hit.transform.root.gameObject == BWUtil.RigManager)
+                            {
+                                MelonModLogger.Log("Hit BRETT!");
+                                int random = UnityEngine.Random.Range(0, 10);
+                                BWUtil.LocalPlayerHealth.TAKEDAMAGE(gfm.bulletDamage, random == 0);
+                                GunFireHitToServer gff = new GunFireHitToServer();
+                                SendToServer(gff, MessageSendType.Reliable);
+                            }
+                            else
+                            {
+                                MelonModLogger.Log("Hit!");
+                            }
+                            didHit = true;
+                        }
+                        else
+                        {
+                            didHit = false;
+                            MelonModLogger.Log("Did not hit!");
+
+                        }
+
+                        GameObject instance = Instantiate(GunResources.LinePrefab);
+                        LineRenderer lineRenderer = instance.GetComponent<LineRenderer>();
+                        lineRenderer.SetPosition(0, gfm.fireOrigin);
+                        if (didHit)
+                            lineRenderer.SetPosition(1, hit.transform.position);
+                        else
+                            lineRenderer.SetPosition(1, gfm.fireOrigin + (gfm.fireDirection * int.MaxValue));
+                        Destroy(instance, 3);
+
+                        MelonModLogger.Log("Pew complete!");
+                        break;
+                    }
                 case MessageType.OtherPlayerPosition:
                     {
                         OtherPlayerPositionMessage oppm = new OtherPlayerPositionMessage(msg);
@@ -293,6 +363,8 @@ namespace MultiplayerMod.Core
 
             if (connection.IsConnected)
                 connection.Disconnect();
+
+            BWUtil.OnFire -= BWUtil_OnFire;
         }
 
         public void Update()
@@ -300,7 +372,7 @@ namespace MultiplayerMod.Core
             if (SceneLoader.loading) return;
 
             if (localRigTransforms.main == null)
-                SetLocalRigTransforms(BWUtil.GetLocalRigTransforms());
+                SetupPlayerReferences();
 
             if (localRigTransforms.main != null)
             {
@@ -357,6 +429,8 @@ namespace MultiplayerMod.Core
                     pr.UpdateNameplateFacing(Camera.current.transform);
                 }
             }
+
+            transportLayer.Update();
         }
 
         private PlayerRep GetPlayerRep(byte playerId)
@@ -373,6 +447,12 @@ namespace MultiplayerMod.Core
         private void SendToServer(INetworkMessage msg, MessageSendType send)
         {
             SendToServer(msg.MakeMsg(), send);
+        }
+
+        private void SetupPlayerReferences()
+        {
+            localRigTransforms = BWUtil.GetLocalRigTransforms();
+            localHealth = BWUtil.RigManager.GetComponent<Player_Health>();
         }
     }
 }
