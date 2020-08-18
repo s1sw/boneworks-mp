@@ -25,7 +25,7 @@ using MultiplayerMod.MonoBehaviours;
 
 namespace MultiplayerMod.Core
 {
-    public class OldClient
+    public class Client
     {
         private BoneworksRigTransforms localRigTransforms;
         public SteamId ServerId
@@ -42,7 +42,7 @@ namespace MultiplayerMod.Core
         private ITransportConnection connection;
         public bool isConnected = false;
 
-        public OldClient(MultiplayerUI ui, ITransportLayer transportLayer)
+        public Client(MultiplayerUI ui, ITransportLayer transportLayer)
         {
             this.ui = ui;
             this.transportLayer = transportLayer;
