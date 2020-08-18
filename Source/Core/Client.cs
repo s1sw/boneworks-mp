@@ -28,6 +28,7 @@ namespace MultiplayerMod.Core
     public class Client
     {
         private BoneworksRigTransforms localRigTransforms;
+
         public SteamId ServerId
         {
             get; private set;
@@ -91,15 +92,10 @@ namespace MultiplayerMod.Core
             connection = transportLayer.ConnectTo(ServerId, msg);
             transportLayer.OnConnectionClosed += TransportLayer_OnConnectionClosed;
             transportLayer.OnMessageReceived += TransportLayer_OnMessageReceived;
-            //SteamNetworking.SendP2PPacket(ServerId, msg.GetBytes());
 
             isConnected = true;
-            //PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
-            //PlayerHooks.OnPlayerLetGoObject += PlayerHooks_OnPlayerLetGoObject;
             localRigTransforms = BWUtil.GetLocalRigTransforms();
 
-            //SteamNetworking.OnP2PSessionRequest = OnP2PSessionRequest;
-            //SteamNetworking.OnP2PConnectionFailed = OnP2PConnectionFailed;
             ui.SetState(MultiplayerUIState.Client);
         }
 
@@ -188,25 +184,6 @@ namespace MultiplayerMod.Core
                         playerObjects.Add(cjm.playerId, new PlayerRep(cjm.name, cjm.steamId));
                         break;
                     }
-                case MessageType.OtherHandGunChange:
-                    {
-                        HandGunChangeMessage hgcm = new HandGunChangeMessage(msg, true);
-
-                        if (hgcm.destroy)
-                        {
-                            Destroy(playerObjects[hgcm.playerId].currentGun);
-                        }
-                        else
-                        {
-                            PlayerRep pr = playerObjects[hgcm.playerId];
-                            pr.currentGun = BWUtil.SpawnGun(hgcm.type);
-                            pr.currentGun.transform.parent = pr.gunParent.transform;
-                            pr.currentGun.transform.localPosition = Vector3.zero;
-                            pr.currentGun.transform.localEulerAngles = new Vector3(0.0f, 0.0f, 90.0f);
-                            pr.currentGun.GetComponent<Rigidbody>().isKinematic = true;
-                        }
-                        break;
-                    }
                 case MessageType.SetPartyId:
                     {
                         SetPartyIdMessage spid = new SetPartyIdMessage(msg);
@@ -235,6 +212,7 @@ namespace MultiplayerMod.Core
                         enemyPoolManager.FindMissingPools();
                         EnemyRigTransformMessage ertm = new EnemyRigTransformMessage(msg);
                         Pool pool = enemyPoolManager.GetPool(ertm.enemyType);
+
                         // HORRID PERFORMANCE
                         Transform enemyTf = pool.transform.GetChild(ertm.poolChildIdx);
                         GameObject rootObj = enemyTf.Find("enemyBrett@neutral").gameObject;
@@ -290,38 +268,6 @@ namespace MultiplayerMod.Core
             Connect(obj);
         }
 
-        private void PlayerHooks_OnPlayerLetGoObject(GameObject obj)
-        {
-            //HandGunChangeMessage hgcm = new HandGunChangeMessage()
-            //{
-            //    isForOtherPlayer = false,
-            //    destroy = true
-            //};
-
-            //SendToServer(hgcm, P2PSend.Reliable);
-        }
-
-        private void PlayerHooks_OnPlayerGrabObject(GameObject obj)
-        {
-            //GunType? gt = BWUtil.GetGunType(obj.transform.root.gameObject);
-            //if (gt != null)
-            //{
-            //    HandGunChangeMessage hgcm = new HandGunChangeMessage()
-            //    {
-            //        isForOtherPlayer = false,
-            //        type = gt.Value,
-            //        destroy = false
-            //    };
-
-            //    SendToServer(hgcm, P2PSend.Reliable);
-            //}
-
-            // Send off an ID request to the server
-            IDRequestMessage requestMessage = new IDRequestMessage();
-            requestMessage.namePath = BWUtil.GetFullNamePath(obj);
-            SendToServer(requestMessage, MessageSendType.Reliable);
-        }
-
         public void Disconnect()
         {
             ui.SetState(MultiplayerUIState.PreConnect);
@@ -347,103 +293,68 @@ namespace MultiplayerMod.Core
 
             if (connection.IsConnected)
                 connection.Disconnect();
-
-            //PlayerHooks.OnPlayerGrabObject -= PlayerHooks_OnPlayerGrabObject;
-            //PlayerHooks.OnPlayerLetGoObject -= PlayerHooks_OnPlayerLetGoObject;
-
-            //SteamNetworking.OnP2PConnectionFailed = null;
-            //SteamNetworking.OnP2PSessionRequest = null;
         }
 
         public void Update()
         {
             if (SceneLoader.loading) return;
 
-            //if (localHead != null)
-            //{
-            //    PlayerPositionMessage ppm = new PlayerPositionMessage
-            //    {
-            //        headPos = localHead.transform.position,
-            //        lHandPos = localHandL.transform.position,
-            //        rHandPos = localHandR.transform.position,
-            //        pelvisPos = localPelvis.transform.position,
-            //        lFootPos = localFootL.transform.position,
-            //        rFootPos = localFootR.transform.position,
+            if (localRigTransforms.main == null)
+                SetLocalRigTransforms(BWUtil.GetLocalRigTransforms());
 
-            //        headRot = localHead.transform.rotation,
-            //        lHandRot = localHandL.transform.rotation,
-            //        rHandRot = localHandR.transform.rotation,
-            //        pelvisRot = localPelvis.transform.rotation,
-            //        lFootRot = localFootL.transform.rotation,
-            //        rFootRot = localFootR.transform.rotation
-            //    };
-
-            //    SendToServer(ppm, P2PSend.Unreliable);
-
-            //    foreach (PlayerRep pr in playerObjects.Values)
-            //    {
-            //        pr.UpdateNameplateFacing(Camera.current.transform);
-            //    }
-            //}
-            //else if (enableFullRig)
+            if (localRigTransforms.main != null)
             {
-                if (localRigTransforms.main == null)
-                    SetLocalRigTransforms(BWUtil.GetLocalRigTransforms());
-
-                if (localRigTransforms.main != null)
+                FullRigTransformMessage frtm = new FullRigTransformMessage
                 {
-                    FullRigTransformMessage frtm = new FullRigTransformMessage
-                    {
-                        posMain = localRigTransforms.main.position,
-                        posRoot = localRigTransforms.root.position,
-                        posLHip = localRigTransforms.lHip.position,
-                        posRHip = localRigTransforms.rHip.position,
-                        posLKnee = localRigTransforms.lKnee.position,
-                        posRKnee = localRigTransforms.rKnee.position,
-                        posLAnkle = localRigTransforms.lAnkle.position,
-                        posRAnkle = localRigTransforms.rAnkle.position,
+                    posMain = localRigTransforms.main.position,
+                    posRoot = localRigTransforms.root.position,
+                    posLHip = localRigTransforms.lHip.position,
+                    posRHip = localRigTransforms.rHip.position,
+                    posLKnee = localRigTransforms.lKnee.position,
+                    posRKnee = localRigTransforms.rKnee.position,
+                    posLAnkle = localRigTransforms.lAnkle.position,
+                    posRAnkle = localRigTransforms.rAnkle.position,
 
-                        posSpine1 = localRigTransforms.spine1.position,
-                        posSpine2 = localRigTransforms.spine2.position,
-                        posSpineTop = localRigTransforms.spineTop.position,
-                        posLClavicle = localRigTransforms.lClavicle.position,
-                        posRClavicle = localRigTransforms.rClavicle.position,
-                        posNeck = localRigTransforms.neck.position,
-                        posLShoulder = localRigTransforms.lShoulder.position,
-                        posRShoulder = localRigTransforms.rShoulder.position,
-                        posLElbow = localRigTransforms.lElbow.position,
-                        posRElbow = localRigTransforms.rElbow.position,
-                        posLWrist = localRigTransforms.lWrist.position,
-                        posRWrist = localRigTransforms.rWrist.position,
+                    posSpine1 = localRigTransforms.spine1.position,
+                    posSpine2 = localRigTransforms.spine2.position,
+                    posSpineTop = localRigTransforms.spineTop.position,
+                    posLClavicle = localRigTransforms.lClavicle.position,
+                    posRClavicle = localRigTransforms.rClavicle.position,
+                    posNeck = localRigTransforms.neck.position,
+                    posLShoulder = localRigTransforms.lShoulder.position,
+                    posRShoulder = localRigTransforms.rShoulder.position,
+                    posLElbow = localRigTransforms.lElbow.position,
+                    posRElbow = localRigTransforms.rElbow.position,
+                    posLWrist = localRigTransforms.lWrist.position,
+                    posRWrist = localRigTransforms.rWrist.position,
 
-                        rotMain = localRigTransforms.main.rotation,
-                        rotRoot = localRigTransforms.root.rotation,
-                        rotLHip = localRigTransforms.lHip.rotation,
-                        rotRHip = localRigTransforms.rHip.rotation,
-                        rotLKnee = localRigTransforms.lKnee.rotation,
-                        rotRKnee = localRigTransforms.rKnee.rotation,
-                        rotLAnkle = localRigTransforms.lAnkle.rotation,
-                        rotRAnkle = localRigTransforms.rAnkle.rotation,
-                        rotSpine1 = localRigTransforms.spine1.rotation,
-                        rotSpine2 = localRigTransforms.spine2.rotation,
-                        rotSpineTop = localRigTransforms.spineTop.rotation,
-                        rotLClavicle = localRigTransforms.lClavicle.rotation,
-                        rotRClavicle = localRigTransforms.rClavicle.rotation,
-                        rotNeck = localRigTransforms.neck.rotation,
-                        rotLShoulder = localRigTransforms.lShoulder.rotation,
-                        rotRShoulder = localRigTransforms.rShoulder.rotation,
-                        rotLElbow = localRigTransforms.lElbow.rotation,
-                        rotRElbow = localRigTransforms.rElbow.rotation,
-                        rotLWrist = localRigTransforms.lWrist.rotation,
-                        rotRWrist = localRigTransforms.rWrist.rotation
-                    };
+                    rotMain = localRigTransforms.main.rotation,
+                    rotRoot = localRigTransforms.root.rotation,
+                    rotLHip = localRigTransforms.lHip.rotation,
+                    rotRHip = localRigTransforms.rHip.rotation,
+                    rotLKnee = localRigTransforms.lKnee.rotation,
+                    rotRKnee = localRigTransforms.rKnee.rotation,
+                    rotLAnkle = localRigTransforms.lAnkle.rotation,
+                    rotRAnkle = localRigTransforms.rAnkle.rotation,
+                    rotSpine1 = localRigTransforms.spine1.rotation,
+                    rotSpine2 = localRigTransforms.spine2.rotation,
+                    rotSpineTop = localRigTransforms.spineTop.rotation,
+                    rotLClavicle = localRigTransforms.lClavicle.rotation,
+                    rotRClavicle = localRigTransforms.rClavicle.rotation,
+                    rotNeck = localRigTransforms.neck.rotation,
+                    rotLShoulder = localRigTransforms.lShoulder.rotation,
+                    rotRShoulder = localRigTransforms.rShoulder.rotation,
+                    rotLElbow = localRigTransforms.lElbow.rotation,
+                    rotRElbow = localRigTransforms.rElbow.rotation,
+                    rotLWrist = localRigTransforms.lWrist.rotation,
+                    rotRWrist = localRigTransforms.rWrist.rotation
+                };
 
-                    SendToServer(frtm, MessageSendType.Unreliable);
+                SendToServer(frtm, MessageSendType.Unreliable);
 
-                    foreach (PlayerRep pr in playerObjects.Values)
-                    {
-                        pr.UpdateNameplateFacing(Camera.current.transform);
-                    }
+                foreach (PlayerRep pr in playerObjects.Values)
+                {
+                    pr.UpdateNameplateFacing(Camera.current.transform);
                 }
             }
         }
@@ -456,7 +367,6 @@ namespace MultiplayerMod.Core
         private void SendToServer(P2PMessage msg, MessageSendType send)
         {
             byte[] msgBytes = msg.GetBytes();
-            //SteamNetworking.SendP2PPacket(ServerId, msgBytes, msgBytes.Length, 0, send);
             connection.SendMessage(msg, send);
         }
 

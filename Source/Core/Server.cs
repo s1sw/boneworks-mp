@@ -51,33 +51,6 @@ namespace MultiplayerMod.Core
         public void Update()
         {
             if (SceneLoader.loading) return;
-            //ui.SetPlayerCount(players.Count);
-
-            #region Unused Code
-            //if (localHead != null && !enableFullRig)
-            //{
-            //    OtherPlayerPositionMessage oppm = new OtherPlayerPositionMessage
-            //    {
-            //        playerId = 0,
-            //        headPos = localHead.transform.position,
-            //        lHandPos = localHandL.transform.position,
-            //        rHandPos = localHandR.transform.position,
-            //        pelvisPos = localPelvis.transform.position,
-            //        lFootPos = localFootL.transform.position,
-            //        rFootPos = localFootR.transform.position,
-
-            //        headRot = localHead.transform.rotation,
-            //        lHandRot = localHandL.transform.rotation,
-            //        rHandRot = localHandR.transform.rotation,
-            //        pelvisRot = localPelvis.transform.rotation,
-            //        lFootRot = localFootL.transform.rotation,
-            //        rFootRot = localFootR.transform.rotation
-            //    };
-
-            //    ServerSendToAll(oppm, P2PSend.Unreliable);
-            //} 
-            //else if(enableFullRig && localHead != null)
-            #endregion
 
             if (localRigTransforms.main == null)
                 localRigTransforms = BWUtil.GetLocalRigTransforms();
@@ -149,69 +122,6 @@ namespace MultiplayerMod.Core
 
                 }
             }
-            // Disabled temporarily
-#if false
-            {
-                enemyPoolManager.FindMissingPools();
-                Pool pool = enemyPoolManager.GetPool(EnemyType.NullBody);
-                for (int i = 0; i < pool.transform.childCount; i++)
-                {
-                    GameObject childEnemy = pool.transform.GetChild(i).gameObject;
-
-                    BoneworksRigTransforms brt = BWUtil.GetHumanoidRigTransforms(childEnemy.transform.Find("brettEnemy@neutral").gameObject);
-
-                    EnemyRigTransformMessage ertf = new EnemyRigTransformMessage()
-                    {
-                        poolChildIdx = (byte)i,
-                        enemyType = EnemyType.NullBody,
-                        posMain = localRigTransforms.main.position,
-                        posRoot = localRigTransforms.root.position,
-                        posLHip = localRigTransforms.lHip.position,
-                        posRHip = localRigTransforms.rHip.position,
-                        posLKnee = localRigTransforms.lKnee.position,
-                        posRKnee = localRigTransforms.rKnee.position,
-                        posLAnkle = localRigTransforms.lAnkle.position,
-                        posRAnkle = localRigTransforms.rAnkle.position,
-
-                        posSpine1 = localRigTransforms.spine1.position,
-                        posSpine2 = localRigTransforms.spine2.position,
-                        posSpineTop = localRigTransforms.spineTop.position,
-                        posLClavicle = localRigTransforms.lClavicle.position,
-                        posRClavicle = localRigTransforms.rClavicle.position,
-                        posNeck = localRigTransforms.neck.position,
-                        posLShoulder = localRigTransforms.lShoulder.position,
-                        posRShoulder = localRigTransforms.rShoulder.position,
-                        posLElbow = localRigTransforms.lElbow.position,
-                        posRElbow = localRigTransforms.rElbow.position,
-                        posLWrist = localRigTransforms.lWrist.position,
-                        posRWrist = localRigTransforms.rWrist.position,
-
-                        rotMain = localRigTransforms.main.rotation,
-                        rotRoot = localRigTransforms.root.rotation,
-                        rotLHip = localRigTransforms.lHip.rotation,
-                        rotRHip = localRigTransforms.rHip.rotation,
-                        rotLKnee = localRigTransforms.lKnee.rotation,
-                        rotRKnee = localRigTransforms.rKnee.rotation,
-                        rotLAnkle = localRigTransforms.lAnkle.rotation,
-                        rotRAnkle = localRigTransforms.rAnkle.rotation,
-                        rotSpine1 = localRigTransforms.spine1.rotation,
-                        rotSpine2 = localRigTransforms.spine2.rotation,
-                        rotSpineTop = localRigTransforms.spineTop.rotation,
-                        rotLClavicle = localRigTransforms.lClavicle.rotation,
-                        rotRClavicle = localRigTransforms.rClavicle.rotation,
-                        rotNeck = localRigTransforms.neck.rotation,
-                        rotLShoulder = localRigTransforms.lShoulder.rotation,
-                        rotRShoulder = localRigTransforms.rShoulder.rotation,
-                        rotLElbow = localRigTransforms.lElbow.rotation,
-                        rotRElbow = localRigTransforms.rElbow.rotation,
-                        rotLWrist = localRigTransforms.lWrist.rotation,
-                        rotRWrist = localRigTransforms.rWrist.rotation
-                    };
-
-                    ServerSendToAll(ertf, P2PSend.UnreliableNoDelay);
-                }
-            }
-#endif
         }
 
         private void MultiplayerMod_OnLevelWasLoadedEvent(int level)
@@ -406,54 +316,6 @@ namespace MultiplayerMod.Core
                         }
                         break;
                     }
-                //case MessageType.PlayerPosition:
-                //    {
-                //        if (smallPlayerIds.ContainsKey(packet.Value.SteamId))
-                //        {
-                //            byte playerId = smallPlayerIds[packet.Value.SteamId];
-                //            PlayerRep pr = GetPlayerRep(playerId);
-
-                //            PlayerPositionMessage ppm = new PlayerPositionMessage(msg);
-                //            pr.head.transform.position = ppm.headPos;
-                //            pr.handL.transform.position = ppm.lHandPos;
-                //            pr.handR.transform.position = ppm.rHandPos;
-                //            pr.ford.transform.position = ppm.pelvisPos - new Vector3(0.0f, 0.3f, 0.0f);
-                //            pr.pelvis.transform.position = ppm.pelvisPos;
-                //            pr.footL.transform.position = ppm.lFootPos;
-                //            pr.footR.transform.position = ppm.rFootPos;
-
-                //            //pr.ford.transform.rotation = ppm.pelvisRot;
-                //            pr.head.transform.rotation = ppm.headRot;
-                //            pr.handL.transform.rotation = ppm.lHandRot;
-                //            pr.handR.transform.rotation = ppm.rHandRot;
-                //            pr.pelvis.transform.rotation = ppm.pelvisRot;
-                //            pr.footL.transform.rotation = ppm.lFootRot;
-                //            pr.footR.transform.rotation = ppm.rFootRot;
-
-                //            // Send to all other players
-
-                //            OtherPlayerPositionMessage relayOPPM = new OtherPlayerPositionMessage
-                //            {
-                //                headPos = ppm.headPos,
-                //                lHandPos = ppm.lHandPos,
-                //                rHandPos = ppm.rHandPos,
-                //                pelvisPos = ppm.pelvisPos,
-                //                lFootPos = ppm.lFootPos,
-                //                rFootPos = ppm.rFootPos,
-
-                //                headRot = ppm.headRot,
-                //                lHandRot = ppm.lHandRot,
-                //                rHandRot = ppm.rHandRot,
-                //                pelvisRot = ppm.pelvisRot,
-                //                lFootRot = ppm.lFootRot,
-                //                rFootRot = ppm.rFootRot,
-                //                playerId = smallPlayerIds[packet.Value.SteamId]
-                //            };
-
-                //            ServerSendToAllExcept(relayOPPM, P2PSend.Unreliable, packet.Value.SteamId);
-                //        }
-                //        break;
-                //    }
                 case MessageType.FullRig:
                     {
                         FullRigTransformMessage frtm = new FullRigTransformMessage(msg);
@@ -519,37 +381,6 @@ namespace MultiplayerMod.Core
                                 ServerSendToAllExcept(ofrtm, MessageSendType.Unreliable, connection.ConnectedTo);
                             }
                         }
-                        break;
-                    }
-                case MessageType.HandGunChange:
-                    {
-                        HandGunChangeMessage hgcm = new HandGunChangeMessage(msg, false)
-                        {
-                            playerId = smallPlayerIds[connection.ConnectedTo],
-                            isForOtherPlayer = false
-                        };
-
-                        MelonModLogger.Log("Got HGC: " + hgcm.type.ToString() + ", destroy: " + hgcm.destroy.ToString());
-
-                        if (hgcm.destroy)
-                        {
-                            Destroy(playerObjects[smallPlayerIds[connection.ConnectedTo]].currentGun);
-                        }
-                        else
-                        {
-                            MelonModLogger.Log("Spawning " + hgcm.type.ToString());
-                            PlayerRep pr = playerObjects[smallPlayerIds[connection.ConnectedTo]];
-                            pr.currentGun = BWUtil.SpawnGun(hgcm.type);
-                            if (pr.currentGun == null)
-                                MelonModLogger.LogError("Failed to spawn gun");
-                            pr.currentGun.transform.parent = pr.gunParent.transform;
-                            pr.currentGun.transform.localPosition = Vector3.zero;
-                            pr.currentGun.transform.localRotation = Quaternion.identity;//Quaternion.AngleAxis(90.0f, new Vector3(0.0f, 1.0f, 0.0f)) * Quaternion.AngleAxis(90.0f, new Vector3(1.0f, 0.0f, 0.0f));
-                            pr.currentGun.GetComponentInChildren<Rigidbody>().isKinematic = true;
-                        }
-
-                        hgcm.isForOtherPlayer = true;
-                        ServerSendToAllExcept(hgcm, MessageSendType.Reliable, connection.ConnectedTo);
                         break;
                     }
                 case MessageType.IdRequest:
@@ -628,43 +459,6 @@ namespace MultiplayerMod.Core
         {
             P2PMessage pMsg = msg.MakeMsg();
             playerConnections[id].SendMessage(pMsg, send);
-        }
-
-        private void PlayerHooks_OnPlayerLetGoObject(GameObject obj)
-        {
-            HandGunChangeMessage hgcm = new HandGunChangeMessage()
-            {
-                isForOtherPlayer = true,
-                destroy = true,
-                playerId = 0
-            };
-
-            ServerSendToAll(hgcm, MessageSendType.Reliable);
-        }
-
-        private void PlayerHooks_OnPlayerGrabObject(GameObject obj)
-        {
-            // See if it's a gun
-            GunType? gt = BWUtil.GetGunType(obj.transform.root.gameObject);
-            if (gt != null)
-            {
-                HandGunChangeMessage hgcm = new HandGunChangeMessage()
-                {
-                    isForOtherPlayer = true,
-                    type = gt.Value,
-                    destroy = false,
-                    playerId = 0
-                };
-
-                ServerSendToAll(hgcm, MessageSendType.Reliable);
-
-                switch (gt)
-                {
-                    case GunType.EDER22:
-                        MelonModLogger.Log("Holding Eder22");
-                        break;
-                }
-            }
         }
     }
 }
