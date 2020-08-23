@@ -51,15 +51,22 @@ namespace MultiplayerMod.Core
         // Recreates the UI...
         public void Recreate()
         {
-            GameObject uiPrefab = uiBundle.LoadAsset("Assets/Prefabs/Canvas.prefab").Cast<GameObject>();
-            uiObj = Instantiate(uiPrefab);
-            uiObj.GetComponent<Canvas>().worldCamera = Camera.current;
-            DontDestroyOnLoad(uiObj);
+            try
+            {
+                GameObject uiPrefab = uiBundle.LoadAsset("Assets/Prefabs/Canvas.prefab").Cast<GameObject>();
+                uiObj = Instantiate(uiPrefab);
+                uiObj.GetComponent<Canvas>().worldCamera = Camera.current;
+                DontDestroyOnLoad(uiObj);
 
-            Transform panelTransform = uiObj.transform.Find("Panel");
+                Transform panelTransform = uiObj.transform.Find("Panel");
 
-            statusText = panelTransform.Find("StatusText").GetComponent<Text>();
-            SetState(currentState);
+                statusText = panelTransform.Find("StatusText").GetComponent<Text>();
+                SetState(currentState);
+            }
+            catch (NullReferenceException)
+            {
+                MelonModLogger.LogError("Error loading UI");
+            }
         }
 
         // Updates the UI based on the client's status

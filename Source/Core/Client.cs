@@ -327,10 +327,7 @@ namespace MultiplayerMod.Core
 
             ui.SetState(MultiplayerUIState.PreConnect);
             MelonModLogger.LogError("Got P2P connection error " + reason.ToString());
-            foreach (PlayerRep pr in playerObjects.Values)
-            {
-                pr.Destroy();
-            }
+            Disconnect();
         }
 
         private void RichPresence_OnJoin(string obj)
@@ -369,6 +366,7 @@ namespace MultiplayerMod.Core
 
         public void Update()
         {
+            transportLayer.Update();
             if (SceneLoader.loading) return;
 
             if (localRigTransforms.main == null)
@@ -429,8 +427,6 @@ namespace MultiplayerMod.Core
                     pr.UpdateNameplateFacing(Camera.current.transform);
                 }
             }
-
-            transportLayer.Update();
         }
 
         private PlayerRep GetPlayerRep(byte playerId)

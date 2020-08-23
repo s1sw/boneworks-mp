@@ -80,6 +80,7 @@ namespace MultiplayerMod
             client.SetupRP();
 
             Extras.GunResources.Load();
+            BWUtil.Hook();
         }
 
         public override void OnLevelWasLoaded(int level)

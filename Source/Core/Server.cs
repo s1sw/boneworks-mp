@@ -51,6 +51,7 @@ namespace MultiplayerMod.Core
 
         public void Update()
         {
+            transportLayer.Update();
             if (SceneLoader.loading) return;
 
             if (localRigTransforms.main == null)
@@ -112,8 +113,6 @@ namespace MultiplayerMod.Core
             {
                 pr.UpdateNameplateFacing(Camera.current.transform);
             }
-
-            transportLayer.Update();
         }
 
         private void MultiplayerMod_OnLevelWasLoadedEvent(int level)
@@ -153,6 +152,7 @@ namespace MultiplayerMod.Core
                 });
             transportLayer.OnMessageReceived += TransportLayer_OnMessageReceived;
             transportLayer.OnConnectionClosed += TransportLayer_OnConnectionClosed;
+            transportLayer.StartListening();
 
             MultiplayerMod.OnLevelWasLoadedEvent += MultiplayerMod_OnLevelWasLoadedEvent;
 
@@ -485,6 +485,7 @@ namespace MultiplayerMod.Core
 
             transportLayer.OnMessageReceived -= TransportLayer_OnMessageReceived;
             transportLayer.OnConnectionClosed -= TransportLayer_OnConnectionClosed;
+            transportLayer.StopListening();
 
             MultiplayerMod.OnLevelWasLoadedEvent -= MultiplayerMod_OnLevelWasLoadedEvent;
         }
