@@ -22,6 +22,8 @@ namespace MultiplayerMod.Networking
         {
             ConnectedTo = id;
             SendMessage(initialMessage, MessageSendType.Reliable);
+
+            MelonModLogger.Log($"Steam: Sent initial message to {id}");
         }
 
         internal SteamTransportConnection(ulong id)
@@ -62,6 +64,7 @@ namespace MultiplayerMod.Networking
             // Allows for the networking to fallback onto steam's servers
             SteamNetworking.AllowP2PPacketRelay(true);
             msgThread = new Thread(SendMessagesThread);
+            msgThread.Start();
         }
 
         private ConnectionClosedReason GetConnectionClosedReason(P2PSessionError error)
@@ -90,6 +93,7 @@ namespace MultiplayerMod.Networking
                     connections.Remove(id);
             }
 
+            MelonModLogger.Log($"Steam: Connecting to {id}");
             SteamTransportConnection connection = new SteamTransportConnection(id, initialMessage);
             connections.Add(id, connection);
             SteamNetworking.OnP2PSessionRequest = ClientOnP2PSessionRequest;

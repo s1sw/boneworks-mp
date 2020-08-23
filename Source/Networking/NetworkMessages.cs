@@ -36,12 +36,82 @@ namespace MultiplayerMod.Networking
         SetServerSetting,
         IdAllocation,
         IdRequest,
-        ObjectSync
+        ObjectSync,
+        GunFire,
+        GunFireHit
     }
 
     public interface INetworkMessage
     {
         P2PMessage MakeMsg();
+    }
+
+    public class GunFireBase
+    {
+        public Vector3 fireOrigin;
+        public Vector3 fireDirection;
+        public float bulletDamage;
+    }
+
+    public class GunFireMessage : GunFireBase, INetworkMessage
+    {
+        public GunFireMessage()
+        {
+
+        }
+
+        public GunFireMessage(P2PMessage msg)
+        {
+            fireOrigin = msg.ReadVector3();
+            fireDirection = msg.ReadVector3();
+            bulletDamage = msg.ReadFloat();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.GunFire);
+            msg.WriteVector3(fireOrigin);
+            msg.WriteVector3(fireDirection);
+            msg.WriteFloat(bulletDamage);
+            return msg;
+        }
+    }
+
+    public class GunFireHitToServer : INetworkMessage
+    {
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.GunFireHit);
+            return msg;
+        }
+    }
+
+    public class GunFireHitBase
+    {
+        public byte playerId;
+    }
+
+    public class GunFireHit : GunFireHitBase, INetworkMessage
+    {
+        public GunFireHit()
+        {
+
+        }
+
+        public GunFireHit(P2PMessage msg)
+        {
+            playerId = msg.ReadByte();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.GunFireHit);
+            msg.WriteByte(playerId);
+            return msg;
+        }
     }
 
     // Server -> clients
@@ -712,55 +782,10 @@ namespace MultiplayerMod.Networking
             return msg;
         }
     }
-
-    public class AttackMessage : INetworkMessage
-    {
-        public AttackMessage()
-        {
-            
-        }
-
-        public P2PMessage MakeMsg()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public class SyncAccessoryMessage
-    {
-        public P2PMessage MakeMsg()
-        {
-            P2PMessage msg = new P2PMessage();
-
-            //msg.WriteByte();
-
-            return msg;
-        }
-    }
-
-    //public class HoverJunkerUpdateMessage : INetworkMessage
-    //{ 
-    //    public HoverJunkerUpdateMessage()
-    //    {
-
-    //    }
-
-    //    public HoverJunkerUpdateMessage(P2PMessage msg)
-    //    {
-
-    //    }
-
-    //    public P2PMessage MakeMsg()
-    //    {
-    //        P2PMessage msg = new P2PMessage();
-
-    //    }
-    //}
     
     public class IDAllocationMessage : INetworkMessage
     {
         public string namePath;
-        public string childIdxPath;
         public ushort allocatedId;
 
         public IDAllocationMessage()
@@ -771,7 +796,6 @@ namespace MultiplayerMod.Networking
         public IDAllocationMessage(P2PMessage msg)
         {
             namePath = msg.ReadUnicodeString();
-            childIdxPath = msg.ReadUnicodeString();
             allocatedId = msg.ReadUShort();
         }
 
@@ -781,7 +805,6 @@ namespace MultiplayerMod.Networking
 
             msg.WriteByte((byte)MessageType.IdAllocation);
             msg.WriteUnicodeString(namePath);
-            msg.WriteUnicodeString(childIdxPath);
             msg.WriteUShort(allocatedId);
 
             return msg;
@@ -791,7 +814,6 @@ namespace MultiplayerMod.Networking
     public class IDRequestMessage : INetworkMessage
     {
         public string namePath;
-        public string childIdxPath;
 
         public IDRequestMessage()
         {
@@ -801,7 +823,6 @@ namespace MultiplayerMod.Networking
         public IDRequestMessage(P2PMessage msg)
         {
             namePath = msg.ReadUnicodeString();
-            childIdxPath = msg.ReadUnicodeString();
         }
 
         public P2PMessage MakeMsg()
@@ -810,22 +831,21 @@ namespace MultiplayerMod.Networking
 
             msg.WriteByte((byte)MessageType.IdRequest);
             msg.WriteUnicodeString(namePath);
-            msg.WriteUnicodeString(childIdxPath);
 
             return msg;
         }
     }
 
-    public class ObjectSync : INetworkMessage
+    public class ObjectSyncMessage : INetworkMessage
     {
         public ushort id;
         public Vector3 position;
         public Quaternion rotation;
 
-        public ObjectSync()
+        public ObjectSyncMessage()
         { }
 
-        public ObjectSync(P2PMessage msg)
+        public ObjectSyncMessage(P2PMessage msg)
         {
             id = msg.ReadUShort();
             position = msg.ReadVector3();
