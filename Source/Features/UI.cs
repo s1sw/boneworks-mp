@@ -26,15 +26,6 @@ namespace MultiplayerMod.Features
                     mainPanelInstance = GameObject.CreatePrimitive(PrimitiveType.Cube);
                     mainPanelInstance.transform.localScale = Vector3.one / 10f;
                 }
-
-                Transform playerRoot = zCubed.Accessories.Accessory.GetPlayerRoot();
-
-                if (!playerRoot)
-                    throw new NullReferenceException("Player Root Null");
-
-                mainPanelInstance.transform.position = playerRoot.position + (playerRoot.forward * 2);
-                mainPanelInstance.transform.LookAt(zCubed.Accessories.Accessory.GetTransformPoint(playerRoot, zCubed.Accessories.Globals.AttachPoint.Head));
-                mainPanelInstance.transform.eulerAngles = -mainPanelInstance.transform.eulerAngles;
             }
             catch (Exception e)
             {
@@ -42,4 +33,9 @@ namespace MultiplayerMod.Features
             }
         }
     }
+}
+
+namespace BigChungus
+{
+
 }

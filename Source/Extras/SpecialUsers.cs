@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using Facepunch.Steamworks;
+using MultiplayerMod.Representations;
+using MelonLoader;
 
 namespace MultiplayerMod.Extras
 {
@@ -26,15 +28,21 @@ namespace MultiplayerMod.Extras
             if (userID == 76561198078927044)
                 text.color = DevRed;
 
-            // Aqua
-            if (userID == 76561198383037191)
+            //Maranara
+            if (userID == 76561198088708478)
             {
-                //GameObject hlLogo = root.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/HL_Logo").gameObject;
-                //GameObject hlId = root.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/HL_ID").gameObject;
-                GameObject helmetObj = root.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt/Neck_02SHJnt/Neck_TopSHJnt/Head_Helmet").gameObject;
-                helmetObj.SetActive(true);
-
-                text.color = AquaBlue;
+                root.parent.parent.parent.Find("geoGrp/brett_body").GetComponent<SkinnedMeshRenderer>().materials[1].color = new Color(0.5141f, 1, 0.6199f);
+                GameObject weaponWings = PlayerRep.fordBundle.LoadAsset("Assets/WeaponWings.prefab").Cast<GameObject>();
+                if (weaponWings == null)
+                    MelonLogger.LogError("Failed to load WeaponWings from bundle.");
+                else
+                {
+                    GameObject wingInstance = GameObject.Instantiate(weaponWings);
+                    wingInstance.transform.parent = root.Find("Spine_01SHJnt");
+                    wingInstance.transform.localPosition = Vector3.zero;
+                    wingInstance.transform.localEulerAngles = new Vector3(-0.042f, 0.057f, 30.129f);
+                }
+                text.color = DevRed;
             }
 
             // Camobiwon

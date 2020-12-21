@@ -38,7 +38,8 @@ namespace MultiplayerMod.Networking
         IdRequest,
         ObjectSync,
         GunFire,
-        GunFireHit
+        GunFireHit,
+        Death
     }
 
     public interface INetworkMessage
@@ -48,32 +49,44 @@ namespace MultiplayerMod.Networking
 
     public class GunFireBase
     {
-        public Vector3 fireOrigin;
-        public Vector3 fireDirection;
-        public float bulletDamage;
+        public byte handedness;
+        public Vector3 firepointPos;
+        public Quaternion firepointRotation;
+        public float ammoDamage;
+        public float projectileMass;
+        public float exitVelocity;
+        public float muzzleVelocity;
     }
 
     public class GunFireMessage : GunFireBase, INetworkMessage
     {
         public GunFireMessage()
         {
-
+            //fortnite fortnite fornitet fnioretneit a
         }
 
         public GunFireMessage(P2PMessage msg)
         {
-            fireOrigin = msg.ReadVector3();
-            fireDirection = msg.ReadVector3();
-            bulletDamage = msg.ReadFloat();
+            handedness = msg.ReadByte();
+            firepointPos = msg.ReadVector3();
+            firepointRotation = msg.ReadQuaternion();
+            ammoDamage = msg.ReadFloat();
+            projectileMass = msg.ReadFloat();
+            exitVelocity = msg.ReadFloat();
+            muzzleVelocity = msg.ReadFloat();
         }
 
         public P2PMessage MakeMsg()
         {
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.GunFire);
-            msg.WriteVector3(fireOrigin);
-            msg.WriteVector3(fireDirection);
-            msg.WriteFloat(bulletDamage);
+            msg.WriteByte(handedness);
+            msg.WriteVector3(firepointPos);
+            msg.WriteQuaternion(firepointRotation);
+            msg.WriteFloat(ammoDamage);
+            msg.WriteFloat(projectileMass);
+            msg.WriteFloat(exitVelocity);
+            msg.WriteFloat(muzzleVelocity);
             return msg;
         }
     }
@@ -88,28 +101,48 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class GunFireHitBase
+    public class GunFireBaseOther
     {
+        public byte handedness;
         public byte playerId;
+        public Vector3 firepointPos;
+        public Quaternion firepointRotation;
+        public float ammoDamage;
+        public float projectileMass;
+        public float exitVelocity;
+        public float muzzleVelocity;
     }
 
-    public class GunFireHit : GunFireHitBase, INetworkMessage
+    public class GunFireMessageOther : GunFireBaseOther, INetworkMessage
     {
-        public GunFireHit()
+        public GunFireMessageOther()
         {
 
         }
 
-        public GunFireHit(P2PMessage msg)
+        public GunFireMessageOther(P2PMessage msg)
         {
+            handedness = msg.ReadByte();
             playerId = msg.ReadByte();
+            firepointPos = msg.ReadVector3();
+            firepointRotation = msg.ReadQuaternion();
+            ammoDamage = msg.ReadFloat();
+            projectileMass = msg.ReadFloat();
+            exitVelocity = msg.ReadFloat();
+            muzzleVelocity = msg.ReadFloat();
         }
-
         public P2PMessage MakeMsg()
         {
             P2PMessage msg = new P2PMessage();
-            msg.WriteByte((byte)MessageType.GunFireHit);
+            msg.WriteByte((byte)MessageType.GunFire);
+            msg.WriteByte(handedness);
             msg.WriteByte(playerId);
+            msg.WriteVector3(firepointPos);
+            msg.WriteQuaternion(firepointRotation);
+            msg.WriteFloat(ammoDamage);
+            msg.WriteFloat(projectileMass);
+            msg.WriteFloat(exitVelocity);
+            msg.WriteFloat(muzzleVelocity);
             return msg;
         }
     }

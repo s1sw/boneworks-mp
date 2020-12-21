@@ -35,10 +35,6 @@
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Accessories, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Dependencies\Accessories.dll</HintPath>
-    </Reference>
     <Reference Include="Assembly-CSharp, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\Assembly-CSharp.dll</HintPath>
@@ -46,6 +42,9 @@
     <Reference Include="Assembly-CSharp-firstpass, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
+    <Reference Include="BoneworksModdingToolkit">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\BONEWORKS\BONEWORKS\Mods\BoneworksModdingToolkit.dll</HintPath>
     </Reference>
     <Reference Include="ch.sycoforge.Decal, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -83,9 +82,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\Il2CppSystem.Xml.Linq.dll</HintPath>
     </Reference>
-    <Reference Include="MelonLoader.ModHandler, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>D:\SteamLibrary\steamapps\common\BONEWORKS\BONEWORKS\MelonLoader\MelonLoader.ModHandler.dll</HintPath>
+    <Reference Include="MelonLoader.ModHandler">
+      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\BONEWORKS\BONEWORKS\MelonLoader\MelonLoader.ModHandler.dll</HintPath>
     </Reference>
     <Reference Include="NavMeshComponents, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -309,6 +307,7 @@
     <Compile Include="Source\Networking\NetworkMessages.cs" />
     <Compile Include="Source\Networking\P2PMessage.cs" />
     <Compile Include="Source\Networking\SteamTransportLayer.cs" />
+    <Compile Include="Source\Representations\FaceAnimator.cs" />
     <Compile Include="Source\Representations\PlayerRep.cs" />
     <Compile Include="Source\Core\RichPresence.cs" />
     <Compile Include="Source\Core\Server.cs" />
@@ -322,4 +321,7 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>XCOPY /Y "$(TargetPath)" "C:\Program Files (x86)\Steam\steamapps\common\BONEWORKS\BONEWORKS\Mods"</PostBuildEvent>
+  </PropertyGroup>
 </Project>

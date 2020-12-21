@@ -65,7 +65,7 @@ namespace MultiplayerMod.Core
             }
             catch (NullReferenceException)
             {
-                MelonModLogger.LogError("Error loading UI");
+                MelonLogger.LogError("Error loading UI");
             }
         }
 

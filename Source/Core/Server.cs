@@ -22,6 +22,7 @@ using Oculus.Platform;
 using Oculus.Platform.Samples.VrHoops;
 using MultiplayerMod.MonoBehaviours;
 using MultiplayerMod.Extras;
+using StressLevelZero.Combat;
 
 namespace MultiplayerMod.Core
 {
@@ -36,7 +37,7 @@ namespace MultiplayerMod.Core
         private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
         private readonly Dictionary<GameObject, ServerSyncedObject> syncedObjectCache = new Dictionary<GameObject, ServerSyncedObject>();
         private string partyId = "";
-        private byte smallIdCounter = 0;
+        private byte smallIdCounter = 1;
         private BoneworksRigTransforms localRigTransforms;
         private readonly MultiplayerUI ui;
         private readonly ITransportLayer transportLayer;
@@ -47,6 +48,42 @@ namespace MultiplayerMod.Core
         {
             this.ui = ui;
             this.transportLayer = transportLayer;
+        }
+        private void GunHooks_OnGunFire(Gun obj)
+        {
+            try
+            {
+                AmmoVariables bObj = new AmmoVariables();
+                bObj.AttackDamage = 1;
+                bObj.ProjectileMass = 1;
+                bObj.ExitVelocity = 1;
+                if (obj.chamberedCartridge != null)
+                {
+                    bObj = obj.chamberedCartridge.ammoVariables;
+                }
+                else if (obj.overrideMagazine != null)
+                {
+                    bObj = obj.overrideMagazine.AmmoSlots[0].ammoVariables;
+                }
+
+                GunFireMessageOther gfmo = new GunFireMessageOther()
+                {
+                    handedness = (byte)obj.host.GetHand(0).handedness,
+                    playerId = 0,
+                    firepointPos = obj.firePointTransform.position,
+                    firepointRotation = obj.firePointTransform.rotation,
+                    ammoDamage = bObj.AttackDamage,
+                    projectileMass = bObj.ProjectileMass,
+                    exitVelocity = bObj.ExitVelocity,
+                    muzzleVelocity = obj.muzzleVelocity
+                };
+                ServerSendToAll(gfmo, MessageSendType.Reliable);
+            }
+            catch
+            {
+
+            }
+
         }
 
         public void Update()
@@ -112,6 +149,7 @@ namespace MultiplayerMod.Core
             foreach (PlayerRep pr in playerObjects.Values)
             {
                 pr.UpdateNameplateFacing(Camera.current.transform);
+                pr.faceAnimator.Update();
             }
         }
 
@@ -152,6 +190,7 @@ namespace MultiplayerMod.Core
                 });
             transportLayer.OnMessageReceived += TransportLayer_OnMessageReceived;
             transportLayer.OnConnectionClosed += TransportLayer_OnConnectionClosed;
+            BoneworksModdingToolkit.BoneHook.GunHooks.OnGunFire += GunHooks_OnGunFire;
             transportLayer.StartListening();
 
             MultiplayerMod.OnLevelWasLoadedEvent += MultiplayerMod_OnLevelWasLoadedEvent;
@@ -197,65 +236,55 @@ namespace MultiplayerMod.Core
 
             switch (type)
             {
-                case MessageType.GunFireHit:
-                    {
-                        byte playerId = smallPlayerIds[connection.ConnectedTo];
-                        if (playerObjects.ContainsKey(playerId))
-                        {
-                            PlayerRep pr = playerObjects[playerId];
-
-                            if (pr.rigTransforms.main != null)
-                            {
-                                GameObject instance = Instantiate(GunResources.HurtSFX, pr.rigTransforms.main);
-                                Destroy(instance, 3);
-                            }
-                        }
-                        GunFireHit gff = new GunFireHit()
-                        {
-                            playerId = playerId
-                        };
-                        ServerSendToAllExcept(gff, MessageSendType.Unreliable, connection.ConnectedTo);
-                        break;
-                    }
                 case MessageType.GunFire:
                     {
-                        bool didHit;
                         GunFireMessage gfm = new GunFireMessage(msg);
-                        Ray ray = new Ray(gfm.fireOrigin, gfm.fireDirection);
-
-                        if (Physics.Raycast(ray, out RaycastHit hit, int.MaxValue, ~0, QueryTriggerInteraction.Ignore))
+                        byte LocalplayerId = smallPlayerIds[connection.ConnectedTo];
+                        if (playerObjects.ContainsKey(LocalplayerId))
                         {
-                            if (hit.transform.root.gameObject == BWUtil.RigManager)
+                            PlayerRep pr = playerObjects[LocalplayerId];
+                            AmmoVariables ammoVariables = new AmmoVariables()
                             {
-                                MelonModLogger.Log("Hit BRETT!");
-                                int random = UnityEngine.Random.Range(0, 10);
-                                BWUtil.LocalPlayerHealth.TAKEDAMAGE(gfm.bulletDamage, random == 0);
-                                GunFireHit gff = new GunFireHit();
-                                ServerSendToAll(gff, MessageSendType.Reliable);
-                            }
-                            else
+                                AttackDamage = gfm.ammoDamage,
+                                AttackType = AttackType.Piercing,
+                                cartridgeType = Cart.Cal_9mm,
+                                ExitVelocity = gfm.exitVelocity,
+                                ProjectileMass = gfm.projectileMass,
+                                Tracer = false
+                            };
+                            if ((StressLevelZero.Handedness)gfm.handedness == StressLevelZero.Handedness.RIGHT)
                             {
-                                MelonModLogger.Log("Hit!");
+                                pr.rightGunScript.firePointTransform.position = gfm.firepointPos;
+                                pr.rightGunScript.firePointTransform.rotation = gfm.firepointRotation;
+                                pr.rightGunScript.muzzleVelocity = gfm.muzzleVelocity;
+                                pr.rightBulletObject.ammoVariables = ammoVariables;
+                                pr.leftGunScript.PullCartridge();
+                                pr.rightGunScript.Fire();
                             }
-                            didHit = true;
+                            if ((StressLevelZero.Handedness)gfm.handedness == StressLevelZero.Handedness.LEFT)
+                            {
+                                pr.leftGunScript.firePointTransform.position = gfm.firepointPos;
+                                pr.leftGunScript.firePointTransform.rotation = gfm.firepointRotation;
+                                pr.leftGunScript.muzzleVelocity = gfm.muzzleVelocity;
+                                pr.leftBulletObject.ammoVariables = ammoVariables;
+                                pr.leftGunScript.PullCartridge();
+                                pr.leftGunScript.Fire();
+                            }
+                            GunFireMessageOther gfmo = new GunFireMessageOther()
+                            {
+                                playerId = LocalplayerId,
+                                handedness = gfm.handedness,
+                                firepointPos = gfm.firepointPos,
+                                firepointRotation = gfm.firepointRotation,
+                                ammoDamage = gfm.ammoDamage,
+                                projectileMass = gfm.projectileMass,
+                                exitVelocity = gfm.exitVelocity,
+                                muzzleVelocity = gfm.muzzleVelocity
+                            };
+                            pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Angry;
+                            pr.faceAnimator.faceTime = 5;
+                            ServerSendToAllExcept(gfmo, MessageSendType.Reliable, connection.ConnectedTo);
                         }
-                        else
-                        {
-                            MelonModLogger.Log("Did not hit!");
-                            didHit = false;
-                        }
-
-                        GameObject instance = Instantiate(GunResources.LinePrefab);
-                        LineRenderer lineRenderer = instance.GetComponent<LineRenderer>();
-                        lineRenderer.SetPosition(0, gfm.fireOrigin);
-                        if (didHit)
-                            lineRenderer.SetPosition(1, hit.transform.position);
-                        else
-                            lineRenderer.SetPosition(1, gfm.fireOrigin + (gfm.fireDirection * int.MaxValue));
-                        GameObject.Destroy(instance, 1);
-
-                        ServerSendToAllExcept(gfm, MessageSendType.Reliable, connection.ConnectedTo);
-                        MelonModLogger.Log("Pew serber send");
                         break;
                     }
                 case MessageType.Join:
@@ -270,18 +299,29 @@ namespace MultiplayerMod.Core
                         }
                         else
                         {
-                            MelonModLogger.Log("Player joined with ID: " + connection.ConnectedTo);
+                            MelonLogger.Log("Player joined with ID: " + connection.ConnectedTo);
+                            if (players.Contains(connection.ConnectedTo))
+                                players.Remove(connection.ConnectedTo);
+
                             players.Add(connection.ConnectedTo);
-                            MelonModLogger.Log("Player count: " + players.Count);
+                            MelonLogger.Log("Player count: " + players.Count);
                             byte newPlayerId = smallIdCounter;
+
+                            if (smallPlayerIds.ContainsKey(newPlayerId))
+                                smallPlayerIds.Remove(newPlayerId);
+
                             smallPlayerIds.Add(connection.ConnectedTo, newPlayerId);
+
+                            if (largePlayerIds.ContainsKey(newPlayerId))
+                                        largePlayerIds.Remove(newPlayerId);
+
                             largePlayerIds.Add(newPlayerId, connection.ConnectedTo);
                             smallIdCounter++;
 
                             playerConnections.Add(connection.ConnectedTo, connection);
 
                             string name = msg.ReadUnicodeString();
-                            MelonModLogger.Log("Name: " + name);
+                            MelonLogger.Log("Name: " + name);
 
                             foreach (var smallId in playerNames.Keys)
                             {
@@ -302,6 +342,9 @@ namespace MultiplayerMod.Core
                             };
                             connection.SendMessage(cjm2.MakeMsg(), MessageSendType.Reliable);
 
+                            if (playerNames.ContainsKey(newPlayerId))
+                                playerNames.Remove(newPlayerId);
+
                             playerNames.Add(newPlayerId, name);
 
                             ClientJoinMessage cjm3 = new ClientJoinMessage
@@ -312,6 +355,8 @@ namespace MultiplayerMod.Core
                             };
                             ServerSendToAllExcept(cjm3, MessageSendType.Reliable, connection.ConnectedTo);
 
+                            if (playerObjects.ContainsKey(newPlayerId))
+                                playerObjects.Remove(newPlayerId);
                             playerObjects.Add(newPlayerId, new PlayerRep(name, connection.ConnectedTo));
 
                             RichPresence.SetActivity(
@@ -346,6 +391,12 @@ namespace MultiplayerMod.Core
                             connection.SendMessage(spid.MakeMsg(), MessageSendType.Reliable);
 
                             ui.SetPlayerCount(players.Count, MultiplayerUIState.Server);
+
+                            foreach (PlayerRep pr in playerObjects.Values)
+                            {
+                                pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Happy;
+                                pr.faceAnimator.faceTime = 15;
+                            }
                         }
                         break;
                     }
@@ -366,6 +417,11 @@ namespace MultiplayerMod.Core
                         foreach (SteamId p in players)
                         {
                             playerConnections[p].SendMessage(disconnectMsg, MessageSendType.Reliable);
+                        }
+                        foreach (PlayerRep pr in playerObjects.Values)
+                        {
+                            pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Sad;
+                            pr.faceAnimator.faceTime = 6;
                         }
                         break;
                     }
@@ -485,6 +541,7 @@ namespace MultiplayerMod.Core
 
             transportLayer.OnMessageReceived -= TransportLayer_OnMessageReceived;
             transportLayer.OnConnectionClosed -= TransportLayer_OnConnectionClosed;
+            BoneworksModdingToolkit.BoneHook.GunHooks.OnGunFire -= GunHooks_OnGunFire;
             transportLayer.StopListening();
 
             MultiplayerMod.OnLevelWasLoadedEvent -= MultiplayerMod_OnLevelWasLoadedEvent;

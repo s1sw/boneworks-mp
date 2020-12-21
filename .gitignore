@@ -359,3 +359,4 @@ MigrationBackup/
 Output/
 Upload/
 Managed/
+*.dll

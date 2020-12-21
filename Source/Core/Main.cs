@@ -59,8 +59,8 @@ namespace MultiplayerMod
             MelonModLogger.Log($"Multiplayer initialising with protocol version {PROTOCOL_VERSION}.");
 
             // Set up prefs
-            ModPrefs.RegisterCategory("MPMod", "Multiplayer Settings");
-            ModPrefs.RegisterPrefBool("MPMod", "BaldFord", false, "90% effective hair removal solution");
+            MelonPrefs.RegisterCategory("MPMod", "Multiplayer Settings");
+            MelonPrefs.RegisterBool("MPMod", "BaldFord", false, "90% effective hair removal solution");
 
             // Initialise transport layer
             TransportLayer = new SteamTransportLayer();
@@ -73,13 +73,12 @@ namespace MultiplayerMod
 
             // Configures if the PlayerRep's are showing or hiding certain parts
             PlayerRep.showBody = true;
-            PlayerRep.showHair = ModPrefs.GetBool("MPMod", "BaldFord");
+            PlayerRep.showHair = MelonPrefs.GetBool("MPMod", "BaldFord");
 
             // Initialize Discord's RichPresence
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
 
-            Extras.GunResources.Load();
             BWUtil.Hook();
         }
 
@@ -87,7 +86,7 @@ namespace MultiplayerMod
         {
             if (level == -1) return;
 
-            MelonModLogger.Log("Loaded scene " + level.ToString() + "(" + BoneworksSceneManager.GetSceneNameFromScenePath(level) + ") (from " + SceneManager.GetActiveScene().name + ")");
+            MelonLogger.Log("Loaded scene " + level.ToString() + "(" + BoneworksSceneManager.GetSceneNameFromScenePath(level) + ") (from " + SceneManager.GetActiveScene().name + ")");
 
             OnLevelWasLoadedEvent?.Invoke(level);
         }
@@ -95,7 +94,7 @@ namespace MultiplayerMod
         public override void OnLevelWasInitialized(int level)
         {
             ui.Recreate();
-            MelonModLogger.Log("Initialized scene " + level.ToString());
+            MelonLogger.Log("Initialized scene " + level.ToString());
         }
 
         public override void OnUpdate()
@@ -108,7 +107,7 @@ namespace MultiplayerMod
                 // but now it only causes confusion.
                 if (Input.GetKeyDown(KeyCode.C))
                 {
-                    MelonModLogger.LogError("Manually connecting to a server with the C keybind has been removed. Please use Discord invites.");
+                    MelonLogger.LogError("Manually connecting to a server with the C keybind has been removed. Please use Discord invites.");
                 }
 
                 // If the user is not hosting, start their server
@@ -126,7 +125,7 @@ namespace MultiplayerMod
                 // If the user is hosting, stop their server
                 if (Input.GetKeyDown(KeyCode.S))
                 {
-                    MelonModLogger.Log("Stopping server...");
+                    MelonLogger.Log("Stopping server...");
                     server.StopServer();
                 }
             }
@@ -146,22 +145,6 @@ namespace MultiplayerMod
                     dummyRep = new PlayerRep("Dummy", SteamClient.SteamId);
                 else
                     dummyRep.Destroy();
-            }
-
-            if (GUILayout.Button("Create Dummy Accessories", null))
-            {
-                zCubed.Accessories.Accessory.CreateDummies(zCubed.Accessories.Accessory.GetPlayerRoot());
-            }
-
-            if (GUILayout.Button("Create Local Accessories", null))
-            {
-                zCubed.Accessories.Accessory.CreateLocalAccessories(zCubed.Accessories.Accessory.GetPlayerRoot());
-            }
-
-            if (GUILayout.Button("Create Net Accessories", null))
-            {
-                string[] accessoryPaths = Features.NetworkedAccesories.GetLocalList();
-                byte[] rawData = Features.NetworkedAccesories.BundleToNetBundle(accessoryPaths[0]);
             }
 
             if (GUILayout.Button("Test Guard Lists", null))
