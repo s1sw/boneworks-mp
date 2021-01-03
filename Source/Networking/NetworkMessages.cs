@@ -372,52 +372,17 @@ namespace MultiplayerMod.Networking
 
     public class RigTFMsgBase
     {
-        public Vector3 posMain;
-        public Vector3 posRoot;
+        public Vector3 pos_root;
+        public Vector3 pos_lfHand;
+        public Vector3 pos_rtHand;
+        public Vector3 pos_head;
+        public Vector3 pos_pelvis;
 
-        public Vector3 posLHip;
-        public Vector3 posRHip;
-
-        public Vector3 posLKnee;
-        public Vector3 posRKnee;
-        public Vector3 posLAnkle;
-        public Vector3 posRAnkle;
-
-        public Vector3 posSpine1;
-        public Vector3 posSpine2;
-        public Vector3 posSpineTop;
-        public Vector3 posLClavicle;
-        public Vector3 posRClavicle;
-        public Vector3 posNeck;
-        public Vector3 posLShoulder;
-        public Vector3 posRShoulder;
-
-        public Vector3 posLElbow;
-        public Vector3 posRElbow;
-
-        public Vector3 posLWrist;
-        public Vector3 posRWrist;
-
-        public Quaternion rotMain;
-        public Quaternion rotRoot;
-        public Quaternion rotLHip;
-        public Quaternion rotRHip;
-        public Quaternion rotLKnee;
-        public Quaternion rotRKnee;
-        public Quaternion rotLAnkle;
-        public Quaternion rotRAnkle;
-        public Quaternion rotSpine1;
-        public Quaternion rotSpine2;
-        public Quaternion rotSpineTop;
-        public Quaternion rotLClavicle;
-        public Quaternion rotRClavicle;
-        public Quaternion rotNeck;
-        public Quaternion rotLShoulder;
-        public Quaternion rotRShoulder;
-        public Quaternion rotLElbow;
-        public Quaternion rotRElbow;
-        public Quaternion rotLWrist;
-        public Quaternion rotRWrist;
+        public Quaternion rot_root;
+        public Quaternion rot_lfHand;
+        public Quaternion rot_rtHand;
+        public Quaternion rot_head;
+        public Quaternion rot_pelvis;
     }
 
     public class FullRigTransformMessage : RigTFMsgBase, INetworkMessage
@@ -430,101 +395,34 @@ namespace MultiplayerMod.Networking
 
         public FullRigTransformMessage(P2PMessage msg)
         {
-            posMain = msg.ReadVector3();
-            posRoot = msg.ReadVector3();
+            pos_root = msg.ReadVector3();
+            pos_lfHand = msg.ReadVector3();
+            pos_rtHand = msg.ReadVector3();
+            pos_head = msg.ReadVector3();
+            pos_pelvis = msg.ReadVector3();
 
-            posLHip = msg.ReadCompressedVector3(posRoot);
-            posRHip = msg.ReadCompressedVector3(posRoot);
-
-            posLKnee = msg.ReadCompressedVector3(posRoot);
-            posRKnee = msg.ReadCompressedVector3(posRoot);
-            posLAnkle = msg.ReadCompressedVector3(posRoot);
-            posRAnkle = msg.ReadCompressedVector3(posRoot);
-
-            posSpine1 = msg.ReadCompressedVector3(posRoot);
-            posSpine2 = msg.ReadCompressedVector3(posRoot);
-            posSpineTop = msg.ReadCompressedVector3(posRoot);
-            posLClavicle = msg.ReadCompressedVector3(posRoot);
-            posRClavicle = msg.ReadCompressedVector3(posRoot);
-            posNeck = msg.ReadCompressedVector3(posRoot);
-            posLShoulder = msg.ReadCompressedVector3(posRoot);
-            posRShoulder = msg.ReadCompressedVector3(posRoot);
-            posLElbow = msg.ReadCompressedVector3(posRoot);
-            posRElbow = msg.ReadCompressedVector3(posRoot);
-            posLWrist = msg.ReadCompressedVector3(posRoot);
-            posRWrist = msg.ReadCompressedVector3(posRoot);
-
-            rotMain = msg.ReadSmallerCompressedQuaternion();
-            rotRoot = msg.ReadSmallerCompressedQuaternion();
-            rotLHip = msg.ReadSmallerCompressedQuaternion();
-            rotRHip = msg.ReadSmallerCompressedQuaternion();
-            rotLKnee = msg.ReadSmallerCompressedQuaternion();
-            rotRKnee = msg.ReadSmallerCompressedQuaternion();
-            rotLAnkle = msg.ReadSmallerCompressedQuaternion();
-            rotRAnkle = msg.ReadSmallerCompressedQuaternion();
-            rotSpine1 = msg.ReadSmallerCompressedQuaternion();
-            rotSpine2 = msg.ReadSmallerCompressedQuaternion();
-            rotSpineTop = msg.ReadSmallerCompressedQuaternion();
-            rotLClavicle = msg.ReadSmallerCompressedQuaternion();
-            rotRClavicle = msg.ReadSmallerCompressedQuaternion();
-            rotNeck = msg.ReadSmallerCompressedQuaternion();
-            rotLShoulder = msg.ReadSmallerCompressedQuaternion();
-            rotRShoulder = msg.ReadSmallerCompressedQuaternion();
-            rotLElbow = msg.ReadSmallerCompressedQuaternion();
-            rotRElbow = msg.ReadSmallerCompressedQuaternion();
-            rotLWrist = msg.ReadSmallerCompressedQuaternion();
-            rotRWrist = msg.ReadSmallerCompressedQuaternion();
+            rot_root = msg.ReadSmallerCompressedQuaternion();
+            rot_lfHand = msg.ReadSmallerCompressedQuaternion();
+            rot_rtHand = msg.ReadSmallerCompressedQuaternion();
+            rot_head = msg.ReadSmallerCompressedQuaternion();
+            rot_pelvis = msg.ReadSmallerCompressedQuaternion();
         }
 
         public P2PMessage MakeMsg()
         {
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.FullRig);
-            msg.WriteVector3(posMain);
-            msg.WriteVector3(posRoot);
+            msg.WriteVector3(pos_root);
+            msg.WriteVector3(pos_lfHand);
+            msg.WriteVector3(pos_rtHand);
+            msg.WriteVector3(pos_head);
+            msg.WriteVector3(pos_pelvis);
 
-            msg.WriteCompressedVector3(posLHip, posRoot);
-            msg.WriteCompressedVector3(posRHip, posRoot);
-            msg.WriteCompressedVector3(posLKnee, posRoot);
-            msg.WriteCompressedVector3(posRKnee, posRoot);
-            msg.WriteCompressedVector3(posLAnkle, posRoot);
-            msg.WriteCompressedVector3(posRAnkle, posRoot);
-
-            msg.WriteCompressedVector3(posSpine1, posRoot);
-            msg.WriteCompressedVector3(posSpine2, posRoot);
-            msg.WriteCompressedVector3(posSpineTop, posRoot);
-            msg.WriteCompressedVector3(posLClavicle, posRoot);
-            msg.WriteCompressedVector3(posRClavicle, posRoot);
-            msg.WriteCompressedVector3(posNeck, posRoot);
-            msg.WriteCompressedVector3(posLShoulder, posRoot);
-            msg.WriteCompressedVector3(posRShoulder, posRoot);
-            msg.WriteCompressedVector3(posLElbow, posRoot);
-            msg.WriteCompressedVector3(posRElbow, posRoot);
-            msg.WriteCompressedVector3(posLWrist, posRoot);
-            msg.WriteCompressedVector3(posRWrist, posRoot);
-
-            msg.WriteSmallerCompressedQuaternion(rotMain);
-            msg.WriteSmallerCompressedQuaternion(rotRoot);
-            msg.WriteSmallerCompressedQuaternion(rotLHip);
-            msg.WriteSmallerCompressedQuaternion(rotRHip);
-            msg.WriteSmallerCompressedQuaternion(rotLKnee);
-            msg.WriteSmallerCompressedQuaternion(rotRKnee);
-            msg.WriteSmallerCompressedQuaternion(rotLAnkle);
-            msg.WriteSmallerCompressedQuaternion(rotRAnkle);
-
-            msg.WriteSmallerCompressedQuaternion(rotSpine1);
-            msg.WriteSmallerCompressedQuaternion(rotSpine2);
-            msg.WriteSmallerCompressedQuaternion(rotSpineTop);
-            msg.WriteSmallerCompressedQuaternion(rotLClavicle);
-            msg.WriteSmallerCompressedQuaternion(rotRClavicle);
-            msg.WriteSmallerCompressedQuaternion(rotNeck);
-            msg.WriteSmallerCompressedQuaternion(rotLShoulder);
-            msg.WriteSmallerCompressedQuaternion(rotRShoulder);
-            msg.WriteSmallerCompressedQuaternion(rotLElbow);
-            msg.WriteSmallerCompressedQuaternion(rotRElbow);
-            msg.WriteSmallerCompressedQuaternion(rotLWrist);
-            msg.WriteSmallerCompressedQuaternion(rotRWrist);
-
+            msg.WriteSmallerCompressedQuaternion(rot_root);
+            msg.WriteSmallerCompressedQuaternion(rot_lfHand);
+            msg.WriteSmallerCompressedQuaternion(rot_rtHand);
+            msg.WriteSmallerCompressedQuaternion(rot_head);
+            msg.WriteSmallerCompressedQuaternion(rot_pelvis);
             return msg;
         }
     }
@@ -541,49 +439,17 @@ namespace MultiplayerMod.Networking
         public OtherFullRigTransformMessage(P2PMessage msg)
         {
             playerId = msg.ReadByte();
-            posMain = msg.ReadVector3();
-            posRoot = msg.ReadVector3();
-            posLHip = msg.ReadCompressedVector3(posRoot);
-            posRHip = msg.ReadCompressedVector3(posRoot);
+            pos_root = msg.ReadVector3();
+            pos_lfHand = msg.ReadVector3();
+            pos_rtHand = msg.ReadVector3();
+            pos_head = msg.ReadVector3();
+            pos_pelvis = msg.ReadVector3();
 
-            posLKnee = msg.ReadCompressedVector3(posRoot);
-            posRKnee = msg.ReadCompressedVector3(posRoot);
-            posLAnkle = msg.ReadCompressedVector3(posRoot);
-            posRAnkle = msg.ReadCompressedVector3(posRoot);
-
-            posSpine1 = msg.ReadCompressedVector3(posRoot);
-            posSpine2 = msg.ReadCompressedVector3(posRoot);
-            posSpineTop = msg.ReadCompressedVector3(posRoot);
-            posLClavicle = msg.ReadCompressedVector3(posRoot);
-            posRClavicle = msg.ReadCompressedVector3(posRoot);
-            posNeck = msg.ReadCompressedVector3(posRoot);
-            posLShoulder = msg.ReadCompressedVector3(posRoot);
-            posRShoulder = msg.ReadCompressedVector3(posRoot);
-            posLElbow = msg.ReadCompressedVector3(posRoot);
-            posRElbow = msg.ReadCompressedVector3(posRoot);
-            posLWrist = msg.ReadCompressedVector3(posRoot);
-            posRWrist = msg.ReadCompressedVector3(posRoot);
-
-            rotMain = msg.ReadSmallerCompressedQuaternion();
-            rotRoot = msg.ReadSmallerCompressedQuaternion();
-            rotLHip = msg.ReadSmallerCompressedQuaternion();
-            rotRHip = msg.ReadSmallerCompressedQuaternion();
-            rotLKnee = msg.ReadSmallerCompressedQuaternion();
-            rotRKnee = msg.ReadSmallerCompressedQuaternion();
-            rotLAnkle = msg.ReadSmallerCompressedQuaternion();
-            rotRAnkle = msg.ReadSmallerCompressedQuaternion();
-            rotSpine1 = msg.ReadSmallerCompressedQuaternion();
-            rotSpine2 = msg.ReadSmallerCompressedQuaternion();
-            rotSpineTop = msg.ReadSmallerCompressedQuaternion();
-            rotLClavicle = msg.ReadSmallerCompressedQuaternion();
-            rotRClavicle = msg.ReadSmallerCompressedQuaternion();
-            rotNeck = msg.ReadSmallerCompressedQuaternion();
-            rotLShoulder = msg.ReadSmallerCompressedQuaternion();
-            rotRShoulder = msg.ReadSmallerCompressedQuaternion();
-            rotLElbow = msg.ReadSmallerCompressedQuaternion();
-            rotRElbow = msg.ReadSmallerCompressedQuaternion();
-            rotLWrist = msg.ReadSmallerCompressedQuaternion();
-            rotRWrist = msg.ReadSmallerCompressedQuaternion();
+            rot_root = msg.ReadSmallerCompressedQuaternion();
+            rot_lfHand = msg.ReadSmallerCompressedQuaternion();
+            rot_rtHand = msg.ReadSmallerCompressedQuaternion();
+            rot_head = msg.ReadSmallerCompressedQuaternion();
+            rot_pelvis = msg.ReadSmallerCompressedQuaternion();
         }
 
         public P2PMessage MakeMsg()
@@ -591,56 +457,23 @@ namespace MultiplayerMod.Networking
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.OtherFullRig);
             msg.WriteByte(playerId);
-            msg.WriteVector3(posMain);
-            msg.WriteVector3(posRoot);
+            msg.WriteVector3(pos_root);
+            msg.WriteVector3(pos_lfHand);
+            msg.WriteVector3(pos_rtHand);
+            msg.WriteVector3(pos_head);
+            msg.WriteVector3(pos_pelvis);
 
-            msg.WriteCompressedVector3(posLHip, posRoot);
-            msg.WriteCompressedVector3(posRHip, posRoot);
-            msg.WriteCompressedVector3(posLKnee, posRoot);
-            msg.WriteCompressedVector3(posRKnee, posRoot);
-            msg.WriteCompressedVector3(posLAnkle, posRoot);
-            msg.WriteCompressedVector3(posRAnkle, posRoot);
-
-            msg.WriteCompressedVector3(posSpine1, posRoot);
-            msg.WriteCompressedVector3(posSpine2, posRoot);
-            msg.WriteCompressedVector3(posSpineTop, posRoot);
-            msg.WriteCompressedVector3(posLClavicle, posRoot);
-            msg.WriteCompressedVector3(posRClavicle, posRoot);
-            msg.WriteCompressedVector3(posNeck, posRoot);
-            msg.WriteCompressedVector3(posLShoulder, posRoot);
-            msg.WriteCompressedVector3(posRShoulder, posRoot);
-            msg.WriteCompressedVector3(posLElbow, posRoot);
-            msg.WriteCompressedVector3(posRElbow, posRoot);
-            msg.WriteCompressedVector3(posLWrist, posRoot);
-            msg.WriteCompressedVector3(posRWrist, posRoot);
-
-            msg.WriteSmallerCompressedQuaternion(rotMain);
-            msg.WriteSmallerCompressedQuaternion(rotRoot);
-            msg.WriteSmallerCompressedQuaternion(rotLHip);
-            msg.WriteSmallerCompressedQuaternion(rotRHip);
-            msg.WriteSmallerCompressedQuaternion(rotLKnee);
-            msg.WriteSmallerCompressedQuaternion(rotRKnee);
-            msg.WriteSmallerCompressedQuaternion(rotLAnkle);
-            msg.WriteSmallerCompressedQuaternion(rotRAnkle);
-
-            msg.WriteSmallerCompressedQuaternion(rotSpine1);
-            msg.WriteSmallerCompressedQuaternion(rotSpine2);
-            msg.WriteSmallerCompressedQuaternion(rotSpineTop);
-            msg.WriteSmallerCompressedQuaternion(rotLClavicle);
-            msg.WriteSmallerCompressedQuaternion(rotRClavicle);
-            msg.WriteSmallerCompressedQuaternion(rotNeck);
-            msg.WriteSmallerCompressedQuaternion(rotLShoulder);
-            msg.WriteSmallerCompressedQuaternion(rotRShoulder);
-            msg.WriteSmallerCompressedQuaternion(rotLElbow);
-            msg.WriteSmallerCompressedQuaternion(rotRElbow);
-            msg.WriteSmallerCompressedQuaternion(rotLWrist);
-            msg.WriteSmallerCompressedQuaternion(rotRWrist);
+            msg.WriteSmallerCompressedQuaternion(rot_root);
+            msg.WriteSmallerCompressedQuaternion(rot_lfHand);
+            msg.WriteSmallerCompressedQuaternion(rot_rtHand);
+            msg.WriteSmallerCompressedQuaternion(rot_head);
+            msg.WriteSmallerCompressedQuaternion(rot_pelvis);
 
             return msg;
         }
     }
 
-    public class EnemyRigTransformMessage : RigTFMsgBase, INetworkMessage
+    /*public class EnemyRigTransformMessage : RigTFMsgBase, INetworkMessage
     {
         public byte poolChildIdx;
         public EnemyType enemyType;
@@ -752,7 +585,7 @@ namespace MultiplayerMod.Networking
 
             return msg;
         }
-    }
+    }*/
 
     public class HandGunChangeMessage : INetworkMessage
     {

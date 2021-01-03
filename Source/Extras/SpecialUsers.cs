@@ -10,7 +10,6 @@ namespace MultiplayerMod.Extras
         public static void GiveUniqueAppearances(SteamId userID, Transform root, TMPro.TextMeshPro text)
         {
             Color32 DevRed = new Color32(230, 0, 10, 255);
-            Color32 AquaBlue = new Color32(64, 224, 208, 255);
             Color32 LGPurple = new Color32(155, 89, 182, 255);
 
             // Someone Somewhere

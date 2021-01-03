@@ -18,6 +18,7 @@ using StressLevelZero.Combat;
 using BoneworksModdingToolkit;
 using StressLevelZero.UI.Radial;
 using StressLevelZero.Data;
+using StressLevelZero.VRMK;
 
 namespace MultiplayerMod.Representations
 {
@@ -47,6 +48,11 @@ namespace MultiplayerMod.Representations
         public BulletObject leftBulletObject;
         public GameObject gunLParent;
         public FaceAnimator faceAnimator;
+        public SLZ_Body body;
+        public SLZ_BodyBlender bodyblend;
+        public Vector3 lastPelvisPosition;
+        public Vector3 lastPelvisVelocity;
+        public float lastFrameTime;
 
         public static AssetBundle fordBundle;
 
@@ -102,12 +108,15 @@ namespace MultiplayerMod.Representations
 
             GameObject root = ford.transform.Find("Ford/Brett@neutral").gameObject; // Get the rep's head
 
-            faceAnimator = new FaceAnimator();
-            faceAnimator.animator = root.GetComponent<Animator>();
-            faceAnimator.faceTime = 10;
+            //faceAnimator = new FaceAnimator();
+            //faceAnimator.animator = root.GetComponent<Animator>();
+            //faceAnimator.faceTime = 10;
+
+            bodyblend = root.GetComponent<SLZ_BodyBlender>();
+            body = ford.transform.Find("Ford/Body").gameObject.GetComponent<SLZ_Body>();
+            body.OnStart();
 
             Transform realRoot = root.transform.Find("SHJntGrp/MAINSHJnt/ROOTSHJnt"); // Then get the head's root joint
-
 
             // Assign targets for the IK system
             GameObject pelvisTarget = new GameObject("Pelvis");
@@ -159,13 +168,13 @@ namespace MultiplayerMod.Representations
             //root.transform.Find("geoGrp/brett_hairCards").gameObject.SetActive(showHair);
 
             // Assign the transforms for the rep
-            rigTransforms = BWUtil.GetHumanoidRigTransforms(root);
+            rigTransforms = BWUtil.GetHumanoidRigTransforms(ford.transform.Find("Ford").gameObject);
 
             // Grab these body parts from the rigTransforms
-            head = rigTransforms.neck.gameObject;
-            handL = rigTransforms.lWrist.gameObject;
-            handR = rigTransforms.rWrist.gameObject;
-            pelvis = rigTransforms.spine1.gameObject;
+            head = rigTransforms.head.gameObject;
+            handL = rigTransforms.lfHand.gameObject;
+            handR = rigTransforms.rtHand.gameObject;
+            pelvis = rigTransforms.pelvis.gameObject;
 
             // Create the nameplate and assign values to the TMP's vars
             namePlate = new GameObject("Nameplate");
@@ -235,7 +244,7 @@ namespace MultiplayerMod.Representations
                 }
                 else
                 {
-                    namePlate.transform.position = rigTransforms.neck.transform.position + (Vector3.up * 0.3f);
+                    namePlate.transform.position = rigTransforms.head.transform.position + (Vector3.up * 0.3f);
                     namePlate.transform.rotation = cameraTransform.rotation;
                 }
             }

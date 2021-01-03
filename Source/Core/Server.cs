@@ -1,28 +1,16 @@
 ﻿using Discord;
 using Facepunch.Steamworks;
-using Facepunch.Steamworks.Data;
 using MelonLoader;
-using StressLevelZero.Pool;
 using StressLevelZero.Props.Weapons;
 using StressLevelZero.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using static UnityEngine.Object;
-
 using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
-using Oculus.Platform;
-using Oculus.Platform.Samples.VrHoops;
-using MultiplayerMod.MonoBehaviours;
-using MultiplayerMod.Extras;
 using StressLevelZero.Combat;
+using MultiplayerMod.MonoBehaviours;
 
 namespace MultiplayerMod.Core
 {
@@ -91,56 +79,24 @@ namespace MultiplayerMod.Core
             transportLayer.Update();
             if (SceneLoader.loading) return;
 
-            if (localRigTransforms.main == null)
+            if (localRigTransforms.root == null)
                 localRigTransforms = BWUtil.GetLocalRigTransforms();
 
-            if (localRigTransforms.main != null)
+            if (localRigTransforms.root != null)
             {
                 OtherFullRigTransformMessage ofrtm = new OtherFullRigTransformMessage
                 {
                     playerId = 0,
-                    posMain = localRigTransforms.main.position,
-                    posRoot = localRigTransforms.root.position,
-                    posLHip = localRigTransforms.lHip.position,
-                    posRHip = localRigTransforms.rHip.position,
-                    posLKnee = localRigTransforms.lKnee.position,
-                    posRKnee = localRigTransforms.rKnee.position,
-                    posLAnkle = localRigTransforms.lAnkle.position,
-                    posRAnkle = localRigTransforms.rAnkle.position,
-
-                    posSpine1 = localRigTransforms.spine1.position,
-                    posSpine2 = localRigTransforms.spine2.position,
-                    posSpineTop = localRigTransforms.spineTop.position,
-                    posLClavicle = localRigTransforms.lClavicle.position,
-                    posRClavicle = localRigTransforms.rClavicle.position,
-                    posNeck = localRigTransforms.neck.position,
-                    posLShoulder = localRigTransforms.lShoulder.position,
-                    posRShoulder = localRigTransforms.rShoulder.position,
-                    posLElbow = localRigTransforms.lElbow.position,
-                    posRElbow = localRigTransforms.rElbow.position,
-                    posLWrist = localRigTransforms.lWrist.position,
-                    posRWrist = localRigTransforms.rWrist.position,
-
-                    rotMain = localRigTransforms.main.rotation,
-                    rotRoot = localRigTransforms.root.rotation,
-                    rotLHip = localRigTransforms.lHip.rotation,
-                    rotRHip = localRigTransforms.rHip.rotation,
-                    rotLKnee = localRigTransforms.lKnee.rotation,
-                    rotRKnee = localRigTransforms.rKnee.rotation,
-                    rotLAnkle = localRigTransforms.lAnkle.rotation,
-                    rotRAnkle = localRigTransforms.rAnkle.rotation,
-                    rotSpine1 = localRigTransforms.spine1.rotation,
-                    rotSpine2 = localRigTransforms.spine2.rotation,
-                    rotSpineTop = localRigTransforms.spineTop.rotation,
-                    rotLClavicle = localRigTransforms.lClavicle.rotation,
-                    rotRClavicle = localRigTransforms.rClavicle.rotation,
-                    rotNeck = localRigTransforms.neck.rotation,
-                    rotLShoulder = localRigTransforms.lShoulder.rotation,
-                    rotRShoulder = localRigTransforms.rShoulder.rotation,
-                    rotLElbow = localRigTransforms.lElbow.rotation,
-                    rotRElbow = localRigTransforms.rElbow.rotation,
-                    rotLWrist = localRigTransforms.lWrist.rotation,
-                    rotRWrist = localRigTransforms.rWrist.rotation
+                    pos_root = localRigTransforms.root.position,
+                    pos_head = localRigTransforms.head.position,
+                    pos_lfHand = localRigTransforms.lfHand.position,
+                    pos_rtHand = localRigTransforms.rtHand.position,
+                    pos_pelvis = localRigTransforms.pelvis.position,
+                    rot_root = localRigTransforms.root.rotation,
+                    rot_head = localRigTransforms.head.rotation,
+                    rot_lfHand = localRigTransforms.lfHand.rotation,
+                    rot_rtHand = localRigTransforms.rtHand.rotation,
+                    rot_pelvis = localRigTransforms.pelvis.rotation
                 };
 
                 ServerSendToAll(ofrtm, MessageSendType.Unreliable);
@@ -149,7 +105,15 @@ namespace MultiplayerMod.Core
             foreach (PlayerRep pr in playerObjects.Values)
             {
                 pr.UpdateNameplateFacing(Camera.current.transform);
-                pr.faceAnimator.Update();
+                //pr.faceAnimator.Update();
+
+                Vector3 pelvisVel = pr.rigTransforms.pelvis.position - pr.lastPelvisPosition;
+                Vector3 pelvisAccel = (pelvisVel - pr.lastPelvisVelocity) / (pr.lastFrameTime + Time.deltaTime);
+                pr.body.FullBodyUpdate(pelvisVel, pelvisAccel);
+                pr.bodyblend.UpdateBlender();
+                pr.lastPelvisPosition = pr.rigTransforms.pelvis.position;
+                pr.lastPelvisVelocity = pelvisVel;
+                pr.lastFrameTime = Time.deltaTime;
             }
         }
 
@@ -166,7 +130,7 @@ namespace MultiplayerMod.Core
         public void StartServer()
         {
             ui.SetState(MultiplayerUIState.Server);
-            MelonModLogger.Log("Starting server...");
+            MelonLogger.Log("Starting server...");
             localRigTransforms = BWUtil.GetLocalRigTransforms();
             partyId = SteamClient.SteamId + "P" + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
 
@@ -434,7 +398,7 @@ namespace MultiplayerMod.Core
                         {
                             PlayerRep pr = playerObjects[playerId];
 
-                            if (pr.rigTransforms.main != null)
+                            if (pr.rigTransforms.root != null)
                             {
                                 //ApplyTransformMessage(pr, frtm);
                                 pr.ApplyTransformMessage(frtm);
@@ -443,48 +407,21 @@ namespace MultiplayerMod.Core
                                 {
                                     playerId = playerId,
 
-                                    posMain = frtm.posMain,
-                                    posRoot = frtm.posRoot,
-                                    posLHip = frtm.posLHip,
-                                    posRHip = frtm.posRHip,
-                                    posLKnee = frtm.posLKnee,
-                                    posRKnee = frtm.posRKnee,
-                                    posLAnkle = frtm.posLAnkle,
-                                    posRAnkle = frtm.posRAnkle,
+                                    pos_root = frtm.pos_root,
+                                    rot_root = frtm.rot_root,
 
-                                    posSpine1 = frtm.posSpine1,
-                                    posSpine2 = frtm.posSpine2,
-                                    posSpineTop = frtm.posSpineTop,
-                                    posLClavicle = frtm.posLClavicle,
-                                    posRClavicle = frtm.posRClavicle,
-                                    posNeck = frtm.posNeck,
-                                    posLShoulder = frtm.posLShoulder,
-                                    posRShoulder = frtm.posRShoulder,
-                                    posLElbow = frtm.posLElbow,
-                                    posRElbow = frtm.posRElbow,
-                                    posLWrist = frtm.posLWrist,
-                                    posRWrist = frtm.posRWrist,
+                                    pos_head = frtm.pos_head,
+                                    rot_head = frtm.rot_head,
 
-                                    rotMain = frtm.rotMain,
-                                    rotRoot = frtm.rotRoot,
-                                    rotLHip = frtm.rotLHip,
-                                    rotRHip = frtm.rotRHip,
-                                    rotLKnee = frtm.rotLKnee,
-                                    rotRKnee = frtm.rotRKnee,
-                                    rotLAnkle = frtm.rotLAnkle,
-                                    rotRAnkle = frtm.rotRAnkle,
-                                    rotSpine1 = frtm.rotSpine1,
-                                    rotSpine2 = frtm.rotSpine2,
-                                    rotSpineTop = frtm.rotSpineTop,
-                                    rotLClavicle = frtm.rotLClavicle,
-                                    rotRClavicle = frtm.rotRClavicle,
-                                    rotNeck = frtm.rotNeck,
-                                    rotLShoulder = frtm.rotLShoulder,
-                                    rotRShoulder = frtm.rotRShoulder,
-                                    rotLElbow = frtm.rotLElbow,
-                                    rotRElbow = frtm.rotRElbow,
-                                    rotLWrist = frtm.rotLWrist,
-                                    rotRWrist = frtm.rotRWrist
+                                    pos_lfHand = frtm.pos_lfHand,
+                                    rot_lfHand = frtm.rot_lfHand,
+
+                                    pos_rtHand = frtm.pos_rtHand,
+                                    rot_rtHand = frtm.rot_rtHand,
+
+                                    pos_pelvis = frtm.pos_pelvis,
+                                    rot_pelvis = frtm.rot_pelvis
+
                                 };
 
                                 ServerSendToAllExcept(ofrtm, MessageSendType.Unreliable, connection.ConnectedTo);
@@ -526,7 +463,7 @@ namespace MultiplayerMod.Core
             playerNames.Clear();
             smallPlayerIds.Clear();
             largePlayerIds.Clear();
-            smallIdCounter = 1;
+            smallIdCounter = 0;
 
             P2PMessage shutdownMsg = new P2PMessage();
             shutdownMsg.WriteByte((byte)MessageType.ServerShutdown);

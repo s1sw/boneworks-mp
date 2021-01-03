@@ -282,7 +282,7 @@ namespace MultiplayerMod.Core
                             });
                         break;
                     }
-                case MessageType.EnemyRigTransform:
+                /*case MessageType.EnemyRigTransform:
                     {
                         enemyPoolManager.FindMissingPools();
                         EnemyRigTransformMessage ertm = new EnemyRigTransformMessage(msg);
@@ -294,7 +294,7 @@ namespace MultiplayerMod.Core
                         BoneworksRigTransforms brt = BWUtil.GetHumanoidRigTransforms(rootObj);
                         BWUtil.ApplyRigTransform(brt, ertm);
                         break;
-                    }
+                    }*/
                 case MessageType.IdAllocation:
                     {
                         IDAllocationMessage iam = new IDAllocationMessage(msg);
@@ -374,55 +374,24 @@ namespace MultiplayerMod.Core
             transportLayer.Update();
             if (SceneLoader.loading) return;
 
-            if (localRigTransforms.main == null)
+            if (localRigTransforms.root == null)
                 SetupPlayerReferences();
 
-            if (localRigTransforms.main != null)
+            if (localRigTransforms.root != null)
             {
                 FullRigTransformMessage frtm = new FullRigTransformMessage
                 {
-                    posMain = localRigTransforms.main.position,
-                    posRoot = localRigTransforms.root.position,
-                    posLHip = localRigTransforms.lHip.position,
-                    posRHip = localRigTransforms.rHip.position,
-                    posLKnee = localRigTransforms.lKnee.position,
-                    posRKnee = localRigTransforms.rKnee.position,
-                    posLAnkle = localRigTransforms.lAnkle.position,
-                    posRAnkle = localRigTransforms.rAnkle.position,
-
-                    posSpine1 = localRigTransforms.spine1.position,
-                    posSpine2 = localRigTransforms.spine2.position,
-                    posSpineTop = localRigTransforms.spineTop.position,
-                    posLClavicle = localRigTransforms.lClavicle.position,
-                    posRClavicle = localRigTransforms.rClavicle.position,
-                    posNeck = localRigTransforms.neck.position,
-                    posLShoulder = localRigTransforms.lShoulder.position,
-                    posRShoulder = localRigTransforms.rShoulder.position,
-                    posLElbow = localRigTransforms.lElbow.position,
-                    posRElbow = localRigTransforms.rElbow.position,
-                    posLWrist = localRigTransforms.lWrist.position,
-                    posRWrist = localRigTransforms.rWrist.position,
-
-                    rotMain = localRigTransforms.main.rotation,
-                    rotRoot = localRigTransforms.root.rotation,
-                    rotLHip = localRigTransforms.lHip.rotation,
-                    rotRHip = localRigTransforms.rHip.rotation,
-                    rotLKnee = localRigTransforms.lKnee.rotation,
-                    rotRKnee = localRigTransforms.rKnee.rotation,
-                    rotLAnkle = localRigTransforms.lAnkle.rotation,
-                    rotRAnkle = localRigTransforms.rAnkle.rotation,
-                    rotSpine1 = localRigTransforms.spine1.rotation,
-                    rotSpine2 = localRigTransforms.spine2.rotation,
-                    rotSpineTop = localRigTransforms.spineTop.rotation,
-                    rotLClavicle = localRigTransforms.lClavicle.rotation,
-                    rotRClavicle = localRigTransforms.rClavicle.rotation,
-                    rotNeck = localRigTransforms.neck.rotation,
-                    rotLShoulder = localRigTransforms.lShoulder.rotation,
-                    rotRShoulder = localRigTransforms.rShoulder.rotation,
-                    rotLElbow = localRigTransforms.lElbow.rotation,
-                    rotRElbow = localRigTransforms.rElbow.rotation,
-                    rotLWrist = localRigTransforms.lWrist.rotation,
-                    rotRWrist = localRigTransforms.rWrist.rotation
+                    pos_root = localRigTransforms.root.position,
+                    pos_head = localRigTransforms.head.position,
+                    pos_lfHand = localRigTransforms.lfHand.position,
+                    pos_rtHand = localRigTransforms.rtHand.position,
+                    pos_pelvis = localRigTransforms.pelvis.position,
+                    rot_root = localRigTransforms.root.rotation,
+                    rot_head = localRigTransforms.head.rotation,
+                    rot_lfHand = localRigTransforms.lfHand.rotation,
+                    rot_rtHand = localRigTransforms.rtHand.rotation,
+                    rot_pelvis = localRigTransforms.pelvis.rotation
+                    
                 };
 
                 SendToServer(frtm, MessageSendType.Unreliable);
@@ -431,6 +400,14 @@ namespace MultiplayerMod.Core
                 {
                     pr.UpdateNameplateFacing(Camera.current.transform);
                     pr.faceAnimator.Update();
+
+                    Vector3 pelvisVel = pr.rigTransforms.pelvis.position - pr.lastPelvisPosition;
+                    Vector3 pelvisAccel = (pelvisVel - pr.lastPelvisVelocity) / (pr.lastFrameTime + Time.deltaTime);
+                    pr.body.FullBodyUpdate(pelvisVel, pelvisAccel);
+                    pr.bodyblend.UpdateBlender();
+                    pr.lastPelvisPosition = pr.rigTransforms.pelvis.position;
+                    pr.lastPelvisVelocity = pelvisVel;
+                    pr.lastFrameTime = Time.deltaTime;
                 }
             }
         }

@@ -16,7 +16,7 @@ namespace MultiplayerMod.Source.Representations
 
         public float faceTime;
         public FaceState faceState;
-        public Animator animator;
+        //public Animator animator;
 
         public void Update()
         {
@@ -26,7 +26,7 @@ namespace MultiplayerMod.Source.Representations
             //3 - Sad
             //4 - Pog
             //5 - Angry
-            if (faceTime <= 0)
+            /*if (faceTime <= 0)
             {
                 faceState = (FaceState)Mathf.RoundToInt(Random.Range(-0.1f, 5.1f));
                 if (faceState <= 0)
@@ -68,7 +68,7 @@ namespace MultiplayerMod.Source.Representations
                 {
                     animator.SetInteger("State", (int)faceState);
                 }
-            }
+            }*/
         }
     }
 }
