@@ -17,5 +17,5 @@ using MelonLoader;
 [assembly: AssemblyFileVersion(MultiplayerMod.FileInfo.Version)]
 [assembly: NeutralResourcesLanguage("en")]
 
-[assembly: MelonModInfo(typeof(MultiplayerMod.MultiplayerMod), MultiplayerMod.FileInfo.Name, MultiplayerMod.FileInfo.Version, MultiplayerMod.FileInfo.Author, MultiplayerMod.FileInfo.DownloadLink)]
-[assembly: MelonModGame("Stress Level Zero", "BONEWORKS")]
+[assembly: MelonInfo(typeof(MultiplayerMod.MultiplayerMod), MultiplayerMod.FileInfo.Name, MultiplayerMod.FileInfo.Version, MultiplayerMod.FileInfo.Author, MultiplayerMod.FileInfo.DownloadLink)]
+[assembly: MelonGame("Stress Level Zero", "BONEWORKS")]

@@ -90,13 +90,13 @@ namespace MultiplayerMod
         {
             foreach (UnityEngine.Object obj in FindObjectsOfType<UnityEngine.Object>())
             {
-                MelonModLogger.Log("found obj " + obj.name);
+                MelonLogger.Log("found obj " + obj.name);
                 if (obj.TryCast<GameObject>() != null)
                 {
                     GameObject go = obj.Cast<GameObject>();
                     if (go.scene.name == null || go.scene.rootCount == 0)
                     {
-                        MelonModLogger.Log("Found prefab: " + go.name);
+                        MelonLogger.Log("Found prefab: " + go.name);
                     }
                 }
             }

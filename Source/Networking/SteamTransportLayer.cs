@@ -23,7 +23,7 @@ namespace MultiplayerMod.Networking
             ConnectedTo = id;
             SendMessage(initialMessage, MessageSendType.Reliable);
 
-            MelonModLogger.Log($"Steam: Sent initial message to {id}");
+            MelonLogger.Log($"Steam: Sent initial message to {id}");
         }
 
         internal SteamTransportConnection(ulong id)
@@ -93,7 +93,7 @@ namespace MultiplayerMod.Networking
                     connections.Remove(id);
             }
 
-            MelonModLogger.Log($"Steam: Connecting to {id}");
+            MelonLogger.Log($"Steam: Connecting to {id}");
             SteamTransportConnection connection = new SteamTransportConnection(id, initialMessage);
             connections.Add(id, connection);
             SteamNetworking.OnP2PSessionRequest = ClientOnP2PSessionRequest;
@@ -129,7 +129,7 @@ namespace MultiplayerMod.Networking
         private void ListenOnP2PSessionRequest(SteamId id)
         {
             SteamNetworking.AcceptP2PSessionWithUser(id);
-            MelonModLogger.Log("Accepted session for " + id.ToString());
+            MelonLogger.Log("Accepted session for " + id.ToString());
             connections.Add(id, new SteamTransportConnection(id));
         }
 

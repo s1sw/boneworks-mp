@@ -56,7 +56,7 @@ namespace MultiplayerMod
             MelonModLogger.LogWarning("Debug build!");
 #endif
 
-            MelonModLogger.Log($"Multiplayer initialising with protocol version {PROTOCOL_VERSION}.");
+            MelonLogger.Log($"Multiplayer initialising with protocol version {PROTOCOL_VERSION}.");
 
             // Set up prefs
             MelonPrefs.RegisterCategory("MPMod", "Multiplayer Settings");

@@ -37,7 +37,7 @@ namespace MultiplayerMod.Features
                 foreach (Friend friend in friends)
                 {
 #if DEBUG
-                    MelonLoader.MelonModLogger.Log($"DEBUG - Friend: {friend.Name}");
+                    MelonLoader.MelonLogger.Log($"DEBUG - Friend: {friend.Name}");
 #endif
 
                     friendUsers.Add(friend.Name);
@@ -45,7 +45,7 @@ namespace MultiplayerMod.Features
             }
             catch (Exception e)
             {
-                MelonLoader.MelonModLogger.LogError(e.Message);
+                MelonLoader.MelonLogger.LogError(e.Message);
             }
         }
 
@@ -76,7 +76,7 @@ namespace MultiplayerMod.Features
                 foreach (string user in local_trustedUsers)
                 {
 #if DEBUG
-                    MelonModLogger.Log($"DEBUG - Trusted: {user}");
+                    MelonLogger.Log($"DEBUG - Trusted: {user}");
 #endif
 
                     trustedUsers.Add(user);
@@ -85,7 +85,7 @@ namespace MultiplayerMod.Features
                 foreach (string user in local_blockedUsers)
                 {
 #if DEBUG
-                    MelonModLogger.Log($"DEBUG - Blocked: {user}");
+                    MelonLogger.Log($"DEBUG - Blocked: {user}");
 #endif
 
                     blockedUsers.Add(user);
@@ -93,7 +93,7 @@ namespace MultiplayerMod.Features
             }
             catch (Exception e)
             {
-                MelonLoader.MelonModLogger.LogError(e.Message);
+                MelonLogger.LogError(e.Message);
             }
         }
 

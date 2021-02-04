@@ -166,7 +166,7 @@ namespace MultiplayerMod.Core
         public void StartServer()
         {
             ui.SetState(MultiplayerUIState.Server);
-            MelonModLogger.Log("Starting server...");
+            MelonLogger.Log("Starting server...");
             localRigTransforms = BWUtil.GetLocalRigTransforms();
             partyId = SteamClient.SteamId + "P" + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
 
@@ -206,7 +206,7 @@ namespace MultiplayerMod.Core
                 case ConnectionClosedReason.ClosedByRemote:
                     if (smallPlayerIds.ContainsKey(connection.ConnectedTo))
                     {
-                        MelonModLogger.Log("Player left with ID: " + connection.ConnectedTo);
+                        MelonLogger.Log("Player left with ID: " + connection.ConnectedTo);
                         byte smallId = smallPlayerIds[connection.ConnectedTo];
 
                         P2PMessage disconnectMsg = new P2PMessage();
@@ -402,7 +402,7 @@ namespace MultiplayerMod.Core
                     }
                 case MessageType.Disconnect:
                     {
-                        MelonModLogger.Log("Player left with ID: " + connection.ConnectedTo);
+                        MelonLogger.Log("Player left with ID: " + connection.ConnectedTo);
                         byte smallId = smallPlayerIds[connection.ConnectedTo];
 
                         playerObjects[smallId].Destroy();
@@ -495,12 +495,12 @@ namespace MultiplayerMod.Core
                 case MessageType.IdRequest:
                     {
                         IDRequestMessage idrqm = new IDRequestMessage(msg);
-                        MelonModLogger.Log("ID request: " + idrqm.namePath);
+                        MelonLogger.Log("ID request: " + idrqm.namePath);
                         BWUtil.GetObjectFromFullPath(idrqm.namePath);
                         break;
                     }
                 default:
-                    MelonModLogger.Log("Unknown message type: " + type.ToString());
+                    MelonLogger.Log("Unknown message type: " + type.ToString());
                     break;
             }
         }
@@ -519,7 +519,7 @@ namespace MultiplayerMod.Core
             }
             catch (Exception)
             {
-                MelonModLogger.LogError("Caught exception destroying player objects");
+                MelonLogger.LogError("Caught exception destroying player objects");
             }
 
             playerObjects.Clear();

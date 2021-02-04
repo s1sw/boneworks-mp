@@ -31,7 +31,7 @@ namespace MultiplayerMod.Core
 
             if (uiBundle == null)
             {
-                MelonModLogger.LogError("Failed to load canvas bundle");
+                MelonLogger.LogError("Failed to load canvas bundle");
                 
                 // Create a world space UI to display the error message
                 GameObject tmObj = new GameObject("TextMesh");
@@ -42,7 +42,7 @@ namespace MultiplayerMod.Core
             }
             else
             {
-                MelonModLogger.Log("Loaded canvas bundle");
+                MelonLogger.Log("Loaded canvas bundle");
                 Recreate();
 
             }

@@ -70,10 +70,10 @@ namespace MultiplayerMod.Core
 
         public void Connect(string obj)
         {
-            MelonModLogger.Log("Starting client and connecting");
+            MelonLogger.Log("Starting client and connecting");
 
             ServerId = ulong.Parse(obj);
-            MelonModLogger.Log("Connecting to " + obj);
+            MelonLogger.Log("Connecting to " + obj);
 
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.Join);
@@ -88,7 +88,7 @@ namespace MultiplayerMod.Core
             localRigTransforms = BWUtil.GetLocalRigTransforms();
 
             ui.SetState(MultiplayerUIState.Client);
-            BoneworksModdingToolkit.BoneHook.GunHooks.OnGunFire += BWUtil_OnFire;
+            GunHooks.OnGunFire += BWUtil_OnFire;
         }
 
         private void BWUtil_OnFire(Gun obj)
@@ -232,7 +232,7 @@ namespace MultiplayerMod.Core
                     }
                 case MessageType.JoinRejected:
                     {
-                        MelonModLogger.LogError("Join rejected - you are using an incompatible version of the mod!");
+                        MelonLogger.LogError("Join rejected - you are using an incompatible version of the mod!");
                         Disconnect();
                         break;
                     }
@@ -310,7 +310,7 @@ namespace MultiplayerMod.Core
 
                         if (!obj)
                         {
-                            MelonModLogger.LogError($"Couldn't find object with ID {osm.id}");
+                            MelonLogger.LogError($"Couldn't find object with ID {osm.id}");
                         }
                         else
                         {
@@ -326,12 +326,12 @@ namespace MultiplayerMod.Core
         {
             if (connection.ConnectedTo != ServerId)
             {
-                MelonModLogger.LogError("Connection with non-server ID was closed - but we're a client???");
+                MelonLogger.LogError("Connection with non-server ID was closed - but we're a client???");
                 return;
             }
 
             ui.SetState(MultiplayerUIState.PreConnect);
-            MelonModLogger.LogError("Got P2P connection error " + reason.ToString());
+            MelonLogger.LogError("Got P2P connection error " + reason.ToString());
             Disconnect();
         }
 
@@ -352,10 +352,10 @@ namespace MultiplayerMod.Core
             }
             catch (Exception)
             {
-                MelonModLogger.LogError("Caught exception destroying player objects");
+                MelonLogger.LogError("Caught exception destroying player objects");
             }
 
-            MelonModLogger.Log("Disconnecting...");
+            MelonLogger.Log("Disconnecting...");
             isConnected = false;
             ServerId = 0;
             playerObjects.Clear();

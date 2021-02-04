@@ -29,7 +29,7 @@ namespace MultiplayerMod.Core
 
         private static void ActivityUpdateHandler(Result res)
         {
-            MelonModLogger.Log("Got result " + res.ToString() + " when updating activity");
+            MelonLogger.Log("Got result " + res.ToString() + " when updating activity");
         }
 
         public static void Update()

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using MelonLoader;
 
 namespace MultiplayerMod.Features
 {
@@ -29,13 +30,8 @@ namespace MultiplayerMod.Features
             }
             catch (Exception e)
             {
-                MelonLoader.MelonModLogger.Log(e.Message);
+                MelonLogger.Log(e.Message);
             }
         }
     }
-}
-
-namespace BigChungus
-{
-
 }
