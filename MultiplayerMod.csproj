@@ -283,8 +283,6 @@
     <Compile Include="Source\Extras\BasicFABRIK.cs" />
     <Compile Include="Source\Extras\GunResources.cs" />
     <Compile Include="Source\Features\ClientSettings.cs" />
-    <Compile Include="Source\Features\Guard.cs" />
-    <Compile Include="Source\Features\NetworkedAccesories.cs" />
     <Compile Include="Source\Extras\RETools.cs" />
     <Compile Include="Source\Core\Client.cs" />
     <Compile Include="Discord\ActivityManager.cs" />
@@ -319,9 +317,11 @@
       <Name>Facepunch.Steamworks.Win64</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="BoneworksModdingToolkit.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>XCOPY /Y "$(TargetPath)" "C:\Program Files (x86)\Steam\steamapps\common\BONEWORKS\BONEWORKS\Mods"</PostBuildEvent>
+    <PostBuildEvent>XCOPY /Y "$(TargetPath)" "E:\Steam Games\steamapps\common\BONEWORKS\BONEWORKS\Mods"</PostBuildEvent>
   </PropertyGroup>
 </Project>

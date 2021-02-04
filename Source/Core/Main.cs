@@ -30,7 +30,7 @@ namespace MultiplayerMod
     {
         // TODO: Enforce player limit
         public const int MAX_PLAYERS = 16;
-        public const byte PROTOCOL_VERSION = 30;
+        public const byte PROTOCOL_VERSION = 31;
 
         private MultiplayerUI ui;
         private Client client;
@@ -48,9 +48,6 @@ namespace MultiplayerMod
         {
             if (!SteamClient.IsValid)
             SteamClient.Init(823500);
-
-            Features.Guard.GetSteamFriends();
-            Features.Guard.GetLocalGuard();
 
 #if DEBUG
             MelonModLogger.LogWarning("Debug build!");
