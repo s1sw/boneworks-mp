@@ -301,6 +301,8 @@ namespace MultiplayerMod.Core
                         GameObject obj = BWUtil.GetObjectFromFullPath(iam.namePath);
                         ObjectIDManager.AddObject(iam.allocatedId, obj);
                         obj.AddComponent<IDHolder>().ID = iam.allocatedId;
+                        obj.GetComponent<Rigidbody>().isKinematic = true;
+                        MelonLogger.Log($"ID Allocation: {iam.namePath}, {iam.allocatedId}");
                         break;
                     }
                 case MessageType.ObjectSync:
@@ -366,7 +368,7 @@ namespace MultiplayerMod.Core
             if (connection.IsConnected)
                 connection.Disconnect();
 
-            BoneworksModdingToolkit.BoneHook.GunHooks.OnGunFire -= BWUtil_OnFire;
+            GunHooks.OnGunFire -= BWUtil_OnFire;
         }
 
         public void Update()
@@ -442,7 +444,6 @@ namespace MultiplayerMod.Core
 
         private void SendToServer(P2PMessage msg, MessageSendType send)
         {
-            byte[] msgBytes = msg.GetBytes();
             connection.SendMessage(msg, send);
         }
 

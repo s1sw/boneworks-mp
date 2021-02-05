@@ -23,6 +23,7 @@ using Oculus.Platform.Samples.VrHoops;
 using MultiplayerMod.MonoBehaviours;
 using MultiplayerMod.Extras;
 using StressLevelZero.Combat;
+using BoneworksModdingToolkit.BoneHook;
 
 namespace MultiplayerMod.Core
 {
@@ -36,6 +37,7 @@ namespace MultiplayerMod.Core
         private readonly Dictionary<ulong, ITransportConnection> playerConnections = new Dictionary<ulong, ITransportConnection>(MultiplayerMod.MAX_PLAYERS);
         private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
         private readonly Dictionary<GameObject, ServerSyncedObject> syncedObjectCache = new Dictionary<GameObject, ServerSyncedObject>();
+        private readonly List<ServerSyncedObject> syncObjs = new List<ServerSyncedObject>();
         private string partyId = "";
         private byte smallIdCounter = 1;
         private BoneworksRigTransforms localRigTransforms;
@@ -49,6 +51,7 @@ namespace MultiplayerMod.Core
             this.ui = ui;
             this.transportLayer = transportLayer;
         }
+
         private void GunHooks_OnGunFire(Gun obj)
         {
             try
@@ -151,6 +154,21 @@ namespace MultiplayerMod.Core
                 pr.UpdateNameplateFacing(Camera.current.transform);
                 pr.faceAnimator.Update();
             }
+
+            foreach (var obj in syncObjs)
+            {
+                if (obj.NeedsSync())
+                {
+                    ObjectSyncMessage osm = new ObjectSyncMessage
+                    {
+                        id = obj.holder.ID,
+                        position = obj.transform.position,
+                        rotation = obj.transform.rotation
+                    };
+                    ServerSendToAll(osm, MessageSendType.Unreliable);
+                    obj.UpdateLastSync();
+                }
+            }
         }
 
         private void MultiplayerMod_OnLevelWasLoadedEvent(int level)
@@ -168,7 +186,7 @@ namespace MultiplayerMod.Core
             ui.SetState(MultiplayerUIState.Server);
             MelonLogger.Log("Starting server...");
             localRigTransforms = BWUtil.GetLocalRigTransforms();
-            partyId = SteamClient.SteamId + "P" + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString();
+            partyId = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString() + "P" + SteamClient.SteamId;
 
             RichPresence.SetActivity(
                 new Activity()
@@ -190,7 +208,9 @@ namespace MultiplayerMod.Core
                 });
             transportLayer.OnMessageReceived += TransportLayer_OnMessageReceived;
             transportLayer.OnConnectionClosed += TransportLayer_OnConnectionClosed;
-            BoneworksModdingToolkit.BoneHook.GunHooks.OnGunFire += GunHooks_OnGunFire;
+            GunHooks.OnGunFire += GunHooks_OnGunFire;
+            PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
+            PlayerHooks.OnPlayerReleaseObject += PlayerHooks_OnPlayerReleaseObject;
             transportLayer.StartListening();
 
             MultiplayerMod.OnLevelWasLoadedEvent += MultiplayerMod_OnLevelWasLoadedEvent;
@@ -541,10 +561,27 @@ namespace MultiplayerMod.Core
 
             transportLayer.OnMessageReceived -= TransportLayer_OnMessageReceived;
             transportLayer.OnConnectionClosed -= TransportLayer_OnConnectionClosed;
-            BoneworksModdingToolkit.BoneHook.GunHooks.OnGunFire -= GunHooks_OnGunFire;
+            GunHooks.OnGunFire -= GunHooks_OnGunFire;
             transportLayer.StopListening();
 
             MultiplayerMod.OnLevelWasLoadedEvent -= MultiplayerMod_OnLevelWasLoadedEvent;
+        }
+
+        private void PlayerHooks_OnPlayerReleaseObject(GameObject obj)
+        {
+            MelonLogger.Log($"Released {obj.name}");
+        }
+
+        private void PlayerHooks_OnPlayerGrabObject(GameObject obj)
+        {
+            var rb = obj.GetComponentInParent<Rigidbody>();
+            if (rb == null)
+            {
+                MelonLogger.LogWarning("Grabbed non-RB!!!");
+                return;
+            }
+            MelonLogger.Log($"Grabbed {rb.gameObject.name}");
+            SetupSyncFor(rb.gameObject);
         }
 
         private void ServerSendToAll(INetworkMessage msg, MessageSendType send)
@@ -570,6 +607,23 @@ namespace MultiplayerMod.Core
         {
             P2PMessage pMsg = msg.MakeMsg();
             playerConnections[id].SendMessage(pMsg, send);
+        }
+
+        public void SetupSyncFor(GameObject obj)
+        {
+            ushort id = ObjectIDManager.AllocateID();
+            var holder = obj.AddComponent<IDHolder>();
+            holder.ID = id;
+
+            var sso = obj.AddComponent<ServerSyncedObject>();
+            syncObjs.Add(sso);
+
+            IDAllocationMessage iam = new IDAllocationMessage
+            {
+                allocatedId = id,
+                namePath = BWUtil.GetFullNamePath(obj)
+            };
+            ServerSendToAll(iam, MessageSendType.Reliable);
         }
     }
 }

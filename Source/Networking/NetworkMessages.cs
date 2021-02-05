@@ -754,45 +754,6 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class HandGunChangeMessage : INetworkMessage
-    {
-        public bool isForOtherPlayer = false;
-        public byte playerId;
-        public GunType type;
-        public bool destroy;
-
-        public HandGunChangeMessage()
-        {
-
-        }
-
-        public HandGunChangeMessage(P2PMessage msg, bool forOtherPlayer = false)
-        {
-            isForOtherPlayer = forOtherPlayer;
-            if (isForOtherPlayer)
-                playerId = msg.ReadByte();
-
-            destroy = Convert.ToBoolean(msg.ReadByte());
-            type = (GunType)msg.ReadByte();
-        }
-
-        public P2PMessage MakeMsg()
-        {
-            P2PMessage msg = new P2PMessage();
-            if (isForOtherPlayer)
-            {
-                msg.WriteByte((byte)MessageType.OtherHandGunChange);
-                msg.WriteByte(playerId);
-            }
-            else
-                msg.WriteByte((byte)MessageType.HandGunChange);
-
-            msg.WriteByte(Convert.ToByte(destroy));
-            msg.WriteByte((byte)type);
-            return msg;
-        }
-    }
-
     public class SetPartyIdMessage : INetworkMessage
     {
         public string partyId;

@@ -10,6 +10,7 @@ namespace MultiplayerMod.Core
     public static class ObjectIDManager
     {
         public static Dictionary<ushort, GameObject> objects = new Dictionary<ushort, GameObject>();
+        private static ushort latestId = 0;
 
         public static void Reset()
         {
@@ -23,7 +24,14 @@ namespace MultiplayerMod.Core
 
         public static void AddObject(ushort id, GameObject obj)
         {
+            if (id > latestId)
+                latestId = id;
             objects.Add(id, obj);
+        }
+
+        public static ushort AllocateID()
+        {
+            return latestId++;
         }
     }
 }

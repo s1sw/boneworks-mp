@@ -23,6 +23,7 @@ using MultiplayerMod.Core;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Representations;
 using MultiplayerMod.Networking;
+using MultiplayerMod.MonoBehaviours;
 
 namespace MultiplayerMod
 {
@@ -77,6 +78,9 @@ namespace MultiplayerMod
             client.SetupRP();
 
             BWUtil.Hook();
+
+            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<ServerSyncedObject>();
+            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<IDHolder>();
         }
 
         public override void OnLevelWasLoaded(int level)
@@ -86,6 +90,7 @@ namespace MultiplayerMod
             MelonLogger.Log("Loaded scene " + level.ToString() + "(" + BoneworksSceneManager.GetSceneNameFromScenePath(level) + ") (from " + SceneManager.GetActiveScene().name + ")");
 
             OnLevelWasLoadedEvent?.Invoke(level);
+            BWUtil.UpdateGunOffset();
         }
 
         public override void OnLevelWasInitialized(int level)
@@ -144,15 +149,29 @@ namespace MultiplayerMod
                     dummyRep.Destroy();
             }
 
-            if (GUILayout.Button("Test Guard Lists", null))
-            {
-                Features.Guard.AddUserToList(Guid.NewGuid().ToString(), Features.Guard.Lists.Blocked);
-                Features.Guard.AddUserToList(Guid.NewGuid().ToString(), Features.Guard.Lists.Trusted);
-            }
-
             if (GUILayout.Button("Create Main Panel", null))
             {
                 Features.UI.CreateMainPanel();
+            }
+
+            if (GUILayout.Button("Test Object IDs", null))
+            {
+                var testObj = GameObject.Find("[RigManager (Default Brett)]/[SkeletonRig (GameWorld Brett)]/Brett@neutral");
+                string fullPath = BWUtil.GetFullNamePath(testObj);
+
+                MelonLogger.Log($"Got path {fullPath} for Brett@neutral");
+                MelonLogger.Log("Trying to get object from path...");
+
+                var gotObj = BWUtil.GetObjectFromFullPath(fullPath);
+
+                if (gotObj == testObj)
+                {
+                    MelonLogger.Log("Success!!!!!");
+                }
+                else
+                {
+                    MelonLogger.Log($"Failed :( Got {gotObj.name}");
+                }
             }
 
             GUILayout.EndVertical();

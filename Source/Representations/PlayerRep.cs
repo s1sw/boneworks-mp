@@ -121,7 +121,7 @@ namespace MultiplayerMod.Representations
             PopUpMenuView menu = rig.GetComponentInChildren<PopUpMenuView>();
             GameObject spawnGun = menu.utilityGunSpawnable.prefab;
             SpawnableMasterListData masterList = spawnGun.GetComponent<SpawnGun>().masterList;
-            rightGun = Instantiate(masterList.objects[124].prefab.transform.Find("Physics/Root/Gun").gameObject);
+            rightGun = Instantiate(masterList.objects[BWUtil.gunOffset].prefab.transform.Find("Physics/Root/Gun").gameObject);
             rightGun.GetComponent<Rigidbody>().isKinematic = true;
             rightGun.transform.parent = gunRParent.transform;
             rightGun.transform.localPosition = Vector3.zero;
@@ -141,7 +141,7 @@ namespace MultiplayerMod.Representations
             gunLParent.transform.localPosition = new Vector3(-0.0941f, 0.0452f, 0.0945f);
             gunLParent.transform.localEulerAngles = new Vector3(3.711f, -81.86301f, -157.739f);
 
-            leftGun = Instantiate(masterList.objects[124].prefab.transform.Find("Physics/Root/Gun").gameObject);
+            leftGun = Instantiate(masterList.objects[BWUtil.gunOffset].prefab.transform.Find("Physics/Root/Gun").gameObject);
             leftGun.GetComponent<Rigidbody>().isKinematic = true;
             leftGun.transform.parent = gunLParent.transform;
             leftGun.transform.localPosition = Vector3.zero;

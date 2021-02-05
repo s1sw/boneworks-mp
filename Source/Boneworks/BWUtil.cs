@@ -12,6 +12,9 @@ using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
 using Harmony;
 using StressLevelZero.Props.Weapons;
+using BoneworksModdingToolkit;
+using StressLevelZero.UI.Radial;
+using StressLevelZero.Data;
 
 namespace MultiplayerMod
 {
@@ -22,28 +25,10 @@ namespace MultiplayerMod
         CorruptedNullBody
     }
 
-    public enum GunType
-    {
-        EDER22,
-        M1911,
-        P350,
-        MP5K,
-        MP5KFlashlight,
-        MP5KSabrelake,
-        MP5,
-        MK18Holo,
-        MK18Sabrelake,
-        MK18LaserForegrip,
-        M16Naked,
-        M16Ironsights,
-        M16LaserForegrip,
-        M16ACOG,
-        Uzi
-    }
-
     static class BWUtil
     {
         public static event Action<Gun> OnFire;
+        public static int gunOffset = -1;
 
         public static Player_Health LocalPlayerHealth
         {
@@ -72,9 +57,6 @@ namespace MultiplayerMod
         private static Player_Health localPlayerHealth;
         private static GameObject rigManager;
 
-        private static readonly Dictionary<GunType, GameObject> gunPrefabs = new Dictionary<GunType, GameObject>()
-        { };
-
         public static void Hook()
         {
             var harmonyInst = HarmonyInstance.Create("BWMP");
@@ -86,45 +68,30 @@ namespace MultiplayerMod
             OnFire?.Invoke(__instance);
         }
 
-        public static void InitialiseGunPrefabs()
-        {
-            foreach (UnityEngine.Object obj in FindObjectsOfType<UnityEngine.Object>())
-            {
-                MelonLogger.Log("found obj " + obj.name);
-                if (obj.TryCast<GameObject>() != null)
-                {
-                    GameObject go = obj.Cast<GameObject>();
-                    if (go.scene.name == null || go.scene.rootCount == 0)
-                    {
-                        MelonLogger.Log("Found prefab: " + go.name);
-                    }
-                }
-            }
-        }
-
-        public static GameObject SpawnGun(GunType type)
-        {
-            return Instantiate(gunPrefabs[type]).Cast<GameObject>();
-        }
-
-        public static GunType? GetGunType(GameObject gunObj)
-        {
-            string name = gunObj.name.ToLowerInvariant();
-            if (name.Contains("eder22"))
-            {
-                return GunType.EDER22;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         public static BoneworksRigTransforms GetLocalRigTransforms()
         {
             GameObject root = GameObject.Find("[RigManager (Default Brett)]/[SkeletonRig (GameWorld Brett)]/Brett@neutral");
 
             return GetHumanoidRigTransforms(root);
+        }
+
+        public static void UpdateGunOffset()
+        {
+            if (gunOffset == -1)
+            {
+                GameObject rig = Player.FindRigManager();
+                PopUpMenuView menu = rig.GetComponentInChildren<PopUpMenuView>();
+                GameObject spawnGun = menu.utilityGunSpawnable.prefab;
+                SpawnableMasterListData masterList = spawnGun.GetComponent<SpawnGun>().masterList;
+
+                for (int i = 0; i < masterList.objects.Count; i++)
+                {
+                    if (masterList.objects[i].title == "Omni Projector")
+                    {
+                        gunOffset = i;
+                    }
+                }
+            }
         }
 
         public static BoneworksRigTransforms GetHumanoidRigTransforms(GameObject root)
@@ -226,7 +193,7 @@ namespace MultiplayerMod
             if (obj.transform.parent == null)
                 return obj.name;
 
-            return GetFullNamePath(obj.transform.parent.gameObject) + "/" + obj.name + "|" + obj.transform.GetSiblingIndex();
+            return GetFullNamePath(obj.transform.parent.gameObject) + "/" + obj.transform.GetSiblingIndex();
         }
 
         public static GameObject GetObjectFromFullPath(string path)
@@ -253,17 +220,9 @@ namespace MultiplayerMod
 
             for (int i = 1; i < pathComponents.Length; i++)
             {
-                string[] splitComponent = pathComponents[i].Split('|');
+                int siblingIdx = int.Parse(pathComponents[i]);
 
-                int siblingIdx = int.Parse(splitComponent[1]);
-                string name = splitComponent[0];
-
-                GameObject newObj = rootObj.transform.GetChild(siblingIdx).gameObject;
-
-                if (newObj.name != name)
-                {
-                    throw new Exception("Name didn't match expected name at sibling index. Try again, dumbass.");
-                }
+                GameObject newObj = currentObj.transform.GetChild(siblingIdx).gameObject;
 
                 currentObj = newObj;
             }
