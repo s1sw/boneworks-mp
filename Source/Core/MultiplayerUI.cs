@@ -60,6 +60,12 @@ namespace MultiplayerMod.Core
 
                 Transform panelTransform = uiObj.transform.Find("Panel");
 
+                if (panelTransform == null)
+                {
+                    MelonLogger.LogError("You appear to be using an outdated version of the UI canvas bundle. " +
+                                         "Please wait for this version of the mod to be released publicly.");
+                }
+
                 statusText = panelTransform.Find("StatusText").GetComponent<Text>();
                 SetState(currentState);
             }
