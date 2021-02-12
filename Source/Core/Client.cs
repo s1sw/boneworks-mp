@@ -16,6 +16,7 @@ using StressLevelZero.Props.Weapons;
 using StressLevelZero.Combat;
 using MultiplayerMod.Extras;
 using BoneworksModdingToolkit.BoneHook;
+using StressLevelZero.Interaction;
 
 namespace MultiplayerMod.Core
 {
@@ -34,9 +35,11 @@ namespace MultiplayerMod.Core
         private readonly Dictionary<byte, SteamId> largePlayerIds = new Dictionary<byte, SteamId>(MultiplayerMod.MAX_PLAYERS);
         private readonly Dictionary<SteamId, byte> smallPlayerIds = new Dictionary<SteamId, byte>(MultiplayerMod.MAX_PLAYERS);
         private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
+        private readonly List<SyncedObject> syncedObjects = new List<SyncedObject>();
         private readonly MultiplayerUI ui;
         private readonly ITransportLayer transportLayer;
         private ITransportConnection connection;
+        private byte localSmallId;
         public bool isConnected = false;
 
         public Client(MultiplayerUI ui, ITransportLayer transportLayer)
@@ -89,6 +92,73 @@ namespace MultiplayerMod.Core
 
             ui.SetState(MultiplayerUIState.Client);
             GunHooks.OnGunFire += BWUtil_OnFire;
+            PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
+            PlayerHooks.OnPlayerReleaseObject += PlayerHooks_OnPlayerReleaseObject;
+            MultiplayerMod.OnLevelWasLoadedEvent += MultiplayerMod_OnLevelWasLoadedEvent;
+        }
+
+        private void MultiplayerMod_OnLevelWasLoadedEvent(int obj)
+        {
+            syncedObjects.Clear();
+        }
+
+        private void PlayerHooks_OnPlayerReleaseObject(GameObject grabObj)
+        {
+            MelonLogger.Log($"Released {grabObj.name}");
+            var rb = grabObj.GetComponentInParent<Rigidbody>();
+            if (rb == null) return;
+            var obj = rb.gameObject;
+
+            var so = obj.GetComponent<SyncedObject>();
+
+            if (so && so.owner == localSmallId)
+            {
+                var coom = new ChangeObjectOwnershipMessage
+                {
+                    objectId = so.ID,
+                    ownerId = 0,
+                    linVelocity = rb.velocity,
+                    angVelocity = rb.angularVelocity
+                };
+
+                SendToServer(coom, MessageSendType.Reliable);
+            }
+        }
+
+        private void PlayerHooks_OnPlayerGrabObject(GameObject grabObj)
+        {
+            var rb = grabObj.GetComponentInParent<Rigidbody>();
+            if (rb == null)
+            {
+                return;
+            }
+            MelonLogger.Log($"Grabbed {rb.gameObject.name}");
+
+            var obj = rb.gameObject;
+            var so = obj.GetComponent<SyncedObject>();
+
+            if (!so)
+            {
+                MelonLogger.Log($"Requesting ID for {obj.name}");
+                var req = new IDRequestMessage
+                {
+                    namePath = BWUtil.GetFullNamePath(obj),
+                    initialOwner = localSmallId
+                };
+
+                SendToServer(req, MessageSendType.Reliable);
+            }
+            else
+            {
+                MelonLogger.Log($"Grapped object has ID of {so.ID}");
+                var coom = new ChangeObjectOwnershipMessage
+                {
+                    objectId = so.ID,
+                    ownerId = localSmallId
+                };
+
+                SendToServer(coom, MessageSendType.Reliable);
+            }
         }
 
         private void BWUtil_OnFire(Gun obj)
@@ -131,196 +201,242 @@ namespace MultiplayerMod.Core
         {
             MessageType type = (MessageType)msg.ReadByte();
 
-            switch (type)
+            try
             {
-                case MessageType.GunFire:
-                    {
-                        GunFireMessageOther gfmo = new GunFireMessageOther(msg);
-                        PlayerRep pr = GetPlayerRep(gfmo.playerId);
-                        AmmoVariables ammoVariables = new AmmoVariables()
+                switch (type)
+                {
+                    case MessageType.GunFire:
                         {
-                            AttackDamage = gfmo.ammoDamage,
-                            AttackType = AttackType.Piercing,
-                            cartridgeType = Cart.Cal_9mm,
-                            ExitVelocity = gfmo.exitVelocity,
-                            ProjectileMass = gfmo.projectileMass,
-                            Tracer = false
-                        };
-                        if ((StressLevelZero.Handedness)gfmo.handedness == StressLevelZero.Handedness.RIGHT)
-                        {
-                            pr.rightGunScript.firePointTransform.position = gfmo.firepointPos;
-                            pr.rightGunScript.firePointTransform.rotation = gfmo.firepointRotation;
-                            pr.rightGunScript.muzzleVelocity = gfmo.muzzleVelocity;
-                            pr.rightBulletObject.ammoVariables = ammoVariables;
-                            pr.rightGunScript.PullCartridge();
-                            pr.rightGunScript.Fire();
-                        }
-                        if ((StressLevelZero.Handedness)gfmo.handedness == StressLevelZero.Handedness.LEFT)
-                        {
-                            pr.leftGunScript.firePointTransform.position = gfmo.firepointPos;
-                            pr.leftGunScript.firePointTransform.rotation = gfmo.firepointRotation;
-                            pr.leftGunScript.muzzleVelocity = gfmo.muzzleVelocity;
-                            pr.leftBulletObject.ammoVariables = ammoVariables;
-                            pr.leftGunScript.PullCartridge();
-                            pr.leftGunScript.Fire();
-                        }
-                        pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Angry;
-                        pr.faceAnimator.faceTime = 5;
-                        break;
-                    }
-                case MessageType.OtherPlayerPosition:
-                    {
-                        OtherPlayerPositionMessage oppm = new OtherPlayerPositionMessage(msg);
-
-                        if (playerObjects.ContainsKey(oppm.playerId))
-                        {
-                            PlayerRep pr = GetPlayerRep(oppm.playerId);
-
-                            pr.head.transform.position = oppm.headPos;
-                            pr.handL.transform.position = oppm.lHandPos;
-                            pr.handR.transform.position = oppm.rHandPos;
-                            pr.pelvis.transform.position = oppm.pelvisPos;
-                            pr.ford.transform.position = oppm.pelvisPos - new Vector3(0.0f, 0.3f, 0.0f);
-                            pr.footL.transform.position = oppm.lFootPos;
-                            pr.footR.transform.position = oppm.rFootPos;
-
-                            pr.head.transform.rotation = oppm.headRot;
-                            pr.handL.transform.rotation = oppm.lHandRot;
-                            pr.handR.transform.rotation = oppm.rHandRot;
-                            pr.pelvis.transform.rotation = oppm.pelvisRot;
-                            pr.footL.transform.rotation = oppm.lFootRot;
-                            pr.footR.transform.rotation = oppm.rFootRot;
-                        }
-
-                        break;
-                    }
-                case MessageType.OtherFullRig:
-                    {
-                        OtherFullRigTransformMessage ofrtm = new OtherFullRigTransformMessage(msg);
-                        byte playerId = ofrtm.playerId;
-
-                        if (playerObjects.ContainsKey(ofrtm.playerId))
-                        {
-                            PlayerRep pr = GetPlayerRep(playerId);
-
-                            pr.ApplyTransformMessage(ofrtm);
-                        }
-                        break;
-                    }
-                case MessageType.ServerShutdown:
-                    {
-                        foreach (PlayerRep pr in playerObjects.Values)
-                        {
-                            pr.Destroy();
-                        }
-                        break;
-                    }
-                case MessageType.Disconnect:
-                    {
-                        byte pid = msg.ReadByte();
-                        playerObjects[pid].Destroy();
-                        playerObjects.Remove(pid);
-                        largePlayerIds.Remove(pid);
-                        playerNames.Remove(pid);
-
-                        foreach (PlayerRep pr in playerObjects.Values)
-                        {
-                            pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Sad;
-                            pr.faceAnimator.faceTime = 10;
-                        }
-                        break;
-                    }
-                case MessageType.JoinRejected:
-                    {
-                        MelonLogger.LogError("Join rejected - you are using an incompatible version of the mod!");
-                        Disconnect();
-                        break;
-                    }
-                case MessageType.SceneTransition:
-                    {
-                        SceneTransitionMessage stm = new SceneTransitionMessage(msg);
-                        if (BoneworksSceneManager.GetCurrentSceneName() != stm.sceneName)
-                        {
-                            BoneworksSceneManager.LoadScene(stm.sceneName);
-                        }
-                        break;
-                    }
-                case MessageType.Join:
-                    {
-                        ClientJoinMessage cjm = new ClientJoinMessage(msg);
-                        largePlayerIds.Add(cjm.playerId, cjm.steamId);
-                        playerNames.Add(cjm.playerId, cjm.name);
-                        playerObjects.Add(cjm.playerId, new PlayerRep(cjm.name, cjm.steamId));
-
-                        foreach (PlayerRep pr in playerObjects.Values)
-                        {
-                            pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Happy;
-                            pr.faceAnimator.faceTime = 15;
-                        }
-                        break;
-                    }
-                case MessageType.SetPartyId:
-                    {
-                        SetPartyIdMessage spid = new SetPartyIdMessage(msg);
-                        RichPresence.SetActivity(
-                            new Activity()
+                            GunFireMessageOther gfmo = new GunFireMessageOther(msg);
+                            PlayerRep pr = GetPlayerRep(gfmo.playerId);
+                            AmmoVariables ammoVariables = new AmmoVariables()
                             {
-                                Details = "Connected to a server",
-                                Secrets = new ActivitySecrets()
+                                AttackDamage = gfmo.ammoDamage,
+                                AttackType = AttackType.Piercing,
+                                cartridgeType = Cart.Cal_9mm,
+                                ExitVelocity = gfmo.exitVelocity,
+                                ProjectileMass = gfmo.projectileMass,
+                                Tracer = false
+                            };
+                            if ((StressLevelZero.Handedness)gfmo.handedness == StressLevelZero.Handedness.RIGHT)
+                            {
+                                pr.rightGunScript.firePointTransform.position = gfmo.firepointPos;
+                                pr.rightGunScript.firePointTransform.rotation = gfmo.firepointRotation;
+                                pr.rightGunScript.muzzleVelocity = gfmo.muzzleVelocity;
+                                pr.rightBulletObject.ammoVariables = ammoVariables;
+                                pr.rightGunScript.PullCartridge();
+                                pr.rightGunScript.Fire();
+                            }
+                            if ((StressLevelZero.Handedness)gfmo.handedness == StressLevelZero.Handedness.LEFT)
+                            {
+                                pr.leftGunScript.firePointTransform.position = gfmo.firepointPos;
+                                pr.leftGunScript.firePointTransform.rotation = gfmo.firepointRotation;
+                                pr.leftGunScript.muzzleVelocity = gfmo.muzzleVelocity;
+                                pr.leftBulletObject.ammoVariables = ammoVariables;
+                                pr.leftGunScript.PullCartridge();
+                                pr.leftGunScript.Fire();
+                            }
+                            pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Angry;
+                            pr.faceAnimator.faceTime = 5;
+                            break;
+                        }
+                    case MessageType.OtherPlayerPosition:
+                        {
+                            OtherPlayerPositionMessage oppm = new OtherPlayerPositionMessage(msg);
+
+                            if (playerObjects.ContainsKey(oppm.playerId))
+                            {
+                                PlayerRep pr = GetPlayerRep(oppm.playerId);
+
+                                pr.head.transform.position = oppm.headPos;
+                                pr.handL.transform.position = oppm.lHandPos;
+                                pr.handR.transform.position = oppm.rHandPos;
+                                pr.pelvis.transform.position = oppm.pelvisPos;
+                                pr.ford.transform.position = oppm.pelvisPos - new Vector3(0.0f, 0.3f, 0.0f);
+                                pr.footL.transform.position = oppm.lFootPos;
+                                pr.footR.transform.position = oppm.rFootPos;
+
+                                pr.head.transform.rotation = oppm.headRot;
+                                pr.handL.transform.rotation = oppm.lHandRot;
+                                pr.handR.transform.rotation = oppm.rHandRot;
+                                pr.pelvis.transform.rotation = oppm.pelvisRot;
+                                pr.footL.transform.rotation = oppm.lFootRot;
+                                pr.footR.transform.rotation = oppm.rFootRot;
+                            }
+
+                            break;
+                        }
+                    case MessageType.OtherFullRig:
+                        {
+                            OtherFullRigTransformMessage ofrtm = new OtherFullRigTransformMessage(msg);
+                            byte playerId = ofrtm.playerId;
+
+                            if (playerObjects.ContainsKey(ofrtm.playerId))
+                            {
+                                PlayerRep pr = GetPlayerRep(playerId);
+
+                                pr.ApplyTransformMessage(ofrtm);
+                            }
+                            break;
+                        }
+                    case MessageType.ServerShutdown:
+                        {
+                            foreach (PlayerRep pr in playerObjects.Values)
+                            {
+                                pr.Delete();
+                            }
+                            break;
+                        }
+                    case MessageType.Disconnect:
+                        {
+                            byte pid = msg.ReadByte();
+                            playerObjects[pid].Delete();
+                            playerObjects.Remove(pid);
+                            largePlayerIds.Remove(pid);
+                            playerNames.Remove(pid);
+
+                            foreach (PlayerRep pr in playerObjects.Values)
+                            {
+                                pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Sad;
+                                pr.faceAnimator.faceTime = 10;
+                            }
+                            break;
+                        }
+                    case MessageType.JoinRejected:
+                        {
+                            MelonLogger.LogError("Join rejected - you are using an incompatible version of the mod!");
+                            Disconnect();
+                            break;
+                        }
+                    case MessageType.SceneTransition:
+                        {
+                            SceneTransitionMessage stm = new SceneTransitionMessage(msg);
+                            if (BoneworksSceneManager.GetCurrentSceneName() != stm.sceneName)
+                            {
+                                BoneworksSceneManager.LoadScene(stm.sceneName);
+                            }
+                            break;
+                        }
+                    case MessageType.Join:
+                        {
+                            ClientJoinMessage cjm = new ClientJoinMessage(msg);
+                            largePlayerIds.Add(cjm.playerId, cjm.steamId);
+                            playerNames.Add(cjm.playerId, cjm.name);
+                            playerObjects.Add(cjm.playerId, new PlayerRep(cjm.name, cjm.steamId));
+
+                            foreach (PlayerRep pr in playerObjects.Values)
+                            {
+                                pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Happy;
+                                pr.faceAnimator.faceTime = 15;
+                            }
+                            break;
+                        }
+                    case MessageType.SetPartyId:
+                        {
+                            SetPartyIdMessage spid = new SetPartyIdMessage(msg);
+                            RichPresence.SetActivity(
+                                new Activity()
                                 {
-                                    Join = ServerId.ToString()
-                                },
-                                Party = new ActivityParty()
-                                {
-                                    Id = spid.partyId,
-                                    Size = new PartySize()
+                                    Details = "Connected to a server",
+                                    Secrets = new ActivitySecrets()
                                     {
-                                        CurrentSize = 1,
-                                        MaxSize = MultiplayerMod.MAX_PLAYERS
+                                        Join = ServerId.ToString()
+                                    },
+                                    Party = new ActivityParty()
+                                    {
+                                        Id = spid.partyId,
+                                        Size = new PartySize()
+                                        {
+                                            CurrentSize = 1,
+                                            MaxSize = MultiplayerMod.MAX_PLAYERS
+                                        }
                                     }
-                                }
-                            });
-                        break;
-                    }
-                case MessageType.EnemyRigTransform:
-                    {
-                        enemyPoolManager.FindMissingPools();
-                        EnemyRigTransformMessage ertm = new EnemyRigTransformMessage(msg);
-                        Pool pool = enemyPoolManager.GetPool(ertm.enemyType);
-
-                        // HORRID PERFORMANCE
-                        Transform enemyTf = pool.transform.GetChild(ertm.poolChildIdx);
-                        GameObject rootObj = enemyTf.Find("enemyBrett@neutral").gameObject;
-                        BoneworksRigTransforms brt = BWUtil.GetHumanoidRigTransforms(rootObj);
-                        BWUtil.ApplyRigTransform(brt, ertm);
-                        break;
-                    }
-                case MessageType.IdAllocation:
-                    {
-                        IDAllocationMessage iam = new IDAllocationMessage(msg);
-                        GameObject obj = BWUtil.GetObjectFromFullPath(iam.namePath);
-                        ObjectIDManager.AddObject(iam.allocatedId, obj);
-                        obj.AddComponent<IDHolder>().ID = iam.allocatedId;
-                        obj.GetComponent<Rigidbody>().isKinematic = true;
-                        MelonLogger.Log($"ID Allocation: {iam.namePath}, {iam.allocatedId}");
-                        break;
-                    }
-                case MessageType.ObjectSync:
-                    {
-                        ObjectSyncMessage osm = new ObjectSyncMessage(msg);
-                        GameObject obj = ObjectIDManager.GetObject(osm.id);
-
-                        if (!obj)
-                        {
-                            MelonLogger.LogError($"Couldn't find object with ID {osm.id}");
+                                });
+                            break;
                         }
-                        else
+                    case MessageType.EnemyRigTransform:
                         {
-                            obj.transform.position = osm.position;
-                            obj.transform.rotation = osm.rotation;
+                            enemyPoolManager.FindMissingPools();
+                            EnemyRigTransformMessage ertm = new EnemyRigTransformMessage(msg);
+                            Pool pool = enemyPoolManager.GetPool(ertm.enemyType);
+
+                            // HORRID PERFORMANCE
+                            Transform enemyTf = pool.transform.GetChild(ertm.poolChildIdx);
+                            GameObject rootObj = enemyTf.Find("enemyBrett@neutral").gameObject;
+                            BoneworksRigTransforms brt = BWUtil.GetHumanoidRigTransforms(rootObj);
+                            BWUtil.ApplyRigTransform(brt, ertm);
+                            break;
                         }
-                        break;
-                    }
+                    case MessageType.IdAllocation:
+                        {
+                            IDAllocationMessage iam = new IDAllocationMessage(msg);
+                            GameObject obj = BWUtil.GetObjectFromFullPath(iam.namePath);
+                            if (!obj)
+                            {
+                                MelonLogger.LogWarning("Got IdAllocation for nonexistent object???");
+                            }
+                            ObjectIDManager.AddObject(iam.allocatedId, obj);
+
+                            var so = obj.AddComponent<SyncedObject>();
+                            so.ID = iam.allocatedId;
+                            so.owner = iam.initialOwner;
+                            so.rb = obj.GetComponent<Rigidbody>();
+
+                            syncedObjects.Add(so);
+
+                            if (so.owner != localSmallId)
+                                so.rb.isKinematic = true;
+
+                            MelonLogger.Log($"ID Allocation: {iam.namePath}, {so.ID}");
+                            break;
+                        }
+                    case MessageType.ObjectSync:
+                        {
+                            ObjectSyncMessage osm = new ObjectSyncMessage(msg);
+                            GameObject obj = ObjectIDManager.GetObject(osm.id);
+
+                            if (!obj)
+                            {
+                                MelonLogger.LogError($"Couldn't find object with ID {osm.id}");
+                            }
+                            else
+                            {
+                                obj.transform.position = osm.position;
+                                obj.transform.rotation = osm.rotation;
+                            }
+                            break;
+                        }
+                    case MessageType.ChangeObjectOwnership:
+                        {
+                            var coom = new ChangeObjectOwnershipMessage(msg);
+                            var obj = ObjectIDManager.GetObject(coom.objectId);
+                            var so = obj.GetComponent<SyncedObject>();
+                            so.owner = coom.ownerId;
+
+                            if (so.owner == localSmallId)
+                            {
+                                so.rb.isKinematic = false;
+                                so.rb.velocity = coom.linVelocity;
+                                so.rb.angularVelocity = coom.angVelocity;
+                            }
+                            else
+                                so.rb.isKinematic = true;
+
+                            MelonLogger.Log($"Object {coom.objectId} is now owned by {coom.ownerId} (kinematic: {so.rb.isKinematic})");
+
+                            break;
+                        }
+                    case MessageType.SetLocalSmallId:
+                        {
+                            var slsi = new SetLocalSmallIdMessage(msg);
+                            localSmallId = slsi.smallId;
+                            break;
+                        }
+                }
+            } 
+            catch (Exception e)
+            {
+                MelonLogger.LogError($"Caught exception in message handler for message {type}: {e}");
             }
         }
 
@@ -349,7 +465,7 @@ namespace MultiplayerMod.Core
             {
                 foreach (PlayerRep r in playerObjects.Values)
                 {
-                    r.Destroy();
+                    r.Delete();
                 }
             }
             catch (Exception)
@@ -433,6 +549,15 @@ namespace MultiplayerMod.Core
                 {
                     pr.UpdateNameplateFacing(Camera.current.transform);
                     pr.faceAnimator.Update();
+                }
+            }
+
+            foreach (var so in syncedObjects)
+            {
+                if (so.owner == localSmallId && so.NeedsSync())
+                {
+                    var osm = so.CreateSyncMessage();
+                    SendToServer(osm, MessageSendType.Reliable);
                 }
             }
         }

@@ -300,7 +300,7 @@
     <Compile Include="Source\Core\Main.cs" />
     <Compile Include="Source\Core\MultiplayerUI.cs" />
     <Compile Include="Source\MonoBehaviours\IDHolder.cs" />
-    <Compile Include="Source\MonoBehaviours\ServerSyncedObject.cs" />
+    <Compile Include="Source\MonoBehaviours\SyncedObject.cs" />
     <Compile Include="Source\Networking\ITransportLayer.cs" />
     <Compile Include="Source\Networking\NetworkMessages.cs" />
     <Compile Include="Source\Networking\P2PMessage.cs" />

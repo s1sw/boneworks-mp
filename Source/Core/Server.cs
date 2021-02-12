@@ -36,8 +36,7 @@ namespace MultiplayerMod.Core
         private readonly Dictionary<byte, SteamId> largePlayerIds = new Dictionary<byte, SteamId>(MultiplayerMod.MAX_PLAYERS);
         private readonly Dictionary<ulong, ITransportConnection> playerConnections = new Dictionary<ulong, ITransportConnection>(MultiplayerMod.MAX_PLAYERS);
         private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
-        private readonly Dictionary<GameObject, ServerSyncedObject> syncedObjectCache = new Dictionary<GameObject, ServerSyncedObject>();
-        private readonly List<ServerSyncedObject> syncObjs = new List<ServerSyncedObject>();
+        private readonly List<SyncedObject> syncObjs = new List<SyncedObject>();
         private string partyId = "";
         private byte smallIdCounter = 1;
         private BoneworksRigTransforms localRigTransforms;
@@ -157,15 +156,9 @@ namespace MultiplayerMod.Core
 
             foreach (var obj in syncObjs)
             {
-                if (obj.NeedsSync())
+                if (obj.owner == 0 && obj.NeedsSync())
                 {
-                    ObjectSyncMessage osm = new ObjectSyncMessage
-                    {
-                        id = obj.holder.ID,
-                        position = obj.transform.position,
-                        rotation = obj.transform.rotation
-                    };
-                    ServerSendToAll(osm, MessageSendType.Unreliable);
+                    ServerSendToAll(obj.CreateSyncMessage(), MessageSendType.Unreliable);
                     obj.UpdateLastSync();
                 }
             }
@@ -173,6 +166,7 @@ namespace MultiplayerMod.Core
 
         private void MultiplayerMod_OnLevelWasLoadedEvent(int level)
         {
+            syncObjs.Clear();
             SceneTransitionMessage stm = new SceneTransitionMessage
             {
                 sceneName = BoneworksSceneManager.GetSceneNameFromScenePath(level)
@@ -233,7 +227,7 @@ namespace MultiplayerMod.Core
                         disconnectMsg.WriteByte((byte)MessageType.Disconnect);
                         disconnectMsg.WriteByte(smallId);
 
-                        playerObjects[smallId].Destroy();
+                        playerObjects[smallId].Delete();
                         playerObjects.Remove(smallId);
                         players.RemoveAll((ulong val) => val == connection.ConnectedTo);
                         smallPlayerIds.Remove(connection.ConnectedTo);
@@ -333,7 +327,7 @@ namespace MultiplayerMod.Core
                             smallPlayerIds.Add(connection.ConnectedTo, newPlayerId);
 
                             if (largePlayerIds.ContainsKey(newPlayerId))
-                                        largePlayerIds.Remove(newPlayerId);
+                                largePlayerIds.Remove(newPlayerId);
 
                             largePlayerIds.Add(newPlayerId, connection.ConnectedTo);
                             smallIdCounter++;
@@ -410,6 +404,23 @@ namespace MultiplayerMod.Core
                             };
                             connection.SendMessage(spid.MakeMsg(), MessageSendType.Reliable);
 
+                            SetLocalSmallIdMessage slsi = new SetLocalSmallIdMessage()
+                            {
+                                smallId = newPlayerId
+                            };
+                            connection.SendMessage(slsi.MakeMsg(), MessageSendType.Reliable);
+
+                            foreach (var so in syncObjs)
+                            {
+                                var iam = new IDAllocationMessage
+                                {
+                                    allocatedId = so.ID,
+                                    namePath = BWUtil.GetFullNamePath(so.gameObject),
+                                    initialOwner = so.owner
+                                };
+                                connection.SendMessage(iam.MakeMsg(), MessageSendType.Reliable);
+                            }
+
                             ui.SetPlayerCount(players.Count, MultiplayerUIState.Server);
 
                             foreach (PlayerRep pr in playerObjects.Values)
@@ -425,7 +436,7 @@ namespace MultiplayerMod.Core
                         MelonLogger.Log("Player left with ID: " + connection.ConnectedTo);
                         byte smallId = smallPlayerIds[connection.ConnectedTo];
 
-                        playerObjects[smallId].Destroy();
+                        playerObjects[smallId].Delete();
                         playerObjects.Remove(smallId);
                         players.RemoveAll((ulong val) => val == connection.ConnectedTo);
                         smallPlayerIds.Remove(connection.ConnectedTo);
@@ -514,9 +525,75 @@ namespace MultiplayerMod.Core
                     }
                 case MessageType.IdRequest:
                     {
-                        IDRequestMessage idrqm = new IDRequestMessage(msg);
+                        var idrqm = new IDRequestMessage(msg);
                         MelonLogger.Log("ID request: " + idrqm.namePath);
-                        BWUtil.GetObjectFromFullPath(idrqm.namePath);
+                        var obj = BWUtil.GetObjectFromFullPath(idrqm.namePath);
+
+                        SetupSyncFor(obj, idrqm.initialOwner);
+                        break;
+                    }
+                case MessageType.ChangeObjectOwnership:
+                    {
+                        var coom = new ChangeObjectOwnershipMessage(msg);
+
+                        if (coom.ownerId != smallPlayerIds[connection.ConnectedTo] && coom.ownerId != 0)
+                        {
+                            MelonLogger.LogError("Invalid object ownership change??");
+                        }
+
+                        if (!ObjectIDManager.objects.ContainsKey(coom.objectId))
+                        {
+                            MelonLogger.LogError($"Got ownership change for invalid object ID {coom.objectId}");
+                        }
+
+                        MelonLogger.Log($"Object {coom.objectId} is now owned by {coom.ownerId}");
+
+                        var obj = ObjectIDManager.GetObject(coom.objectId);
+                        var so = obj.GetComponent<SyncedObject>();
+                        so.owner = coom.ownerId;
+
+                        if (so.owner != 0)
+                        {
+                            coom.linVelocity = so.rb.velocity;
+                            coom.angVelocity = so.rb.angularVelocity;
+                            so.rb.isKinematic = true;
+                        }
+                        else if (so.owner == 0)
+                        {
+                            so.rb.isKinematic = false;
+                            so.rb.velocity = coom.linVelocity;
+                            so.rb.angularVelocity = coom.angVelocity;
+                        }
+
+                        ServerSendToAll(coom, MessageSendType.Reliable);
+                        break;
+                    }
+                case MessageType.ObjectSync:
+                    {
+                        ObjectSyncMessage osm = new ObjectSyncMessage(msg);
+                        GameObject obj = ObjectIDManager.GetObject(osm.id);
+
+                        var so = obj.GetComponent<SyncedObject>();
+
+                        if (!obj)
+                        {
+                            MelonLogger.LogError($"Couldn't find object with ID {osm.id}");
+                        }
+                        else
+                        {
+                            if (so.owner != smallPlayerIds[connection.ConnectedTo])
+                            {
+                                MelonLogger.LogError("Got object sync from client that doesn't own the object");
+                            }
+                            else
+                            {
+                                obj.transform.position = osm.position;
+                                obj.transform.rotation = osm.rotation;
+
+                                ServerSendToAllExcept(osm, MessageSendType.Reliable, connection.ConnectedTo);
+                            }
+                        }
+
                         break;
                     }
                 default:
@@ -534,7 +611,7 @@ namespace MultiplayerMod.Core
             {
                 foreach (PlayerRep r in playerObjects.Values)
                 {
-                    r.Destroy();
+                    r.Delete();
                 }
             }
             catch (Exception)
@@ -562,6 +639,8 @@ namespace MultiplayerMod.Core
             transportLayer.OnMessageReceived -= TransportLayer_OnMessageReceived;
             transportLayer.OnConnectionClosed -= TransportLayer_OnConnectionClosed;
             GunHooks.OnGunFire -= GunHooks_OnGunFire;
+            PlayerHooks.OnPlayerGrabObject -= PlayerHooks_OnPlayerGrabObject;
+            PlayerHooks.OnPlayerReleaseObject -= PlayerHooks_OnPlayerReleaseObject;
             transportLayer.StopListening();
 
             MultiplayerMod.OnLevelWasLoadedEvent -= MultiplayerMod_OnLevelWasLoadedEvent;
@@ -574,14 +653,17 @@ namespace MultiplayerMod.Core
 
         private void PlayerHooks_OnPlayerGrabObject(GameObject obj)
         {
-            var rb = obj.GetComponentInParent<Rigidbody>();
+            var col = obj.GetComponent<Collider>();
+            var rb = col.attachedRigidbody;
             if (rb == null)
             {
                 MelonLogger.LogWarning("Grabbed non-RB!!!");
                 return;
             }
             MelonLogger.Log($"Grabbed {rb.gameObject.name}");
-            SetupSyncFor(rb.gameObject);
+
+            if (rb.gameObject.GetComponent<SyncedObject>() == null)
+                SetupSyncFor(rb.gameObject);
         }
 
         private void ServerSendToAll(INetworkMessage msg, MessageSendType send)
@@ -609,19 +691,22 @@ namespace MultiplayerMod.Core
             playerConnections[id].SendMessage(pMsg, send);
         }
 
-        public void SetupSyncFor(GameObject obj)
+        public void SetupSyncFor(GameObject obj, byte initialOwner = 0)
         {
             ushort id = ObjectIDManager.AllocateID();
-            var holder = obj.AddComponent<IDHolder>();
-            holder.ID = id;
+            ObjectIDManager.AddObject(id, obj);
 
-            var sso = obj.AddComponent<ServerSyncedObject>();
-            syncObjs.Add(sso);
+            var so = obj.AddComponent<SyncedObject>();
+            so.owner = initialOwner;
+            so.ID = id;
+            so.rb = obj.GetComponent<Rigidbody>();
+            syncObjs.Add(so);
 
-            IDAllocationMessage iam = new IDAllocationMessage
+            var iam = new IDAllocationMessage
             {
                 allocatedId = id,
-                namePath = BWUtil.GetFullNamePath(obj)
+                namePath = BWUtil.GetFullNamePath(obj),
+                initialOwner = so.owner
             };
             ServerSendToAll(iam, MessageSendType.Reliable);
         }

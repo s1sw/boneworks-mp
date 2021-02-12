@@ -136,7 +136,7 @@ namespace MultiplayerMod.Representations
             GameObject.Destroy(rightGun.transform.Find("attachment_Lazer_Omni").gameObject);
 
             // Create an anchor object to hold the rep's gun
-            gunLParent = new GameObject("gunRParent");
+            gunLParent = new GameObject("gunLParent");
             gunLParent.transform.parent = realRoot.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/l_Arm_ClavicleSHJnt/l_AC_AuxSHJnt/l_Arm_ShoulderSHJnt/l_Arm_Elbow_CurveSHJnt/l_WristSHJnt/l_Hand_1SHJnt");
             gunLParent.transform.localPosition = new Vector3(-0.0941f, 0.0452f, 0.0945f);
             gunLParent.transform.localEulerAngles = new Vector3(3.711f, -81.86301f, -157.739f);
@@ -152,6 +152,18 @@ namespace MultiplayerMod.Representations
             GameObject.Destroy(leftGun.GetComponent<ConfigurableJoint>());
             GameObject.Destroy(leftGun.transform.Find("attachment_Lazer_Omni").gameObject);
             GameObject.Destroy(leftGun.GetComponent<ImpactProperties>());
+
+            foreach (var renderer in gunLParent.GetComponentsInChildren<Renderer>())
+                renderer.enabled = false;
+
+            foreach (var renderer in gunRParent.GetComponentsInChildren<Renderer>())
+                renderer.enabled = false;
+
+            foreach (var col in gunLParent.GetComponentsInChildren<Collider>())
+                Destroy(col);
+
+            foreach (var col in gunRParent.GetComponentsInChildren<Collider>())
+                Destroy(col);
 
             // If for whatever reason this is needed, show or hide the rep's body and hair
             root.transform.Find("geoGrp/brett_body").GetComponent<SkinnedMeshRenderer>().enabled = showBody;
@@ -241,14 +253,14 @@ namespace MultiplayerMod.Representations
         }
 
         // Destroys the GameObjects stored inside this class, preparing this instance for deletion
-        public void Destroy()
+        public void Delete()
         {
-            UnityEngine.Object.Destroy(ford);
-            UnityEngine.Object.Destroy(head);
-            UnityEngine.Object.Destroy(handL);
-            UnityEngine.Object.Destroy(handR);
-            UnityEngine.Object.Destroy(pelvis);
-            UnityEngine.Object.Destroy(namePlate);
+            Destroy(ford);
+            Destroy(head);
+            Destroy(handL);
+            Destroy(handR);
+            Destroy(pelvis);
+            Destroy(namePlate);
         }
 
         // Applies the information recieved from the Transform packet

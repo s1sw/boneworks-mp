@@ -2,6 +2,7 @@
 using Facepunch.Steamworks.Data;
 using MelonLoader;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Permissions;
@@ -57,7 +58,7 @@ namespace MultiplayerMod.Networking
 
         private readonly Thread msgThread;
         private readonly Dictionary<ulong, SteamTransportConnection> connections = new Dictionary<ulong, SteamTransportConnection>();
-        internal static readonly Queue<MessageSendCmd> messageSendCmds = new Queue<MessageSendCmd>();
+        internal static readonly ConcurrentQueue<MessageSendCmd> messageSendCmds = new ConcurrentQueue<MessageSendCmd>();
 
         public SteamTransportLayer()
         {
@@ -157,13 +158,21 @@ namespace MultiplayerMod.Networking
         {
             while (true)
             {
-                if (messageSendCmds.Count == 0)
-                    Thread.Sleep(5);
-
-                while (messageSendCmds.Count > 0)
+                try
                 {
-                    MessageSendCmd sendCmd = messageSendCmds.Dequeue();
-                    SteamNetworking.SendP2PPacket(sendCmd.id, sendCmd.msg.GetBytes(), -1, 0, sendCmd.sendType == MessageSendType.Reliable ? P2PSend.Reliable : P2PSend.Unreliable);
+                    if (messageSendCmds.Count == 0)
+                        Thread.Sleep(5);
+
+                    while (messageSendCmds.Count > 0)
+                    {
+                        MessageSendCmd sendCmd;
+                        while (!messageSendCmds.TryDequeue(out sendCmd)) continue;
+                        SteamNetworking.SendP2PPacket(sendCmd.id, sendCmd.msg.GetBytes(), -1, 0, sendCmd.sendType == MessageSendType.Reliable ? P2PSend.Reliable : P2PSend.Unreliable);
+                    }
+                }
+                catch (Exception e)
+                {
+                    MelonLogger.LogError($"Caught exception in message send thread: {e}");
                 }
             }
         }

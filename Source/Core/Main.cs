@@ -79,8 +79,7 @@ namespace MultiplayerMod
 
             BWUtil.Hook();
 
-            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<ServerSyncedObject>();
-            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<IDHolder>();
+            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<SyncedObject>();
         }
 
         public override void OnLevelWasLoaded(int level)
@@ -146,7 +145,7 @@ namespace MultiplayerMod
                 if (dummyRep == null)
                     dummyRep = new PlayerRep("Dummy", SteamClient.SteamId);
                 else
-                    dummyRep.Destroy();
+                    dummyRep.Delete();
             }
 
             if (GUILayout.Button("Create Main Panel", null))

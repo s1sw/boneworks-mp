@@ -39,7 +39,9 @@ namespace MultiplayerMod.Networking
         ObjectSync,
         GunFire,
         GunFireHit,
-        Death
+        Death,
+        ChangeObjectOwnership,
+        SetLocalSmallId
     }
 
     public interface INetworkMessage
@@ -781,6 +783,7 @@ namespace MultiplayerMod.Networking
     {
         public string namePath;
         public ushort allocatedId;
+        public byte initialOwner;
 
         public IDAllocationMessage()
         {
@@ -791,6 +794,7 @@ namespace MultiplayerMod.Networking
         {
             namePath = msg.ReadUnicodeString();
             allocatedId = msg.ReadUShort();
+            initialOwner = msg.ReadByte();
         }
 
         public P2PMessage MakeMsg()
@@ -800,6 +804,7 @@ namespace MultiplayerMod.Networking
             msg.WriteByte((byte)MessageType.IdAllocation);
             msg.WriteUnicodeString(namePath);
             msg.WriteUShort(allocatedId);
+            msg.WriteByte(initialOwner);
 
             return msg;
         }
@@ -808,6 +813,7 @@ namespace MultiplayerMod.Networking
     public class IDRequestMessage : INetworkMessage
     {
         public string namePath;
+        public byte initialOwner;
 
         public IDRequestMessage()
         {
@@ -817,6 +823,7 @@ namespace MultiplayerMod.Networking
         public IDRequestMessage(P2PMessage msg)
         {
             namePath = msg.ReadUnicodeString();
+            initialOwner = msg.ReadByte();
         }
 
         public P2PMessage MakeMsg()
@@ -825,6 +832,7 @@ namespace MultiplayerMod.Networking
 
             msg.WriteByte((byte)MessageType.IdRequest);
             msg.WriteUnicodeString(namePath);
+            msg.WriteByte(initialOwner);
 
             return msg;
         }
@@ -854,6 +862,55 @@ namespace MultiplayerMod.Networking
             msg.WriteVector3(position);
             msg.WriteCompressedQuaternion(rotation);
 
+            return msg;
+        }
+    }
+
+    public class ChangeObjectOwnershipMessage : INetworkMessage
+    {
+        public ushort objectId;
+        public byte ownerId;
+        public Vector3 linVelocity;
+        public Vector3 angVelocity;
+
+        public ChangeObjectOwnershipMessage()
+        { }
+
+        public ChangeObjectOwnershipMessage(P2PMessage msg)
+        {
+            objectId = msg.ReadUShort();
+            ownerId = msg.ReadByte();
+            linVelocity = msg.ReadVector3();
+            angVelocity = msg.ReadVector3();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.ChangeObjectOwnership);
+            msg.WriteUShort(objectId);
+            msg.WriteByte(ownerId);
+            msg.WriteVector3(linVelocity);
+            msg.WriteVector3(angVelocity);
+            return msg;
+        }
+    }
+
+    public class SetLocalSmallIdMessage : INetworkMessage
+    {
+        public byte smallId;
+
+        public SetLocalSmallIdMessage() { }
+        public SetLocalSmallIdMessage(P2PMessage msg)
+        {
+            smallId = msg.ReadByte();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.SetLocalSmallId);
+            msg.WriteByte(smallId);
             return msg;
         }
     }
