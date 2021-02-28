@@ -9,5 +9,7 @@ namespace MultiplayerMod.Structs
         public Transform rtHand;
         public Transform head;
         public Transform pelvis;
+        public Transform lfFoot;
+        public Transform rtFoot;
     }
 }

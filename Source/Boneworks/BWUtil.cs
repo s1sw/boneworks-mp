@@ -135,7 +135,9 @@ namespace MultiplayerMod
                 head = root.transform.Find("Head"),
                 lfHand = root.transform.Find("Hand (left)"),
                 rtHand = root.transform.Find("Hand (right)"),
-                pelvis = root.transform.Find("Pelvis")
+                pelvis = root.transform.Find("Pelvis"),
+                lfFoot = root.transform.Find("Food (left)"),
+                rtFoot = root.transform.Find("Foot (right)")
             };
 
             return brt;
@@ -157,6 +159,12 @@ namespace MultiplayerMod
 
             rigTransforms.pelvis.position = tfMsg.pos_pelvis;
             rigTransforms.pelvis.rotation = tfMsg.rot_pelvis;
+
+            rigTransforms.rtFoot.position = tfMsg.pos_rtFoot;
+            rigTransforms.rtFoot.rotation = tfMsg.rot_rtFoot;
+
+            rigTransforms.lfFoot.position = tfMsg.pos_lfFoot;
+            rigTransforms.lfFoot.rotation = tfMsg.rot_lfFoot;
 
         }
 

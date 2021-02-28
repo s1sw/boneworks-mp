@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿/*using UnityEngine;
 
 namespace MultiplayerMod.Source.Representations
 {
@@ -68,7 +68,7 @@ namespace MultiplayerMod.Source.Representations
                 {
                     animator.SetInteger("State", (int)faceState);
                 }
-            }*/
+            }
         }
     }
-}
+}*/

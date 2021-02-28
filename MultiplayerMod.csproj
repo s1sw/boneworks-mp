@@ -307,6 +307,7 @@
     <Compile Include="Source\Networking\NetworkMessages.cs" />
     <Compile Include="Source\Networking\P2PMessage.cs" />
     <Compile Include="Source\Networking\SteamTransportLayer.cs" />
+    <Compile Include="Source\Representations\IKAnimator.cs" />
     <Compile Include="Source\Representations\FaceAnimator.cs" />
     <Compile Include="Source\Representations\PlayerRep.cs" />
     <Compile Include="Source\Core\RichPresence.cs" />

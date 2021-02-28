@@ -47,12 +47,7 @@ namespace MultiplayerMod.Representations
         public Gun leftGunScript;
         public BulletObject leftBulletObject;
         public GameObject gunLParent;
-        public FaceAnimator faceAnimator;
-        public SLZ_Body body;
-        public SLZ_BodyBlender bodyblend;
-        public Vector3 lastPelvisPosition;
-        public Vector3 lastPelvisVelocity;
-        public float lastFrameTime;
+        public IKAnimator ikAnimator;
 
         public static AssetBundle fordBundle;
 
@@ -112,10 +107,6 @@ namespace MultiplayerMod.Representations
             //faceAnimator.animator = root.GetComponent<Animator>();
             //faceAnimator.faceTime = 10;
 
-            bodyblend = root.GetComponent<SLZ_BodyBlender>();
-            body = ford.transform.Find("Ford/Body").gameObject.GetComponent<SLZ_Body>();
-            body.OnStart();
-
             Transform realRoot = root.transform.Find("SHJntGrp/MAINSHJnt/ROOTSHJnt"); // Then get the head's root joint
 
             // Assign targets for the IK system
@@ -131,7 +122,7 @@ namespace MultiplayerMod.Representations
             PopUpMenuView menu = rig.GetComponentInChildren<PopUpMenuView>();
             GameObject spawnGun = menu.utilityGunSpawnable.prefab;
             SpawnableMasterListData masterList = spawnGun.GetComponent<SpawnGun>().masterList;
-            rightGun = Instantiate(masterList.objects[124].prefab.transform.Find("Physics/Root/Gun").gameObject);
+            rightGun = Instantiate(masterList.objects[MultiplayerMod.gunOffset].prefab.transform.Find("Physics/Root/Gun").gameObject);
             rightGun.GetComponent<Rigidbody>().isKinematic = true;
             rightGun.transform.parent = gunRParent.transform;
             rightGun.transform.localPosition = Vector3.zero;
@@ -151,7 +142,7 @@ namespace MultiplayerMod.Representations
             gunLParent.transform.localPosition = new Vector3(-0.0941f, 0.0452f, 0.0945f);
             gunLParent.transform.localEulerAngles = new Vector3(3.711f, -81.86301f, -157.739f);
 
-            leftGun = Instantiate(masterList.objects[124].prefab.transform.Find("Physics/Root/Gun").gameObject);
+            leftGun = Instantiate(masterList.objects[MultiplayerMod.gunOffset].prefab.transform.Find("Physics/Root/Gun").gameObject);
             leftGun.GetComponent<Rigidbody>().isKinematic = true;
             leftGun.transform.parent = gunLParent.transform;
             leftGun.transform.localPosition = Vector3.zero;
@@ -175,6 +166,8 @@ namespace MultiplayerMod.Representations
             handL = rigTransforms.lfHand.gameObject;
             handR = rigTransforms.rtHand.gameObject;
             pelvis = rigTransforms.pelvis.gameObject;
+            footL = rigTransforms.lfFoot.gameObject;
+            footR = rigTransforms.rtFoot.gameObject;
 
             // Create the nameplate and assign values to the TMP's vars
             namePlate = new GameObject("Nameplate");
@@ -193,6 +186,12 @@ namespace MultiplayerMod.Representations
             Extras.SpecialUsers.GiveUniqueAppearances(steamId, realRoot, tm);
 
             this.ford = ford;
+
+            ikAnimator = new IKAnimator();
+            ikAnimator.pelvis = pelvis.transform;
+            ikAnimator.slzBody_Blend = root.GetComponent<SLZ_BodyBlender>();
+            ikAnimator.slzBody = ford.transform.Find("Ford/Body").gameObject.GetComponent<SLZ_Body>();
+            ikAnimator.slzBody.OnStart();
         }
 
         private IEnumerator AsyncAvatarRoutine(SteamId id)

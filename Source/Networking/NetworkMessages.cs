@@ -375,12 +375,16 @@ namespace MultiplayerMod.Networking
         public Vector3 pos_root;
         public Vector3 pos_lfHand;
         public Vector3 pos_rtHand;
+        public Vector3 pos_rtFoot;
+        public Vector3 pos_lfFoot;
         public Vector3 pos_head;
         public Vector3 pos_pelvis;
 
         public Quaternion rot_root;
         public Quaternion rot_lfHand;
         public Quaternion rot_rtHand;
+        public Quaternion rot_lfFoot;
+        public Quaternion rot_rtFoot;
         public Quaternion rot_head;
         public Quaternion rot_pelvis;
     }
@@ -400,12 +404,16 @@ namespace MultiplayerMod.Networking
             pos_rtHand = msg.ReadVector3();
             pos_head = msg.ReadVector3();
             pos_pelvis = msg.ReadVector3();
+            pos_rtFoot = msg.ReadVector3();
+            pos_lfFoot = msg.ReadVector3();
 
             rot_root = msg.ReadSmallerCompressedQuaternion();
             rot_lfHand = msg.ReadSmallerCompressedQuaternion();
             rot_rtHand = msg.ReadSmallerCompressedQuaternion();
             rot_head = msg.ReadSmallerCompressedQuaternion();
             rot_pelvis = msg.ReadSmallerCompressedQuaternion();
+            rot_rtFoot = msg.ReadSmallerCompressedQuaternion();
+            rot_lfFoot = msg.ReadSmallerCompressedQuaternion();
         }
 
         public P2PMessage MakeMsg()
@@ -417,12 +425,16 @@ namespace MultiplayerMod.Networking
             msg.WriteVector3(pos_rtHand);
             msg.WriteVector3(pos_head);
             msg.WriteVector3(pos_pelvis);
+            msg.WriteVector3(pos_rtFoot);
+            msg.WriteVector3(pos_lfFoot);
 
             msg.WriteSmallerCompressedQuaternion(rot_root);
             msg.WriteSmallerCompressedQuaternion(rot_lfHand);
             msg.WriteSmallerCompressedQuaternion(rot_rtHand);
             msg.WriteSmallerCompressedQuaternion(rot_head);
             msg.WriteSmallerCompressedQuaternion(rot_pelvis);
+            msg.WriteSmallerCompressedQuaternion(rot_rtFoot);
+            msg.WriteSmallerCompressedQuaternion(rot_lfFoot);
             return msg;
         }
     }
@@ -444,12 +456,16 @@ namespace MultiplayerMod.Networking
             pos_rtHand = msg.ReadVector3();
             pos_head = msg.ReadVector3();
             pos_pelvis = msg.ReadVector3();
+            pos_rtFoot = msg.ReadVector3();
+            pos_lfFoot = msg.ReadVector3();
 
             rot_root = msg.ReadSmallerCompressedQuaternion();
             rot_lfHand = msg.ReadSmallerCompressedQuaternion();
             rot_rtHand = msg.ReadSmallerCompressedQuaternion();
             rot_head = msg.ReadSmallerCompressedQuaternion();
             rot_pelvis = msg.ReadSmallerCompressedQuaternion();
+            rot_rtFoot = msg.ReadSmallerCompressedQuaternion();
+            rot_lfFoot = msg.ReadSmallerCompressedQuaternion();
         }
 
         public P2PMessage MakeMsg()
@@ -462,12 +478,16 @@ namespace MultiplayerMod.Networking
             msg.WriteVector3(pos_rtHand);
             msg.WriteVector3(pos_head);
             msg.WriteVector3(pos_pelvis);
+            msg.WriteVector3(pos_lfFoot);
+            msg.WriteVector3(pos_rtFoot);
 
             msg.WriteSmallerCompressedQuaternion(rot_root);
             msg.WriteSmallerCompressedQuaternion(rot_lfHand);
             msg.WriteSmallerCompressedQuaternion(rot_rtHand);
             msg.WriteSmallerCompressedQuaternion(rot_head);
             msg.WriteSmallerCompressedQuaternion(rot_pelvis);
+            msg.WriteSmallerCompressedQuaternion(rot_lfFoot);
+            msg.WriteSmallerCompressedQuaternion(rot_rtFoot);
 
             return msg;
         }

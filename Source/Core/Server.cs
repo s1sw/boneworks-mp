@@ -76,12 +76,11 @@ namespace MultiplayerMod.Core
 
         public void Update()
         {
+           
             transportLayer.Update();
             if (SceneLoader.loading) return;
-
             if (localRigTransforms.root == null)
                 localRigTransforms = BWUtil.GetLocalRigTransforms();
-
             if (localRigTransforms.root != null)
             {
                 OtherFullRigTransformMessage ofrtm = new OtherFullRigTransformMessage
@@ -92,28 +91,23 @@ namespace MultiplayerMod.Core
                     pos_lfHand = localRigTransforms.lfHand.position,
                     pos_rtHand = localRigTransforms.rtHand.position,
                     pos_pelvis = localRigTransforms.pelvis.position,
+                    pos_lfFoot = localRigTransforms.lfFoot.position,
+                    pos_rtFoot = localRigTransforms.rtFoot.position,
                     rot_root = localRigTransforms.root.rotation,
                     rot_head = localRigTransforms.head.rotation,
                     rot_lfHand = localRigTransforms.lfHand.rotation,
                     rot_rtHand = localRigTransforms.rtHand.rotation,
+                    rot_lfFoot = localRigTransforms.lfFoot.rotation,
+                    rot_rtFoot = localRigTransforms.rtFoot.rotation,
                     rot_pelvis = localRigTransforms.pelvis.rotation
                 };
 
                 ServerSendToAll(ofrtm, MessageSendType.Unreliable);
             }
-
             foreach (PlayerRep pr in playerObjects.Values)
             {
                 pr.UpdateNameplateFacing(Camera.current.transform);
-                //pr.faceAnimator.Update();
-
-                Vector3 pelvisVel = pr.rigTransforms.pelvis.position - pr.lastPelvisPosition;
-                Vector3 pelvisAccel = (pelvisVel - pr.lastPelvisVelocity) / (pr.lastFrameTime + Time.deltaTime);
-                pr.body.FullBodyUpdate(pelvisVel, pelvisAccel);
-                pr.bodyblend.UpdateBlender();
-                pr.lastPelvisPosition = pr.rigTransforms.pelvis.position;
-                pr.lastPelvisVelocity = pelvisVel;
-                pr.lastFrameTime = Time.deltaTime;
+                pr.ikAnimator.Update();
             }
         }
 
@@ -245,8 +239,8 @@ namespace MultiplayerMod.Core
                                 exitVelocity = gfm.exitVelocity,
                                 muzzleVelocity = gfm.muzzleVelocity
                             };
-                            pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Angry;
-                            pr.faceAnimator.faceTime = 5;
+                            //pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Angry;
+                            //pr.faceAnimator.faceTime = 5;
                             ServerSendToAllExcept(gfmo, MessageSendType.Reliable, connection.ConnectedTo);
                         }
                         break;
@@ -358,8 +352,8 @@ namespace MultiplayerMod.Core
 
                             foreach (PlayerRep pr in playerObjects.Values)
                             {
-                                pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Happy;
-                                pr.faceAnimator.faceTime = 15;
+                                //pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Happy;
+                                //pr.faceAnimator.faceTime = 15;
                             }
                         }
                         break;
@@ -384,8 +378,8 @@ namespace MultiplayerMod.Core
                         }
                         foreach (PlayerRep pr in playerObjects.Values)
                         {
-                            pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Sad;
-                            pr.faceAnimator.faceTime = 6;
+                            //pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Sad;
+                            //pr.faceAnimator.faceTime = 6;
                         }
                         break;
                     }

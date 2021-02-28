@@ -23,6 +23,9 @@ using MultiplayerMod.Core;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Representations;
 using MultiplayerMod.Networking;
+using BoneworksModdingToolkit;
+using StressLevelZero.UI.Radial;
+using StressLevelZero.Data;
 
 namespace MultiplayerMod
 {
@@ -89,7 +92,24 @@ namespace MultiplayerMod
             MelonLogger.Log("Loaded scene " + level.ToString() + "(" + BoneworksSceneManager.GetSceneNameFromScenePath(level) + ") (from " + SceneManager.GetActiveScene().name + ")");
 
             OnLevelWasLoadedEvent?.Invoke(level);
+            if (gunOffset == -1)
+            {
+                GameObject rig = Player.FindRigManager();
+                PopUpMenuView menu = rig.GetComponentInChildren<PopUpMenuView>();
+                GameObject spawnGun = menu.utilityGunSpawnable.prefab;
+                SpawnableMasterListData masterList = spawnGun.GetComponent<SpawnGun>().masterList;
+
+                for (int i = 0; i < masterList.objects.Count; i++)
+                {
+                    if (masterList.objects[i].title == "Omni Projector")
+                    {
+                        gunOffset = i;
+                    }
+                }
+            }
         }
+
+        public static int gunOffset = -1;
 
         public override void OnLevelWasInitialized(int level)
         {

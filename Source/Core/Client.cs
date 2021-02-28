@@ -164,8 +164,8 @@ namespace MultiplayerMod.Core
                             pr.leftGunScript.PullCartridge();
                             pr.leftGunScript.Fire();
                         }
-                        pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Angry;
-                        pr.faceAnimator.faceTime = 5;
+                        //pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Angry;
+                        //pr.faceAnimator.faceTime = 5;
                         break;
                     }
                 case MessageType.OtherPlayerPosition:
@@ -225,8 +225,8 @@ namespace MultiplayerMod.Core
 
                         foreach (PlayerRep pr in playerObjects.Values)
                         {
-                            pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Sad;
-                            pr.faceAnimator.faceTime = 10;
+                            //pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Sad;
+                            //pr.faceAnimator.faceTime = 10;
                         }
                         break;
                     }
@@ -254,8 +254,8 @@ namespace MultiplayerMod.Core
 
                         foreach (PlayerRep pr in playerObjects.Values)
                         {
-                            pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Happy;
-                            pr.faceAnimator.faceTime = 15;
+                            //pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Happy;
+                            //pr.faceAnimator.faceTime = 15;
                         }
                         break;
                     }
@@ -282,19 +282,6 @@ namespace MultiplayerMod.Core
                             });
                         break;
                     }
-                /*case MessageType.EnemyRigTransform:
-                    {
-                        enemyPoolManager.FindMissingPools();
-                        EnemyRigTransformMessage ertm = new EnemyRigTransformMessage(msg);
-                        Pool pool = enemyPoolManager.GetPool(ertm.enemyType);
-
-                        // HORRID PERFORMANCE
-                        Transform enemyTf = pool.transform.GetChild(ertm.poolChildIdx);
-                        GameObject rootObj = enemyTf.Find("enemyBrett@neutral").gameObject;
-                        BoneworksRigTransforms brt = BWUtil.GetHumanoidRigTransforms(rootObj);
-                        BWUtil.ApplyRigTransform(brt, ertm);
-                        break;
-                    }*/
                 case MessageType.IdAllocation:
                     {
                         IDAllocationMessage iam = new IDAllocationMessage(msg);
@@ -386,10 +373,14 @@ namespace MultiplayerMod.Core
                     pos_lfHand = localRigTransforms.lfHand.position,
                     pos_rtHand = localRigTransforms.rtHand.position,
                     pos_pelvis = localRigTransforms.pelvis.position,
+                    pos_lfFoot = localRigTransforms.lfFoot.position,
+                    pos_rtFoot = localRigTransforms.rtFoot.position,
                     rot_root = localRigTransforms.root.rotation,
                     rot_head = localRigTransforms.head.rotation,
                     rot_lfHand = localRigTransforms.lfHand.rotation,
                     rot_rtHand = localRigTransforms.rtHand.rotation,
+                    rot_lfFoot = localRigTransforms.lfFoot.rotation,
+                    rot_rtFoot = localRigTransforms.rtFoot.rotation,
                     rot_pelvis = localRigTransforms.pelvis.rotation
                     
                 };
@@ -399,15 +390,7 @@ namespace MultiplayerMod.Core
                 foreach (PlayerRep pr in playerObjects.Values)
                 {
                     pr.UpdateNameplateFacing(Camera.current.transform);
-                    pr.faceAnimator.Update();
-
-                    Vector3 pelvisVel = pr.rigTransforms.pelvis.position - pr.lastPelvisPosition;
-                    Vector3 pelvisAccel = (pelvisVel - pr.lastPelvisVelocity) / (pr.lastFrameTime + Time.deltaTime);
-                    pr.body.FullBodyUpdate(pelvisVel, pelvisAccel);
-                    pr.bodyblend.UpdateBlender();
-                    pr.lastPelvisPosition = pr.rigTransforms.pelvis.position;
-                    pr.lastPelvisVelocity = pelvisVel;
-                    pr.lastFrameTime = Time.deltaTime;
+                    pr.ikAnimator.Update();
                 }
             }
         }
