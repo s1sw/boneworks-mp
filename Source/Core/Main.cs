@@ -33,8 +33,8 @@ namespace MultiplayerMod
         public const byte PROTOCOL_VERSION = 31;
 
         private MultiplayerUI ui;
-        private Client client;
-        private Server server;
+        public static Client client;
+        public static Server server;
 
         internal static event Action<int> OnLevelWasLoadedEvent;
         internal static event Action<int> OnLevelWasInitializedEvent;
@@ -79,12 +79,13 @@ namespace MultiplayerMod
             BWUtil.Hook();
         }
 
+        public static Player_Health playerHealth;
         public override void OnLevelWasLoaded(int level)
         {
             if (level == -1) return;
 
             MelonLogger.Log("Loaded scene " + level.ToString() + "(" + BoneworksSceneManager.GetSceneNameFromScenePath(level) + ") (from " + SceneManager.GetActiveScene().name + ")");
-
+            playerHealth = BoneworksModdingToolkit.Player.FindRigManager().GetComponent<Player_Health>();
             OnLevelWasLoadedEvent?.Invoke(level);
         }
 
@@ -142,12 +143,6 @@ namespace MultiplayerMod
                     dummyRep = new PlayerRep("Dummy", SteamClient.SteamId);
                 else
                     dummyRep.Destroy();
-            }
-
-            if (GUILayout.Button("Test Guard Lists", null))
-            {
-                Features.Guard.AddUserToList(Guid.NewGuid().ToString(), Features.Guard.Lists.Blocked);
-                Features.Guard.AddUserToList(Guid.NewGuid().ToString(), Features.Guard.Lists.Trusted);
             }
 
             if (GUILayout.Button("Create Main Panel", null))

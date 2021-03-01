@@ -17,6 +17,7 @@ using StressLevelZero.Combat;
 using BoneworksModdingToolkit;
 using StressLevelZero.UI.Radial;
 using StressLevelZero.Data;
+using MultiplayerMod.Source.Boneworks;
 
 namespace MultiplayerMod.Representations
 {
@@ -71,6 +72,9 @@ namespace MultiplayerMod.Representations
 
             // Create this player's "Ford" to represent them, known as their rep
             GameObject ford = Instantiate(fordBundle.LoadAsset("Assets/Ford.prefab").Cast<GameObject>());
+            ford.tag = ProjectilePatch.mpTag;
+            ford.name = steamId.ToString();
+            MelonLogger.Log("test:" + steamId.ToString());
 
             // Makes sure that the rep isn't destroyed per level change.
             DontDestroyOnLoad(ford);

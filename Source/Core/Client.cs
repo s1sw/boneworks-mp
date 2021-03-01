@@ -93,7 +93,7 @@ namespace MultiplayerMod.Core
 
         private void BWUtil_OnFire(Gun obj)
         {
-            BulletObject bobj = obj.chamberedBulletGameObject.GetComponent<BulletObject>();
+            //BulletObject bobj = obj.chamberedBulletGameObject.GetComponent<BulletObject>();
             try
             {
                 AmmoVariables bObj = new AmmoVariables();
@@ -113,7 +113,6 @@ namespace MultiplayerMod.Core
                     handedness = (byte)obj.host.GetHand(0).handedness,
                     firepointPos = obj.firePointTransform.position,
                     firepointRotation = obj.firePointTransform.rotation,
-                    ammoDamage = bObj.AttackDamage,
                     projectileMass = bObj.ProjectileMass,
                     exitVelocity = bObj.ExitVelocity,
                     muzzleVelocity = obj.muzzleVelocity
@@ -319,9 +318,28 @@ namespace MultiplayerMod.Core
                         }
                         break;
                     }
+                case MessageType.GunFireHit:
+                    {
+                        HurtPlayerMessage gfm = new HurtPlayerMessage(msg);
+                        MelonLogger.Log("Recieved gun message");
+                        if (gfm.playerId == SteamClient.SteamId)
+                        {
+                            MultiplayerMod.playerHealth.TAKEDAMAGE(gfm.damageAmount);
+                        }
+                        break;
+                    }
             }
         }
-
+        public void SendProjectileHurt(float damage, byte id)
+        {
+            MelonLogger.Log("Sending server message");
+            HurtPlayerMessage hpm = new HurtPlayerMessage
+            {
+                damageAmount = damage,
+                playerId = id
+            };
+            SendToServer(hpm, MessageSendType.Reliable);
+        }
         private void TransportLayer_OnConnectionClosed(ITransportConnection connection, ConnectionClosedReason reason)
         {
             if (connection.ConnectedTo != ServerId)

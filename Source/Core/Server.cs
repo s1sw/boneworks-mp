@@ -245,7 +245,6 @@ namespace MultiplayerMod.Core
                             PlayerRep pr = playerObjects[LocalplayerId];
                             AmmoVariables ammoVariables = new AmmoVariables()
                             {
-                                AttackDamage = gfm.ammoDamage,
                                 AttackType = AttackType.Piercing,
                                 cartridgeType = Cart.Cal_9mm,
                                 ExitVelocity = gfm.exitVelocity,
@@ -276,7 +275,6 @@ namespace MultiplayerMod.Core
                                 handedness = gfm.handedness,
                                 firepointPos = gfm.firepointPos,
                                 firepointRotation = gfm.firepointRotation,
-                                ammoDamage = gfm.ammoDamage,
                                 projectileMass = gfm.projectileMass,
                                 exitVelocity = gfm.exitVelocity,
                                 muzzleVelocity = gfm.muzzleVelocity
@@ -499,10 +497,34 @@ namespace MultiplayerMod.Core
                         BWUtil.GetObjectFromFullPath(idrqm.namePath);
                         break;
                     }
+                case MessageType.GunFireHit:
+                    {
+                        MelonLogger.Log("Recieved server gun message");
+                        HurtPlayerMessage gfm = new HurtPlayerMessage(msg);
+                        if (gfm.playerId == SteamClient.SteamId)
+                        {
+                            MultiplayerMod.playerHealth.TAKEDAMAGE(gfm.damageAmount);
+                        } else
+                        {
+                            SendProjectileHurt(gfm.damageAmount, gfm.playerId);
+                        }
+                        break;
+                    }
                 default:
                     MelonLogger.Log("Unknown message type: " + type.ToString());
                     break;
             }
+        }
+
+        public void SendProjectileHurt(float damage, byte id)
+        {
+            MelonLogger.Log("Sending server message");
+            HurtPlayerMessage hpm = new HurtPlayerMessage
+            {
+                damageAmount = damage,
+                playerId = id
+            };
+            SendToId(hpm, MessageSendType.Reliable, id);
         }
 
         public void StopServer()

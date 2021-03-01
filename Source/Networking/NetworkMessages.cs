@@ -39,6 +39,7 @@ namespace MultiplayerMod.Networking
         ObjectSync,
         GunFire,
         GunFireHit,
+        GunFireConfirm,
         Death
     }
 
@@ -52,7 +53,6 @@ namespace MultiplayerMod.Networking
         public byte handedness;
         public Vector3 firepointPos;
         public Quaternion firepointRotation;
-        public float ammoDamage;
         public float projectileMass;
         public float exitVelocity;
         public float muzzleVelocity;
@@ -70,7 +70,6 @@ namespace MultiplayerMod.Networking
             handedness = msg.ReadByte();
             firepointPos = msg.ReadVector3();
             firepointRotation = msg.ReadQuaternion();
-            ammoDamage = msg.ReadFloat();
             projectileMass = msg.ReadFloat();
             exitVelocity = msg.ReadFloat();
             muzzleVelocity = msg.ReadFloat();
@@ -83,7 +82,6 @@ namespace MultiplayerMod.Networking
             msg.WriteByte(handedness);
             msg.WriteVector3(firepointPos);
             msg.WriteQuaternion(firepointRotation);
-            msg.WriteFloat(ammoDamage);
             msg.WriteFloat(projectileMass);
             msg.WriteFloat(exitVelocity);
             msg.WriteFloat(muzzleVelocity);
@@ -91,15 +89,36 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class GunFireHitToServer : INetworkMessage
+    #region HurtPlayerMessage
+    public class HurtPlayerBase
     {
+        public byte playerId;
+        public float damageAmount;
+    }
+
+    public class HurtPlayerMessage : HurtPlayerBase, INetworkMessage
+    {
+        public HurtPlayerMessage()
+        {
+            //fortnite fortnite fornitet fnioretneit a
+        }
+
+        public HurtPlayerMessage(P2PMessage msg)
+        {
+            playerId = msg.ReadByte();
+            damageAmount = msg.ReadFloat();
+        }
+
         public P2PMessage MakeMsg()
         {
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.GunFireHit);
+            msg.WriteByte(playerId);
+            msg.WriteFloat(damageAmount);
             return msg;
         }
     }
+    #endregion
 
     public class GunFireBaseOther
     {
