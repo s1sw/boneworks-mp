@@ -24,6 +24,7 @@ using MultiplayerMod.Structs;
 using MultiplayerMod.Representations;
 using MultiplayerMod.Networking;
 using MultiplayerMod.Source.MonoBehaviours;
+using MultiplayerMod.Source.Features;
 
 namespace MultiplayerMod
 {
@@ -127,6 +128,31 @@ namespace MultiplayerMod
                 {
                     MelonLogger.Log("Stopping server...");
                     server.StopServer();
+                }
+
+                if (Input.GetKeyDown(KeyCode.F1))
+                {
+                    TeamManagement.ChangeTeam(Source.Structs.Teams.Team.Anarchy);
+                }
+                if (Input.GetKeyDown(KeyCode.F2))
+                {
+                    TeamManagement.ChangeTeam(Source.Structs.Teams.Team.Passive);
+                }
+                if (Input.GetKeyDown(KeyCode.F3))
+                {
+                    TeamManagement.ChangeTeam(Source.Structs.Teams.Team.Red);
+                }
+                if (Input.GetKeyDown(KeyCode.F4))
+                {
+                    TeamManagement.ChangeTeam(Source.Structs.Teams.Team.Blue);
+                }
+                if (Input.GetKeyDown(KeyCode.F5))
+                {
+                    TeamManagement.ChangeTeam(Source.Structs.Teams.Team.Yellow);
+                }
+                if (Input.GetKeyDown(KeyCode.F6))
+                {
+                    TeamManagement.ChangeTeam(Source.Structs.Teams.Team.Green);
                 }
             }
 

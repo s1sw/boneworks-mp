@@ -1,4 +1,5 @@
-﻿using MultiplayerMod.Representations;
+﻿using MelonLoader;
+using MultiplayerMod.Representations;
 using MultiplayerMod.Source.Boneworks;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace MultiplayerMod.Source.Features
     {
         public static void ChangeTeam(Team team)
         {
+            MelonLogger.Log($"Changing team to: {team.ToString()}");
             ProjectilePatch.myTeam = team;
             if (MultiplayerMod.client.isConnected)
                 MultiplayerMod.client.UpdateTeam(team);
