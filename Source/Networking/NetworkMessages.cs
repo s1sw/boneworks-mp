@@ -40,7 +40,10 @@ namespace MultiplayerMod.Networking
         GunFire,
         GunFireHit,
         GunFireConfirm,
-        Death
+        Death,
+        TeamChange,
+        OtherTeamChange,
+        TeamRequest
     }
 
     public interface INetworkMessage
@@ -287,6 +290,55 @@ namespace MultiplayerMod.Networking
             return msg;
         }
     }
+
+    // Server -> clients (Team update)
+    public class OtherTeamChangeMessage : INetworkMessage
+    {
+        public byte playerId;
+        public byte team;
+
+        public OtherTeamChangeMessage(P2PMessage msg)
+        {
+            playerId = msg.ReadByte();
+            team = msg.ReadByte();
+        }
+
+        public OtherTeamChangeMessage()
+        { }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.OtherTeamChange);
+            msg.WriteByte(playerId);
+            msg.WriteByte(team);
+            return msg;
+        }
+    }
+
+    // Client player -> server (Team update)
+    public class TeamChangeMessage : INetworkMessage
+    {
+        public byte team;
+
+        public TeamChangeMessage(P2PMessage msg)
+        {
+            team = msg.ReadByte();
+        }
+
+        public TeamChangeMessage()
+        { }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.TeamChange);
+
+            msg.WriteByte(team);
+            return msg;
+        }
+    }
+
 
     public class SceneTransitionMessage : INetworkMessage
     {

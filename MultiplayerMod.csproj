@@ -283,6 +283,7 @@
     <Compile Include="Source\Core\ObjectIDManager.cs" />
     <Compile Include="Source\Extras\BasicFABRIK.cs" />
     <Compile Include="Source\Extras\GunResources.cs" />
+    <Compile Include="Source\Features\TeamManagement.cs" />
     <Compile Include="Source\Features\ClientSettings.cs" />
     <Compile Include="Source\Extras\RETools.cs" />
     <Compile Include="Source\Core\Client.cs" />
@@ -311,6 +312,7 @@
     <Compile Include="Source\Representations\PlayerRep.cs" />
     <Compile Include="Source\Core\RichPresence.cs" />
     <Compile Include="Source\Core\Server.cs" />
+    <Compile Include="Source\Structs\Teams.cs" />
     <Compile Include="Source\Structs\RigTransforms.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -13,8 +13,6 @@ namespace MultiplayerMod.Source.MonoBehaviours
     {
         public PlayerInfo(IntPtr ptr) : base(ptr) { }
         public PlayerRep rep;
-        public SteamId steamId;
-        public string nickname;
         //https://www.youtube.com/watch?v=w5x7956gchI
     }
 }

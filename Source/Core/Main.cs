@@ -23,6 +23,7 @@ using MultiplayerMod.Core;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Representations;
 using MultiplayerMod.Networking;
+using MultiplayerMod.Source.MonoBehaviours;
 
 namespace MultiplayerMod
 {

@@ -16,6 +16,8 @@ using StressLevelZero.Props.Weapons;
 using StressLevelZero.Combat;
 using MultiplayerMod.Extras;
 using BoneworksModdingToolkit.BoneHook;
+using static MultiplayerMod.Source.Structs.Teams;
+using MultiplayerMod.Source.Features;
 
 namespace MultiplayerMod.Core
 {
@@ -328,6 +330,14 @@ namespace MultiplayerMod.Core
                         }
                         break;
                     }
+                case MessageType.OtherTeamChange:
+                    OtherTeamChangeMessage otcm = new OtherTeamChangeMessage(msg);
+
+                    if (playerObjects.ContainsKey(otcm.playerId))
+                    {
+                        TeamManagement.ChangePlayerRepTeam(GetPlayerRep(otcm.playerId), (Team)otcm.team);
+                    }
+                    break;
             }
         }
         public void SendProjectileHurt(float damage, SteamId id)
@@ -473,6 +483,15 @@ namespace MultiplayerMod.Core
         {
             localRigTransforms = BWUtil.GetLocalRigTransforms();
             localHealth = BWUtil.RigManager.GetComponent<Player_Health>();
+        }
+
+        public void UpdateTeam(Team team)
+        {
+            TeamChangeMessage tcm = new TeamChangeMessage
+            {
+                team = (byte)team
+            };
+            SendToServer(tcm, MessageSendType.Reliable);
         }
     }
 }

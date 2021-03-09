@@ -19,6 +19,7 @@ using StressLevelZero.UI.Radial;
 using StressLevelZero.Data;
 using MultiplayerMod.Source.Boneworks;
 using MultiplayerMod.Source.MonoBehaviours;
+using static MultiplayerMod.Source.Structs.Teams;
 
 namespace MultiplayerMod.Representations
 {
@@ -36,6 +37,7 @@ namespace MultiplayerMod.Representations
         public GameObject footL;
         public GameObject footR;
         public GameObject namePlate;
+        public TextMeshPro namePlateText;
         public SteamId steamId;
         public BoneworksRigTransforms rigTransforms;
         public GameObject rightGun;
@@ -48,6 +50,8 @@ namespace MultiplayerMod.Representations
         public BulletObject leftBulletObject;
         public GameObject gunLParent;
         public FaceAnimator faceAnimator;
+
+        public Team team = Team.Yellow;
 
         public static AssetBundle fordBundle;
 
@@ -75,8 +79,6 @@ namespace MultiplayerMod.Representations
             GameObject ford = Instantiate(fordBundle.LoadAsset("Assets/Ford.prefab").Cast<GameObject>());
             ford.tag = ProjectilePatch.mpTag;
             PlayerInfo fordInfo = ford.AddComponent<PlayerInfo>();
-            fordInfo.steamId = steamId;
-            fordInfo.name = name;
             fordInfo.rep = this;
 
             // Makes sure that the rep isn't destroyed per level change.
@@ -174,11 +176,11 @@ namespace MultiplayerMod.Representations
 
             // Create the nameplate and assign values to the TMP's vars
             namePlate = new GameObject("Nameplate");
-            TextMeshPro tm = namePlate.AddComponent<TextMeshPro>();
-            tm.text = name;
-            tm.color = UnityEngine.Color.green;
-            tm.alignment = TextAlignmentOptions.Center;
-            tm.fontSize = 1.0f;
+            namePlateText = namePlate.AddComponent<TextMeshPro>();
+            namePlateText.text = name;
+            namePlateText.color = UnityEngine.Color.green;
+            namePlateText.alignment = TextAlignmentOptions.Center;
+            namePlateText.fontSize = 1.0f;
 
             // Prevents the nameplate from being destroyed during a level change
             DontDestroyOnLoad(namePlate);
@@ -186,7 +188,7 @@ namespace MultiplayerMod.Representations
             MelonCoroutines.Start(AsyncAvatarRoutine(steamId));
 
             // Gives certain users special appearances
-            Extras.SpecialUsers.GiveUniqueAppearances(steamId, realRoot, tm);
+            Extras.SpecialUsers.GiveUniqueAppearances(steamId, realRoot, namePlateText);
 
             this.ford = ford;
         }

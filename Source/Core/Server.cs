@@ -23,6 +23,9 @@ using Oculus.Platform.Samples.VrHoops;
 using MultiplayerMod.MonoBehaviours;
 using MultiplayerMod.Extras;
 using StressLevelZero.Combat;
+using static MultiplayerMod.Source.Structs.Teams;
+using MultiplayerMod.Source.Features;
+using System.Collections;
 
 namespace MultiplayerMod.Core
 {
@@ -357,6 +360,8 @@ namespace MultiplayerMod.Core
                                 playerObjects.Remove(newPlayerId);
                             playerObjects.Add(newPlayerId, new PlayerRep(name, connection.ConnectedTo));
 
+                            MelonCoroutines.Start(AsyncSendTeamsInfo(newPlayerId));
+
                             RichPresence.SetActivity(
                                 new Activity()
                                 {
@@ -510,6 +515,30 @@ namespace MultiplayerMod.Core
                         }
                         break;
                     }
+                case MessageType.TeamChange:
+                    {
+                        MelonLogger.Log("Recieved team change");
+                        TeamChangeMessage tcm = new TeamChangeMessage(msg);
+                        byte playerId = smallPlayerIds[connection.ConnectedTo];
+                        if (playerObjects.ContainsKey(playerId))
+                        {
+                            PlayerRep pr = playerObjects[playerId];
+                            TeamManagement.ChangePlayerRepTeam(pr, (Team)tcm.team);
+                            OtherTeamChangeMessage otcm = new OtherTeamChangeMessage()
+                            {
+                                playerId = playerId,
+                                team = tcm.team
+                            };
+                            ServerSendToAll(otcm, MessageSendType.Reliable);
+                        }
+                        break;
+                    }
+                case MessageType.TeamRequest:
+                    {
+                        MelonLogger.Log("Recieved team request");
+                        MelonCoroutines.Start(AsyncSendTeamsInfo(smallPlayerIds[connection.ConnectedTo]));
+                        break;
+                    }
                 default:
                     MelonLogger.Log("Unknown message type: " + type.ToString());
                     break;
@@ -592,6 +621,34 @@ namespace MultiplayerMod.Core
         {
             P2PMessage pMsg = msg.MakeMsg();
             playerConnections[id].SendMessage(pMsg, send);
+        }
+
+        public void UpdateTeam(Team team)
+        {
+            OtherTeamChangeMessage tcm = new OtherTeamChangeMessage
+            {
+                team = (byte)team,
+                playerId = 0
+            };
+            ServerSendToAll(tcm, MessageSendType.Reliable);
+        }
+
+        IEnumerator AsyncSendTeamsInfo(byte id)
+        {
+            foreach (ulong player in players)
+            {
+                byte playerId = smallPlayerIds[playerConnections[player].ConnectedTo];
+                if (playerObjects.ContainsKey(playerId))
+                {
+                    OtherTeamChangeMessage otcm = new OtherTeamChangeMessage()
+                    {
+                        playerId = playerId,
+                        team = (byte)playerObjects[playerId].team
+                    };
+                    SendToId(otcm, MessageSendType.Reliable, id);
+                }
+                yield return new WaitForEndOfFrame();
+            }
         }
     }
 }
