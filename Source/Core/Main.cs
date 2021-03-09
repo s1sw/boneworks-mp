@@ -87,6 +87,7 @@ namespace MultiplayerMod
             MelonLogger.Log("Loaded scene " + level.ToString() + "(" + BoneworksSceneManager.GetSceneNameFromScenePath(level) + ") (from " + SceneManager.GetActiveScene().name + ")");
             playerHealth = BoneworksModdingToolkit.Player.FindRigManager().GetComponent<Player_Health>();
             OnLevelWasLoadedEvent?.Invoke(level);
+            BWUtil.UpdateGunOffset();
         }
 
         public override void OnLevelWasInitialized(int level)

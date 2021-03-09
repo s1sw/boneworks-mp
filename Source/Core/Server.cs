@@ -516,13 +516,13 @@ namespace MultiplayerMod.Core
             }
         }
 
-        public void SendProjectileHurt(float damage, byte id)
+        public void SendProjectileHurt(float damage, SteamId id)
         {
-            MelonLogger.Log("Sending server message");
+            MelonLogger.Log("Sending projectile message to client");
             HurtPlayerMessage hpm = new HurtPlayerMessage
             {
                 damageAmount = damage,
-                playerId = id
+                playerId = (byte)id
             };
             SendToId(hpm, MessageSendType.Reliable, id);
         }

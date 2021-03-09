@@ -12,6 +12,9 @@ using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
 using Harmony;
 using StressLevelZero.Props.Weapons;
+using BoneworksModdingToolkit;
+using StressLevelZero.UI.Radial;
+using StressLevelZero.Data;
 
 namespace MultiplayerMod
 {
@@ -156,6 +159,26 @@ namespace MultiplayerMod
             };
 
             return brt;
+        }
+
+        public static int gunOffset = -1;
+        public static void UpdateGunOffset()
+        {
+            if (gunOffset == -1)
+            {
+                GameObject rig = Player.FindRigManager();
+                PopUpMenuView menu = rig.GetComponentInChildren<PopUpMenuView>();
+                GameObject spawnGun = menu.utilityGunSpawnable.prefab;
+                SpawnableMasterListData masterList = spawnGun.GetComponent<SpawnGun>().masterList;
+
+                for (int i = 0; i < masterList.objects.Count; i++)
+                {
+                    if (masterList.objects[i].title == "Omni Projector")
+                    {
+                        gunOffset = i;
+                    }
+                }
+            }
         }
 
         public static void ApplyRigTransform(BoneworksRigTransforms rigTransforms, RigTFMsgBase tfMsg)

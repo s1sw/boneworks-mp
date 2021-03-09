@@ -300,6 +300,7 @@
     <Compile Include="Source\FileInfo.cs" />
     <Compile Include="Source\Core\Main.cs" />
     <Compile Include="Source\Core\MultiplayerUI.cs" />
+    <Compile Include="Source\MonoBehaviours\PlayerInfo.cs" />
     <Compile Include="Source\MonoBehaviours\IDHolder.cs" />
     <Compile Include="Source\MonoBehaviours\ServerSyncedObject.cs" />
     <Compile Include="Source\Networking\ITransportLayer.cs" />

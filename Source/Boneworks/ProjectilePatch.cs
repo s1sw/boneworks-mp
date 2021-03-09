@@ -1,5 +1,6 @@
 ﻿using MelonLoader;
 using MultiplayerMod.Core;
+using MultiplayerMod.Source.MonoBehaviours;
 using StressLevelZero.Combat;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ using UnityEngine.Events;
 
 namespace MultiplayerMod.Source.Boneworks
 {
-    [Harmony.HarmonyPatch(typeof(StressLevelZero.Combat.Projectile), "OnEnable")]
+    [Harmony.HarmonyPatch(typeof(StressLevelZero.Combat.Projectile), "Awake")]
     public static class ProjectilePatch
     {
         public static string mpTag = "Tornado";
@@ -19,30 +20,33 @@ namespace MultiplayerMod.Source.Boneworks
         {
             UnityAction<Collider, Vector3, Vector3> unityAction = new Action<Collider, Vector3, Vector3>((Collider col, Vector3 point, Vector3 c) => {
                 //This is what gets called when the bullet hits something
-
+                MelonLogger.Log("Fired Projectile UnityAction");
                 int type = 0;
                 if (MultiplayerMod.client.isConnected)
                     type = 1;
                 if (MultiplayerMod.server.IsRunning)
                     type = 2;
 
+                MelonLogger.Log("Server (2) or client (1): " + type);
                 if (type != 0)
                 {
-                    if (col.tag == mpTag)
+                    Transform root = col.transform.root;
+                    if (root.tag == mpTag)
                     {
-                        string id = col.transform.root.name;
-                        byte steamid = (byte)Int32.Parse(id);
-                        if (type == 1)
+                        MelonLogger.Log("Tag comparison successful. Attempting PlayerInfo grab");
+                        PlayerInfo playerInfo = root.GetComponent<PlayerInfo>();
+                        if (playerInfo != null)
                         {
-                            MultiplayerMod.client.SendProjectileHurt(__instance.bulletObject.ammoVariables.AttackDamage, steamid);
-                        } else
-                        {
-                            MultiplayerMod.server.SendProjectileHurt(__instance.bulletObject.ammoVariables.AttackDamage, steamid);
+                            if (type == 1)
+                                MultiplayerMod.client.SendProjectileHurt(__instance.bulletObject.ammoVariables.AttackDamage, playerInfo.steamId);
+                            else
+                                MultiplayerMod.server.SendProjectileHurt(__instance.bulletObject.ammoVariables.AttackDamage, playerInfo.steamId);
                         }
                     }
                 }
             });
-            __instance.onCollision = new UnityEventCollision();
+            if (__instance.onCollision == null)
+                __instance.onCollision = new UnityEventCollision();
             __instance.onCollision.AddListener(unityAction);
             return true;
         }

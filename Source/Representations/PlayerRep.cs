@@ -18,6 +18,7 @@ using BoneworksModdingToolkit;
 using StressLevelZero.UI.Radial;
 using StressLevelZero.Data;
 using MultiplayerMod.Source.Boneworks;
+using MultiplayerMod.Source.MonoBehaviours;
 
 namespace MultiplayerMod.Representations
 {
@@ -73,8 +74,10 @@ namespace MultiplayerMod.Representations
             // Create this player's "Ford" to represent them, known as their rep
             GameObject ford = Instantiate(fordBundle.LoadAsset("Assets/Ford.prefab").Cast<GameObject>());
             ford.tag = ProjectilePatch.mpTag;
-            ford.name = steamId.ToString();
-            MelonLogger.Log("test:" + steamId.ToString());
+            PlayerInfo fordInfo = ford.AddComponent<PlayerInfo>();
+            fordInfo.steamId = steamId;
+            fordInfo.name = name;
+            fordInfo.rep = this;
 
             // Makes sure that the rep isn't destroyed per level change.
             DontDestroyOnLoad(ford);
@@ -111,7 +114,6 @@ namespace MultiplayerMod.Representations
 
             Transform realRoot = root.transform.Find("SHJntGrp/MAINSHJnt/ROOTSHJnt"); // Then get the head's root joint
 
-
             // Assign targets for the IK system
             GameObject pelvisTarget = new GameObject("Pelvis");
 
@@ -125,7 +127,7 @@ namespace MultiplayerMod.Representations
             PopUpMenuView menu = rig.GetComponentInChildren<PopUpMenuView>();
             GameObject spawnGun = menu.utilityGunSpawnable.prefab;
             SpawnableMasterListData masterList = spawnGun.GetComponent<SpawnGun>().masterList;
-            rightGun = Instantiate(masterList.objects[124].prefab.transform.Find("Physics/Root/Gun").gameObject);
+            rightGun = Instantiate(masterList.objects[BWUtil.gunOffset].prefab.transform.Find("Physics/Root/Gun").gameObject);
             rightGun.GetComponent<Rigidbody>().isKinematic = true;
             rightGun.transform.parent = gunRParent.transform;
             rightGun.transform.localPosition = Vector3.zero;
@@ -145,7 +147,7 @@ namespace MultiplayerMod.Representations
             gunLParent.transform.localPosition = new Vector3(-0.0941f, 0.0452f, 0.0945f);
             gunLParent.transform.localEulerAngles = new Vector3(3.711f, -81.86301f, -157.739f);
 
-            leftGun = Instantiate(masterList.objects[124].prefab.transform.Find("Physics/Root/Gun").gameObject);
+            leftGun = Instantiate(masterList.objects[BWUtil.gunOffset].prefab.transform.Find("Physics/Root/Gun").gameObject);
             leftGun.GetComponent<Rigidbody>().isKinematic = true;
             leftGun.transform.parent = gunLParent.transform;
             leftGun.transform.localPosition = Vector3.zero;
