@@ -23,6 +23,13 @@ namespace MultiplayerMod.Source.Boneworks
             UnityAction<Collider, Vector3, Vector3> unityAction = new Action<Collider, Vector3, Vector3>((Collider col, Vector3 point, Vector3 c) => {
                 //This is what gets called when the bullet hits something
                 MelonLogger.Log("Fired Projectile UnityAction");
+
+                if (myTeam == Team.Passive)
+                {
+                    MelonLogger.Log("You're a pacifist, you can't shoot.");
+                    return;
+                }
+
                 int type = 0;
                 if (MultiplayerMod.client.isConnected)
                     type = 1;

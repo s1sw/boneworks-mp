@@ -26,6 +26,7 @@ using StressLevelZero.Combat;
 using static MultiplayerMod.Source.Structs.Teams;
 using MultiplayerMod.Source.Features;
 using System.Collections;
+using MultiplayerMod.Source.Boneworks;
 
 namespace MultiplayerMod.Core
 {
@@ -54,6 +55,8 @@ namespace MultiplayerMod.Core
         }
         private void GunHooks_OnGunFire(Gun obj)
         {
+            if (ProjectilePatch.myTeam == Team.Passive)
+                return;
             try
             {
                 AmmoVariables bObj = new AmmoVariables();

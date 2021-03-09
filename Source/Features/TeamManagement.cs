@@ -39,6 +39,11 @@ namespace MultiplayerMod.Source.Features
                     break;
                 case Team.Passive:
                     rep.namePlateText.color = passive;
+                    Collider[] cols = rep.ford.GetComponentsInChildren<Collider>();
+                    foreach (Collider col in cols)
+                    {
+                        col.enabled = false;
+                    }
                     break;
                 case Team.Red:
                     rep.namePlateText.color = red;
@@ -52,6 +57,14 @@ namespace MultiplayerMod.Source.Features
                 case Team.Yellow:
                     rep.namePlateText.color = yellow;
                     break;
+            }
+            if (team != Team.Passive)
+            {
+                Collider[] cols = rep.ford.GetComponentsInChildren<Collider>();
+                foreach (Collider col in cols)
+                {
+                    col.enabled = true;
+                }
             }
         }
     }

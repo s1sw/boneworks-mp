@@ -18,6 +18,7 @@ using MultiplayerMod.Extras;
 using BoneworksModdingToolkit.BoneHook;
 using static MultiplayerMod.Source.Structs.Teams;
 using MultiplayerMod.Source.Features;
+using MultiplayerMod.Source.Boneworks;
 
 namespace MultiplayerMod.Core
 {
@@ -96,6 +97,8 @@ namespace MultiplayerMod.Core
         private void BWUtil_OnFire(Gun obj)
         {
             //BulletObject bobj = obj.chamberedBulletGameObject.GetComponent<BulletObject>();
+            if (ProjectilePatch.myTeam == Team.Passive)
+                return;
             try
             {
                 AmmoVariables bObj = new AmmoVariables();
