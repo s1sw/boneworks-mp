@@ -94,6 +94,7 @@ namespace MultiplayerMod.Core
             GunHooks.OnGunFire += BWUtil_OnFire;
             PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
             PlayerHooks.OnPlayerReleaseObject += PlayerHooks_OnPlayerReleaseObject;
+            
             MultiplayerMod.OnLevelWasLoadedEvent += MultiplayerMod_OnLevelWasLoadedEvent;
         }
 
@@ -104,8 +105,26 @@ namespace MultiplayerMod.Core
 
         private void PlayerHooks_OnPlayerReleaseObject(GameObject grabObj)
         {
+
             MelonLogger.Log($"Released {grabObj.name}");
             var rb = grabObj.GetComponentInParent<Rigidbody>();
+
+            Grip[] grips = rb.GetComponentsInChildren<Grip>();
+            foreach (Grip grip in grips)
+            {
+                MelonLogger.Log(grip.gameObject.name);
+                HandToGripState htgsL = grip.GetHandState(BoneworksModdingToolkit.Player.leftHand);
+                if (htgsL != null)
+                    if (htgsL.isActive == true)
+                        return;
+
+                HandToGripState htgsR = grip.GetHandState(BoneworksModdingToolkit.Player.rightHand);
+                if (htgsR != null)
+                    if (htgsR.isActive == true)
+                        return;
+            }
+            
+
             if (rb == null) return;
             var obj = rb.gameObject;
 
