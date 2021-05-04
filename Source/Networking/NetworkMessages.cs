@@ -58,6 +58,7 @@ namespace MultiplayerMod.Networking
         public float projectileMass;
         public float exitVelocity;
         public float muzzleVelocity;
+        public byte cartridgeType;
     }
 
     public class GunFireMessage : GunFireBase, INetworkMessage
@@ -76,6 +77,7 @@ namespace MultiplayerMod.Networking
             projectileMass = msg.ReadFloat();
             exitVelocity = msg.ReadFloat();
             muzzleVelocity = msg.ReadFloat();
+            cartridgeType = msg.ReadByte();
         }
 
         public P2PMessage MakeMsg()
@@ -89,6 +91,7 @@ namespace MultiplayerMod.Networking
             msg.WriteFloat(projectileMass);
             msg.WriteFloat(exitVelocity);
             msg.WriteFloat(muzzleVelocity);
+            msg.WriteByte(cartridgeType);
             return msg;
         }
     }
@@ -103,20 +106,9 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class GunFireBaseOther
+    public class GunFireMessageOther : GunFireBase, INetworkMessage
     {
-        public byte handedness;
         public byte playerId;
-        public Vector3 firepointPos;
-        public Quaternion firepointRotation;
-        public float ammoDamage;
-        public float projectileMass;
-        public float exitVelocity;
-        public float muzzleVelocity;
-    }
-
-    public class GunFireMessageOther : GunFireBaseOther, INetworkMessage
-    {
         public GunFireMessageOther()
         {
 
@@ -132,7 +124,9 @@ namespace MultiplayerMod.Networking
             projectileMass = msg.ReadFloat();
             exitVelocity = msg.ReadFloat();
             muzzleVelocity = msg.ReadFloat();
+            cartridgeType = msg.ReadByte();
         }
+
         public P2PMessage MakeMsg()
         {
             P2PMessage msg = new P2PMessage();
@@ -145,6 +139,7 @@ namespace MultiplayerMod.Networking
             msg.WriteFloat(projectileMass);
             msg.WriteFloat(exitVelocity);
             msg.WriteFloat(muzzleVelocity);
+            msg.WriteByte(cartridgeType);
             return msg;
         }
     }

@@ -55,10 +55,13 @@ namespace MultiplayerMod.Core
         {
             try
             {
-                AmmoVariables bObj = new AmmoVariables();
-                bObj.AttackDamage = 1;
-                bObj.ProjectileMass = 1;
-                bObj.ExitVelocity = 1;
+                AmmoVariables bObj = new AmmoVariables
+                {
+                    AttackDamage = 1,
+                    ProjectileMass = 1,
+                    ExitVelocity = 1
+                };
+
                 if (obj.chamberedCartridge != null)
                 {
                     bObj = obj.chamberedCartridge.ammoVariables;
@@ -77,7 +80,8 @@ namespace MultiplayerMod.Core
                     ammoDamage = bObj.AttackDamage,
                     projectileMass = bObj.ProjectileMass,
                     exitVelocity = bObj.ExitVelocity,
-                    muzzleVelocity = obj.muzzleVelocity
+                    muzzleVelocity = obj.muzzleVelocity,
+                    cartridgeType = (byte)bObj.cartridgeType
                 };
                 ServerSendToAll(gfmo, MessageSendType.Reliable);
             }
@@ -240,7 +244,7 @@ namespace MultiplayerMod.Core
                     break;
                 case ConnectionClosedReason.Other:
                     break;
-                
+
             }
         }
 
@@ -261,7 +265,7 @@ namespace MultiplayerMod.Core
                             {
                                 AttackDamage = gfm.ammoDamage,
                                 AttackType = AttackType.Piercing,
-                                cartridgeType = Cart.Cal_9mm,
+                                cartridgeType = (Cart)gfm.cartridgeType,
                                 ExitVelocity = gfm.exitVelocity,
                                 ProjectileMass = gfm.projectileMass,
                                 Tracer = false
@@ -584,6 +588,14 @@ namespace MultiplayerMod.Core
                             if (so.owner != smallPlayerIds[connection.ConnectedTo])
                             {
                                 MelonLogger.LogError("Got object sync from client that doesn't own the object");
+                                var coom = new ChangeObjectOwnershipMessage(msg)
+                                {
+                                    ownerId = so.owner,
+                                    objectId = so.ID,
+                                    linVelocity = so.rb.velocity,
+                                    angVelocity = so.rb.angularVelocity
+                                };
+                                playerConnections[so.owner].SendMessage(coom.MakeMsg(), MessageSendType.Reliable);
                             }
                             else
                             {
@@ -653,13 +665,14 @@ namespace MultiplayerMod.Core
 
         private void PlayerHooks_OnPlayerGrabObject(GameObject obj)
         {
-            var col = obj.GetComponent<Collider>();
-            var rb = col.attachedRigidbody;
+            var rb = obj.GetComponentInParent<Rigidbody>();
+
             if (rb == null)
             {
                 MelonLogger.LogWarning("Grabbed non-RB!!!");
                 return;
             }
+
             MelonLogger.Log($"Grabbed {rb.gameObject.name}");
 
             if (rb.gameObject.GetComponent<SyncedObject>() == null)

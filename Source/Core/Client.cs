@@ -186,7 +186,8 @@ namespace MultiplayerMod.Core
                     ammoDamage = bObj.AttackDamage,
                     projectileMass = bObj.ProjectileMass,
                     exitVelocity = bObj.ExitVelocity,
-                    muzzleVelocity = obj.muzzleVelocity
+                    muzzleVelocity = obj.muzzleVelocity,
+                    cartridgeType = (byte)bObj.cartridgeType
                 };
 
                 SendToServer(gfm.MakeMsg(), MessageSendType.Reliable);
@@ -213,7 +214,7 @@ namespace MultiplayerMod.Core
                             {
                                 AttackDamage = gfmo.ammoDamage,
                                 AttackType = AttackType.Piercing,
-                                cartridgeType = Cart.Cal_9mm,
+                                cartridgeType = (Cart)gfmo.cartridgeType,
                                 ExitVelocity = gfmo.exitVelocity,
                                 ProjectileMass = gfmo.projectileMass,
                                 Tracer = false

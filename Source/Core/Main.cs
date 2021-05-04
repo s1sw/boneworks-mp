@@ -54,7 +54,7 @@ namespace MultiplayerMod
             MelonModLogger.LogWarning("Debug build!");
 #endif
 
-            MelonLogger.Log($"Multiplayer initialising with protocol version {PROTOCOL_VERSION}.");
+            MelonLogger.Log($"Multiplayer initialising with protocol version {PROTOCOL_VERSION}. Special brick sync build!");
 
             // Set up prefs
             MelonPrefs.RegisterCategory("MPMod", "Multiplayer Settings");
