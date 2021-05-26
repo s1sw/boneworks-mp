@@ -657,7 +657,7 @@ namespace MultiplayerMod.Core
             }
 
             players.Clear();
-            playerConnections.Clear(); //Fixes some errors when restarting servers
+            playerConnections.Clear();
 
             transportLayer.OnMessageReceived -= TransportLayer_OnMessageReceived;
             transportLayer.OnConnectionClosed -= TransportLayer_OnConnectionClosed;
