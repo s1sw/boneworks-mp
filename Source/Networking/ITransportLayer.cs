@@ -40,6 +40,7 @@ namespace MultiplayerMod.Networking
         void StartListening();
         void StopListening();
         void Update();
+        void Disconnect(ulong id);
         ITransportConnection ConnectTo(ulong id, P2PMessage initialMessage);
     }
 }

@@ -41,5 +41,16 @@ namespace MultiplayerMod.Core
         {
             discord.GetActivityManager().UpdateActivity(act, ActivityUpdateHandler);
         }
+
+        public static void BlankActivityUpdate(Result res) { } //Added so theres no console spam
+
+        public static void ResetActivity(bool log = true)
+        {
+            Activity act = new Activity() { Details = "Idle" };
+            if (log)
+                SetActivity(act);
+            else
+                discord.GetActivityManager().UpdateActivity(act, BlankActivityUpdate);
+        }
     }
 }

@@ -104,6 +104,8 @@ namespace MultiplayerMod
 
             if (!client.isConnected && !server.IsRunning)
             {
+                //Shitty method to fix invisible invites when restarting servers, sure theres better methods but im done with this
+                RichPresence.ResetActivity(false);
                 // This used to be used to connect to a server by using the SteamID in a config file,
                 // but now it only causes confusion.
                 if (Input.GetKeyDown(KeyCode.C))

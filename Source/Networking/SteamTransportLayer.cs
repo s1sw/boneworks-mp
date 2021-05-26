@@ -103,6 +103,12 @@ namespace MultiplayerMod.Networking
             return connection;
         }
 
+        public void Disconnect(ulong id)
+        {
+            if (connections.ContainsKey(id)) //Removes connection id since the client is no longer in the server
+                connections.Remove(id);
+        }
+
         private void ClientOnP2PSessionRequest(SteamId id)
         {
             if (connections.ContainsKey(id))
@@ -111,8 +117,11 @@ namespace MultiplayerMod.Networking
 
         private void ClientOnP2PConnectionFailed(SteamId id, P2PSessionError error)
         {
-            OnConnectionClosed(connections[id], GetConnectionClosedReason(error));
-            connections.Remove(id);
+            if (connections.ContainsKey(id))
+            {
+                OnConnectionClosed(connections[id], GetConnectionClosedReason(error));
+                connections.Remove(id);
+            }
         }
 
         public void StartListening()
@@ -123,12 +132,17 @@ namespace MultiplayerMod.Networking
 
         private void ListenOnP2PConnectionFailed(SteamId id, P2PSessionError error)
         {
-            OnConnectionClosed(connections[id], GetConnectionClosedReason(error));
-            connections.Remove(id);
+            if (connections.ContainsKey(id))
+            {
+                OnConnectionClosed(connections[id], GetConnectionClosedReason(error));
+                connections.Remove(id);
+            }
         }
 
         private void ListenOnP2PSessionRequest(SteamId id)
         {
+            if (connections.ContainsKey(id))
+                connections.Remove(id);
             SteamNetworking.AcceptP2PSessionWithUser(id);
             MelonLogger.Log("Accepted session for " + id.ToString());
             connections.Add(id, new SteamTransportConnection(id));

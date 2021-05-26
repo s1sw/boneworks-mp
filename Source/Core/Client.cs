@@ -305,6 +305,8 @@ namespace MultiplayerMod.Core
                             {
                                 pr.Delete();
                             }
+                            if (isConnected) //Fixes some issues when restarting a server
+                                Disconnect();
                             break;
                         }
                     case MessageType.Disconnect:
@@ -340,9 +342,20 @@ namespace MultiplayerMod.Core
                     case MessageType.Join:
                         {
                             ClientJoinMessage cjm = new ClientJoinMessage(msg);
-                            largePlayerIds.Add(cjm.playerId, cjm.steamId);
-                            playerNames.Add(cjm.playerId, cjm.name);
-                            playerObjects.Add(cjm.playerId, new PlayerRep(cjm.name, cjm.steamId));
+                            byte playerId = cjm.playerId; //moved these to a variable for easier access
+                            string playerName = cjm.name;
+                            SteamId steamId = cjm.steamId;
+                            //Remove existing id info to prevent errors
+                            if (largePlayerIds.ContainsKey(playerId))
+                                largePlayerIds.Remove(playerId);
+                            if (playerNames.ContainsKey(playerId))
+                                playerNames.Remove(playerId);
+                            if (playerObjects.ContainsKey(playerId))
+                                playerObjects.Remove(playerId);
+                            //Add new id info to dicts
+                            largePlayerIds.Add(playerId, steamId);
+                            playerNames.Add(playerId, playerName);
+                            playerObjects.Add(playerId, new PlayerRep(playerName, steamId));
 
                             foreach (PlayerRep pr in playerObjects.Values)
                             {
@@ -495,6 +508,7 @@ namespace MultiplayerMod.Core
 
             MelonLogger.Log("Disconnecting...");
             isConnected = false;
+            transportLayer.Disconnect(ServerId); //Removes references to the server so we can join back later
             ServerId = 0;
             playerObjects.Clear();
             playerNames.Clear();
@@ -505,6 +519,8 @@ namespace MultiplayerMod.Core
                 connection.Disconnect();
 
             GunHooks.OnGunFire -= BWUtil_OnFire;
+
+            RichPresence.ResetActivity(); //Resets discord's rp back to idle after leaving
         }
 
         public void Update()
