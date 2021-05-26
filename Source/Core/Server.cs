@@ -325,8 +325,8 @@ namespace MultiplayerMod.Core
                             MelonLogger.Log("Player count: " + players.Count);
                             byte newPlayerId = smallIdCounter;
 
-                            if (smallPlayerIds.ContainsKey(newPlayerId))
-                                smallPlayerIds.Remove(newPlayerId);
+                            if (smallPlayerIds.ContainsKey(connection.ConnectedTo)) //Used to be newPlayerId but thats not whats added to the dict
+                                smallPlayerIds.Remove(connection.ConnectedTo);
 
                             smallPlayerIds.Add(connection.ConnectedTo, newPlayerId);
 
@@ -335,6 +335,10 @@ namespace MultiplayerMod.Core
 
                             largePlayerIds.Add(newPlayerId, connection.ConnectedTo);
                             smallIdCounter++;
+
+                            //Clears incase someone had to rejoin
+                            if (playerConnections.ContainsKey(connection.ConnectedTo))
+                                playerConnections.Remove(connection.ConnectedTo);
 
                             playerConnections.Add(connection.ConnectedTo, connection);
 
@@ -440,10 +444,14 @@ namespace MultiplayerMod.Core
                         MelonLogger.Log("Player left with ID: " + connection.ConnectedTo);
                         byte smallId = smallPlayerIds[connection.ConnectedTo];
 
-                        playerObjects[smallId].Delete();
-                        playerObjects.Remove(smallId);
+                        if (playerObjects.ContainsKey(smallId)) //Should prevent some KeyNotFound exceptions
+                        {
+                            playerObjects[smallId].Delete();
+                            playerObjects.Remove(smallId);
+                        }
                         players.RemoveAll((ulong val) => val == connection.ConnectedTo);
-                        smallPlayerIds.Remove(connection.ConnectedTo);
+                        if (smallPlayerIds.ContainsKey(connection.ConnectedTo)) // Same as above
+                            smallPlayerIds.Remove(connection.ConnectedTo);
 
                         P2PMessage disconnectMsg = new P2PMessage();
                         disconnectMsg.WriteByte((byte)MessageType.Disconnect);
@@ -458,6 +466,8 @@ namespace MultiplayerMod.Core
                             pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Sad;
                             pr.faceAnimator.faceTime = 6;
                         }
+                        if (playerConnections.ContainsKey(connection.ConnectedTo)) //Ensures player is no longer referenced
+                            playerConnections.Remove(connection.ConnectedTo);
                         break;
                     }
                 case MessageType.FullRig:
@@ -647,6 +657,7 @@ namespace MultiplayerMod.Core
             }
 
             players.Clear();
+            playerConnections.Clear(); //Fixes some errors when restarting servers
 
             transportLayer.OnMessageReceived -= TransportLayer_OnMessageReceived;
             transportLayer.OnConnectionClosed -= TransportLayer_OnConnectionClosed;
@@ -656,6 +667,7 @@ namespace MultiplayerMod.Core
             transportLayer.StopListening();
 
             MultiplayerMod.OnLevelWasLoadedEvent -= MultiplayerMod_OnLevelWasLoadedEvent;
+            RichPresence.ResetActivity(); //Resets discord rp back to idle
         }
 
         private void PlayerHooks_OnPlayerReleaseObject(GameObject obj)

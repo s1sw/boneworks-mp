@@ -41,5 +41,10 @@ namespace MultiplayerMod.Core
         {
             discord.GetActivityManager().UpdateActivity(act, ActivityUpdateHandler);
         }
+
+        public static void ResetActivity()
+        {
+            SetActivity(new Activity() { Details = "Idle" });
+        }
     }
 }
