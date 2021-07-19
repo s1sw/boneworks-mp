@@ -72,7 +72,7 @@ namespace MultiplayerMod.Networking
         {
             handedness = msg.ReadByte();
             firepointPos = msg.ReadVector3();
-            firepointRotation = msg.ReadQuaternion();
+            firepointRotation = msg.ReadSmallerCompressedQuaternion();
             ammoDamage = msg.ReadFloat();
             projectileMass = msg.ReadFloat();
             exitVelocity = msg.ReadFloat();
@@ -86,7 +86,7 @@ namespace MultiplayerMod.Networking
             msg.WriteByte((byte)MessageType.GunFire);
             msg.WriteByte(handedness);
             msg.WriteVector3(firepointPos);
-            msg.WriteQuaternion(firepointRotation);
+            msg.WriteSmallerCompressedQuaternion(firepointRotation);
             msg.WriteFloat(ammoDamage);
             msg.WriteFloat(projectileMass);
             msg.WriteFloat(exitVelocity);
@@ -119,7 +119,7 @@ namespace MultiplayerMod.Networking
             handedness = msg.ReadByte();
             playerId = msg.ReadByte();
             firepointPos = msg.ReadVector3();
-            firepointRotation = msg.ReadQuaternion();
+            firepointRotation = msg.ReadSmallerCompressedQuaternion();
             ammoDamage = msg.ReadFloat();
             projectileMass = msg.ReadFloat();
             exitVelocity = msg.ReadFloat();
@@ -134,7 +134,7 @@ namespace MultiplayerMod.Networking
             msg.WriteByte(handedness);
             msg.WriteByte(playerId);
             msg.WriteVector3(firepointPos);
-            msg.WriteQuaternion(firepointRotation);
+            msg.WriteSmallerCompressedQuaternion(firepointRotation);
             msg.WriteFloat(ammoDamage);
             msg.WriteFloat(projectileMass);
             msg.WriteFloat(exitVelocity);
@@ -173,12 +173,12 @@ namespace MultiplayerMod.Networking
             lFootPos = msg.ReadVector3();
             rFootPos = msg.ReadVector3();
 
-            headRot = msg.ReadCompressedQuaternion();
-            lHandRot = msg.ReadCompressedQuaternion();
-            rHandRot = msg.ReadCompressedQuaternion();
-            pelvisRot = msg.ReadCompressedQuaternion();
-            lFootRot = msg.ReadCompressedQuaternion();
-            rFootRot = msg.ReadCompressedQuaternion();
+            headRot = msg.ReadSmallerCompressedQuaternion();
+            lHandRot = msg.ReadSmallerCompressedQuaternion();
+            rHandRot = msg.ReadSmallerCompressedQuaternion();
+            pelvisRot = msg.ReadSmallerCompressedQuaternion();
+            lFootRot = msg.ReadSmallerCompressedQuaternion();
+            rFootRot = msg.ReadSmallerCompressedQuaternion();
         }
 
         public OtherPlayerPositionMessage()
@@ -197,12 +197,12 @@ namespace MultiplayerMod.Networking
             msg.WriteVector3(lFootPos);
             msg.WriteVector3(rFootPos);
 
-            msg.WriteCompressedQuaternion(headRot);
-            msg.WriteCompressedQuaternion(lHandRot);
-            msg.WriteCompressedQuaternion(rHandRot);
-            msg.WriteCompressedQuaternion(pelvisRot);
-            msg.WriteCompressedQuaternion(lFootRot);
-            msg.WriteCompressedQuaternion(rFootRot);
+            msg.WriteSmallerCompressedQuaternion(headRot);
+            msg.WriteSmallerCompressedQuaternion(lHandRot);
+            msg.WriteSmallerCompressedQuaternion(rHandRot);
+            msg.WriteSmallerCompressedQuaternion(pelvisRot);
+            msg.WriteSmallerCompressedQuaternion(lFootRot);
+            msg.WriteSmallerCompressedQuaternion(rFootRot);
             return msg;
         }
     }
@@ -233,12 +233,12 @@ namespace MultiplayerMod.Networking
             lFootPos = msg.ReadVector3();
             rFootPos = msg.ReadVector3();
 
-            headRot = msg.ReadCompressedQuaternion();
-            lHandRot = msg.ReadCompressedQuaternion();
-            rHandRot = msg.ReadCompressedQuaternion();
-            pelvisRot = msg.ReadCompressedQuaternion();
-            lFootRot = msg.ReadCompressedQuaternion();
-            rFootRot = msg.ReadCompressedQuaternion();
+            headRot = msg.ReadSmallerCompressedQuaternion();
+            lHandRot = msg.ReadSmallerCompressedQuaternion();
+            rHandRot = msg.ReadSmallerCompressedQuaternion();
+            pelvisRot = msg.ReadSmallerCompressedQuaternion();
+            lFootRot = msg.ReadSmallerCompressedQuaternion();
+            rFootRot = msg.ReadSmallerCompressedQuaternion();
         }
 
         public PlayerPositionMessage()
@@ -256,12 +256,12 @@ namespace MultiplayerMod.Networking
             msg.WriteVector3(lFootPos);
             msg.WriteVector3(rFootPos);
 
-            msg.WriteCompressedQuaternion(headRot);
-            msg.WriteCompressedQuaternion(lHandRot);
-            msg.WriteCompressedQuaternion(rHandRot);
-            msg.WriteCompressedQuaternion(pelvisRot);
-            msg.WriteCompressedQuaternion(lFootRot);
-            msg.WriteCompressedQuaternion(rFootRot);
+            msg.WriteSmallerCompressedQuaternion(headRot);
+            msg.WriteSmallerCompressedQuaternion(lHandRot);
+            msg.WriteSmallerCompressedQuaternion(rHandRot);
+            msg.WriteSmallerCompressedQuaternion(pelvisRot);
+            msg.WriteSmallerCompressedQuaternion(lFootRot);
+            msg.WriteSmallerCompressedQuaternion(rFootRot);
             return msg;
         }
     }
@@ -875,8 +875,8 @@ namespace MultiplayerMod.Networking
         {
             objectId = msg.ReadUShort();
             ownerId = msg.ReadByte();
-            linVelocity = msg.ReadVector3();
-            angVelocity = msg.ReadVector3();
+            linVelocity = msg.ReadVector3Ulong();
+            angVelocity = msg.ReadVector3Ulong();
         }
 
         public P2PMessage MakeMsg()
@@ -885,8 +885,8 @@ namespace MultiplayerMod.Networking
             msg.WriteByte((byte)MessageType.ChangeObjectOwnership);
             msg.WriteUShort(objectId);
             msg.WriteByte(ownerId);
-            msg.WriteVector3(linVelocity);
-            msg.WriteVector3(angVelocity);
+            msg.WriteVector3Ulong(linVelocity);
+            msg.WriteVector3Ulong(angVelocity);
             return msg;
         }
     }

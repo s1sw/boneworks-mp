@@ -736,6 +736,7 @@ namespace MultiplayerMod.Core
             so.owner = initialOwner;
             so.ID = id;
             so.rb = obj.GetComponent<Rigidbody>();
+            so.rootPuppet = obj.GetComponentInParent<PuppetMaster>();
             syncObjs.Add(so);
 
             var iam = new IDAllocationMessage

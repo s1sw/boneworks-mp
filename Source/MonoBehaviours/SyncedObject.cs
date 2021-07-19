@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using MultiplayerMod.Networking;
+using PuppetMasta;
 
 namespace MultiplayerMod.MonoBehaviours
 {
@@ -16,16 +17,17 @@ namespace MultiplayerMod.MonoBehaviours
         public ushort ID;
         public byte owner = 0;
         public Rigidbody rb;
+        public PuppetMaster rootPuppet;
 
         public bool NeedsSync()
         {
-            return (transform.position - lastSyncedPos).sqrMagnitude > 0.005f || Quaternion.Angle(transform.rotation, lastSyncedRotation) > 0.25f;
+            return (transform.localPosition - lastSyncedPos).sqrMagnitude > 0.005f || Quaternion.Angle(transform.localRotation, lastSyncedRotation) > 0.25f;
         }
 
         public void UpdateLastSync()
         {
-            lastSyncedPos = transform.position;
-            lastSyncedRotation = transform.rotation;
+            lastSyncedPos = transform.localPosition;
+            lastSyncedRotation = transform.localRotation;
         }
 
         public ObjectSyncMessage CreateSyncMessage()

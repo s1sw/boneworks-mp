@@ -115,29 +115,17 @@ namespace MultiplayerMod.Core
             if (!so)
                 return;
 
-            Grip[] grips = rb.GetComponentsInChildren<Grip>();
-            foreach (Grip grip in grips)
-            {
-                MelonLogger.Log(grip.gameObject.name);
-                HandToGripState htgsL = grip.GetHandState(BoneworksModdingToolkit.Player.leftHand);
-                if (htgsL != null)
-                    if (htgsL.isActive == true)
-                        return;
-
-                HandToGripState htgsR = grip.GetHandState(BoneworksModdingToolkit.Player.rightHand);
-                if (htgsR != null)
-                    if (htgsR.isActive == true)
-                        return;
-            }
-
-            PuppetMaster puppet = rb.GetComponentInParent<PuppetMaster>();
+            PuppetMaster puppet = so.rootPuppet;
             if (puppet)
             {
-                PuppetSync.GetPuppetData(puppet, out Rigidbody[] rigidbodies);
-                foreach (Rigidbody rigidbody in rigidbodies)
-                    UpdateObject_Release(rigidbody);
+                PuppetSync.GetPuppetData(puppet, out Rigidbody[] rigidbodies, out Grip[] grips);
+                if (UpdateObject_CheckGrab(grips))
+                {
+                    foreach (Rigidbody rigidbody in rigidbodies)
+                        UpdateObject_Release(rigidbody);
+                }
             }
-            else
+            else if (UpdateObject_CheckGrab(rb.GetComponentsInChildren<Grip>()))
                 UpdateObject_Release(rb);
         }
 
@@ -207,6 +195,24 @@ namespace MultiplayerMod.Core
 
                 SendToServer(coom, MessageSendType.Reliable);
             }
+        }
+
+        private bool UpdateObject_CheckGrab(Grip[] grips)
+        {
+            foreach (Grip grip in grips)
+            {
+                MelonLogger.Log(grip.gameObject.name);
+                HandToGripState htgsL = grip.GetHandState(BoneworksModdingToolkit.Player.leftHand);
+                if (htgsL != null)
+                    if (htgsL.isActive == true)
+                        return false;
+
+                HandToGripState htgsR = grip.GetHandState(BoneworksModdingToolkit.Player.rightHand);
+                if (htgsR != null)
+                    if (htgsR.isActive == true)
+                        return false;
+            }
+            return true;
         }
 
         private void BWUtil_OnFire(Gun obj)
@@ -443,6 +449,7 @@ namespace MultiplayerMod.Core
                             so.ID = iam.allocatedId;
                             so.owner = iam.initialOwner;
                             so.rb = obj.GetComponent<Rigidbody>();
+                            so.rootPuppet = obj.GetComponentInParent<PuppetMaster>();
 
                             syncedObjects.Add(so);
 

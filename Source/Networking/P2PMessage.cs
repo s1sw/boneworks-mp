@@ -228,6 +228,18 @@ namespace MultiplayerMod.Networking
             byteChunks.Add(bArr);
         }
 
+        public void WriteVector3Ulong(Vector3 v3)
+        {
+            //Vectors must stay within the -320.00 to 320.00 range per axis - no error handling is coded here
+            //Adds 32768 to get numbers into the 0-65536 range rather than -32768 to 32768 range to allow unsigned
+            //Multiply by 100 to get two decimal place
+            ulong xcomp = (ulong)(Mathf.RoundToInt((v3.x * 100f)) + 32768);
+            ulong ycomp = (ulong)(Mathf.RoundToInt((v3.y * 100f)) + 32768);
+            ulong zcomp = (ulong)(Mathf.RoundToInt((v3.z * 100f)) + 32768);
+            ulong val = xcomp + ycomp * 65536 + zcomp * 4294967296;
+            WriteUlong(val);
+        }
+
         public Quaternion ReadCompressedQuaternion()
         {
             // Read the index of the omitted field from the stream.
@@ -354,6 +366,18 @@ namespace MultiplayerMod.Networking
             rPos += length;
 
             return ret;
+        }
+
+        public Vector3 ReadVector3Ulong()
+        {
+            ulong i = ReadUlong();
+            //Get the leftmost bits first. The fractional remains are the bits to the right.
+            // 1024 is 2 ^ 10 - 1048576 is 2 ^ 20 - just saving some calculation time doing that in advance
+            ulong z = (ulong)(i / 4294967296);
+            ulong y = (ulong)((i - z * 4294967296) / 65536);
+            ulong x = (ulong)(i - y * 65536 - z * 4294967296);
+            // subtract 512 to move numbers back into the -512 to 512 range rather than 0 - 1024
+            return new Vector3(((float)x - 32768f) / 100f, ((float)y - 32768f) / 100f, ((float)z - 32768f) / 100f);
         }
     }
 }
