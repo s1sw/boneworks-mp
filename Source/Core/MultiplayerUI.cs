@@ -36,8 +36,8 @@ namespace MultiplayerMod.Core
                 // Create a world space UI to display the error message
                 GameObject tmObj = new GameObject("TextMesh");
                 TextMesh tm = tmObj.AddComponent<TextMesh>();
-                tm.text = "You haven't installed the mod correctly!";
-                tm.fontSize = 20;
+                tm.set_text("You haven't installed the mod correctly!");
+                tm.set_fontSize(20);
                 tm.color = new Color(1.0f, 0.0f, 0.0f);
             }
             else
@@ -58,15 +58,18 @@ namespace MultiplayerMod.Core
                 uiObj.GetComponent<Canvas>().worldCamera = Camera.current;
                 DontDestroyOnLoad(uiObj);
 
-                Transform panelTransform = uiObj.transform.Find("Panel");
-
-                if (panelTransform == null)
-                {
-                    MelonLogger.LogError("You appear to be using an outdated version of the UI canvas bundle. " +
-                                         "Please wait for this version of the mod to be released publicly.");
-                }
-
-                statusText = panelTransform.Find("StatusText").GetComponent<Text>();
+                //Transform panelTransform = uiObj.transform.Find("Panel");
+                //
+                //if (panelTransform == null)
+                //{
+                //    MelonLogger.LogError("You appear to be using an outdated version of the UI canvas bundle. " +
+                //                         "Please wait for this version of the mod to be released publicly.");
+                //}
+                //
+                //statusText = panelTransform.Find("StatusText").GetComponent<Text>();
+                statusText = uiObj.AddComponent<Text>();
+                statusText.fontSize = 20;
+                statusText.color = Color.white;
                 SetState(currentState);
             }
             catch (NullReferenceException)

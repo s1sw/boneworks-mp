@@ -24,6 +24,7 @@ using MultiplayerMod.MonoBehaviours;
 using MultiplayerMod.Extras;
 using StressLevelZero.Combat;
 using BoneworksModdingToolkit.BoneHook;
+using PuppetMasta;
 
 namespace MultiplayerMod.Core
 {
@@ -171,6 +172,7 @@ namespace MultiplayerMod.Core
         private void MultiplayerMod_OnLevelWasLoadedEvent(int level)
         {
             syncObjs.Clear();
+            PuppetSync.ClearCache();
             SceneTransitionMessage stm = new SceneTransitionMessage
             {
                 sceneName = BoneworksSceneManager.GetSceneNameFromScenePath(level)
@@ -686,8 +688,17 @@ namespace MultiplayerMod.Core
             }
 
             MelonLogger.Log($"Grabbed {rb.gameObject.name}");
-
-            if (rb.gameObject.GetComponent<SyncedObject>() == null)
+            PuppetMaster puppet = obj.GetComponentInParent<PuppetMaster>();
+            if (puppet)
+            {
+                PuppetSync.GetPuppetData(puppet, out Rigidbody[] rigidbodies);
+                foreach (Rigidbody rigidbody in rigidbodies)
+                {
+                    if (rigidbody.GetComponent<SyncedObject>() == null)
+                        SetupSyncFor(rigidbody.gameObject);
+                }
+            }
+            else if (rb.GetComponent<SyncedObject>() == null)
                 SetupSyncFor(rb.gameObject);
         }
 

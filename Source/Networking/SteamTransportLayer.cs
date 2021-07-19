@@ -181,7 +181,7 @@ namespace MultiplayerMod.Networking
                     {
                         MessageSendCmd sendCmd;
                         while (!messageSendCmds.TryDequeue(out sendCmd)) continue;
-                        SteamNetworking.SendP2PPacket(sendCmd.id, sendCmd.msg.GetBytes(), -1, 0, sendCmd.sendType == MessageSendType.Reliable ? P2PSend.Reliable : P2PSend.Unreliable);
+                        SteamNetworking.SendP2PPacket(sendCmd.id, sendCmd.msg.GetBytes(), -1, 0); //Force reliable message
                     }
                 }
                 catch (Exception e)

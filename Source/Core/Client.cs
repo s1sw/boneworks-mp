@@ -17,6 +17,7 @@ using StressLevelZero.Combat;
 using MultiplayerMod.Extras;
 using BoneworksModdingToolkit.BoneHook;
 using StressLevelZero.Interaction;
+using PuppetMasta;
 
 namespace MultiplayerMod.Core
 {
@@ -101,6 +102,7 @@ namespace MultiplayerMod.Core
         private void MultiplayerMod_OnLevelWasLoadedEvent(int obj)
         {
             syncedObjects.Clear();
+            PuppetSync.ClearCache();
         }
 
         private void PlayerHooks_OnPlayerReleaseObject(GameObject grabObj)
@@ -108,6 +110,10 @@ namespace MultiplayerMod.Core
 
             MelonLogger.Log($"Released {grabObj.name}");
             var rb = grabObj.GetComponentInParent<Rigidbody>();
+            if (rb == null) return;
+            SyncedObject so = rb.gameObject.GetComponent<SyncedObject>();
+            if (!so)
+                return;
 
             Grip[] grips = rb.GetComponentsInChildren<Grip>();
             foreach (Grip grip in grips)
@@ -123,25 +129,16 @@ namespace MultiplayerMod.Core
                     if (htgsR.isActive == true)
                         return;
             }
-            
 
-            if (rb == null) return;
-            var obj = rb.gameObject;
-
-            var so = obj.GetComponent<SyncedObject>();
-
-            if (so && so.owner == localSmallId)
+            PuppetMaster puppet = rb.GetComponentInParent<PuppetMaster>();
+            if (puppet)
             {
-                var coom = new ChangeObjectOwnershipMessage
-                {
-                    objectId = so.ID,
-                    ownerId = 0,
-                    linVelocity = rb.velocity,
-                    angVelocity = rb.angularVelocity
-                };
-
-                SendToServer(coom, MessageSendType.Reliable);
+                PuppetSync.GetPuppetData(puppet, out Rigidbody[] rigidbodies);
+                foreach (Rigidbody rigidbody in rigidbodies)
+                    UpdateObject_Release(rigidbody);
             }
+            else
+                UpdateObject_Release(rb);
         }
 
         private void PlayerHooks_OnPlayerGrabObject(GameObject grabObj)
@@ -154,14 +151,27 @@ namespace MultiplayerMod.Core
             MelonLogger.Log($"Grabbed {rb.gameObject.name}");
 
             var obj = rb.gameObject;
-            var so = obj.GetComponent<SyncedObject>();
+            PuppetMaster puppet = obj.GetComponentInParent<PuppetMaster>();
+            if (puppet)
+            {
+                PuppetSync.GetPuppetData(puppet, out Rigidbody[] rigidbodies);
+                foreach (Rigidbody rigidbody in rigidbodies)
+                    UpdateObject_Grab(rigidbody.gameObject);
+            }
+            else
+                UpdateObject_Grab(obj);
+        }
+
+        private void UpdateObject_Grab(GameObject go)
+        {
+            var so = go.GetComponent<SyncedObject>();
 
             if (!so)
             {
-                MelonLogger.Log($"Requesting ID for {obj.name}");
+                MelonLogger.Log($"Requesting ID for {go.name}");
                 var req = new IDRequestMessage
                 {
-                    namePath = BWUtil.GetFullNamePath(obj),
+                    namePath = BWUtil.GetFullNamePath(go),
                     initialOwner = localSmallId
                 };
 
@@ -174,6 +184,25 @@ namespace MultiplayerMod.Core
                 {
                     objectId = so.ID,
                     ownerId = localSmallId
+                };
+
+                SendToServer(coom, MessageSendType.Reliable);
+            }
+        }
+
+        private void UpdateObject_Release(Rigidbody rb)
+        {
+            var obj = rb.gameObject;
+            var so = obj.GetComponent<SyncedObject>();
+
+            if (so && so.owner == localSmallId)
+            {
+                var coom = new ChangeObjectOwnershipMessage
+                {
+                    objectId = so.ID,
+                    ownerId = 0,
+                    linVelocity = rb.velocity,
+                    angVelocity = rb.angularVelocity
                 };
 
                 SendToServer(coom, MessageSendType.Reliable);
@@ -592,8 +621,8 @@ namespace MultiplayerMod.Core
             {
                 if (so.owner == localSmallId && so.NeedsSync())
                 {
-                    var osm = so.CreateSyncMessage();
-                    SendToServer(osm, MessageSendType.Reliable);
+                    SendToServer(so.CreateSyncMessage(), MessageSendType.Reliable);
+                    so.UpdateLastSync();
                 }
             }
         }

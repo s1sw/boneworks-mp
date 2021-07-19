@@ -82,8 +82,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\Il2CppSystem.Xml.Linq.dll</HintPath>
     </Reference>
-    <Reference Include="MelonLoader.ModHandler">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\BONEWORKS\BONEWORKS\MelonLoader\MelonLoader.ModHandler.dll</HintPath>
+    <Reference Include="MelonLoader">
+      <HintPath>.\MelonLoader.dll</HintPath>
     </Reference>
     <Reference Include="NavMeshComponents, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -280,6 +280,7 @@
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Source\Boneworks\BWUtil.cs" />
     <Compile Include="Source\Core\ObjectIDManager.cs" />
+    <Compile Include="Source\Core\PuppetSync.cs" />
     <Compile Include="Source\Extras\BasicFABRIK.cs" />
     <Compile Include="Source\Extras\GunResources.cs" />
     <Compile Include="Source\Features\ClientSettings.cs" />
@@ -309,6 +310,7 @@
     <Compile Include="Source\Representations\PlayerRep.cs" />
     <Compile Include="Source\Core\RichPresence.cs" />
     <Compile Include="Source\Core\Server.cs" />
+    <Compile Include="Source\Structs\CachedPuppet.cs" />
     <Compile Include="Source\Structs\RigTransforms.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -322,6 +324,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>XCOPY /Y "$(TargetPath)" $(BONEWORKS_DIR)\Mods"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>
