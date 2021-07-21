@@ -279,7 +279,9 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Source\Boneworks\BWUtil.cs" />
+    <Compile Include="Source\Core\MPPlayer.cs" />
     <Compile Include="Source\Core\ObjectIDManager.cs" />
+    <Compile Include="Source\Core\Players.cs" />
     <Compile Include="Source\Extras\BasicFABRIK.cs" />
     <Compile Include="Source\Extras\GunResources.cs" />
     <Compile Include="Source\Features\ClientSettings.cs" />

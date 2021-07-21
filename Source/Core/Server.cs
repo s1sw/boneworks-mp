@@ -18,8 +18,6 @@ using static UnityEngine.Object;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
-using Oculus.Platform;
-using Oculus.Platform.Samples.VrHoops;
 using MultiplayerMod.MonoBehaviours;
 using MultiplayerMod.Extras;
 using StressLevelZero.Combat;
@@ -29,12 +27,7 @@ namespace MultiplayerMod.Core
 {
     public class Server
     {
-        private readonly Dictionary<byte, PlayerRep> playerObjects = new Dictionary<byte, PlayerRep>(MultiplayerMod.MAX_PLAYERS);
-        private readonly Dictionary<byte, string> playerNames = new Dictionary<byte, string>(MultiplayerMod.MAX_PLAYERS);
-        private readonly List<ulong> players = new List<ulong>();
-        private readonly Dictionary<SteamId, byte> smallPlayerIds = new Dictionary<SteamId, byte>(MultiplayerMod.MAX_PLAYERS);
-        private readonly Dictionary<byte, SteamId> largePlayerIds = new Dictionary<byte, SteamId>(MultiplayerMod.MAX_PLAYERS);
-        private readonly Dictionary<ulong, ITransportConnection> playerConnections = new Dictionary<ulong, ITransportConnection>(MultiplayerMod.MAX_PLAYERS);
+        private readonly Players players;
         private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
         private readonly List<SyncedObject> syncObjs = new List<SyncedObject>();
         private string partyId = "";
@@ -152,10 +145,11 @@ namespace MultiplayerMod.Core
                 ServerSendToAll(ofrtm, MessageSendType.Unreliable);
             }
 
-            foreach (PlayerRep pr in playerObjects.Values)
+            foreach (MPPlayer player in players)
             {
-                pr.UpdateNameplateFacing(Camera.current.transform);
-                pr.faceAnimator.Update();
+                PlayerRep rep = player.PlayerRep;
+                rep.UpdateNameplateFacing(Camera.current.transform);
+                rep.faceAnimator.Update();
             }
 
             foreach (var obj in syncObjs)
@@ -222,23 +216,20 @@ namespace MultiplayerMod.Core
             {
                 case ConnectionClosedReason.Timeout:
                 case ConnectionClosedReason.ClosedByRemote:
-                    if (smallPlayerIds.ContainsKey(connection.ConnectedTo))
+                    if (players.Contains(connection.ConnectedTo))
                     {
-                        MelonLogger.Log("Player left with ID: " + connection.ConnectedTo);
-                        byte smallId = smallPlayerIds[connection.ConnectedTo];
+                        MPPlayer player = players[connection.ConnectedTo];
+                        players.Remove(player);
+
+                        MelonLogger.Log($"Player {player.Name} left");
 
                         P2PMessage disconnectMsg = new P2PMessage();
                         disconnectMsg.WriteByte((byte)MessageType.Disconnect);
-                        disconnectMsg.WriteByte(smallId);
+                        disconnectMsg.WriteByte(player.SmallID);
 
-                        playerObjects[smallId].Delete();
-                        playerObjects.Remove(smallId);
-                        players.RemoveAll((ulong val) => val == connection.ConnectedTo);
-                        smallPlayerIds.Remove(connection.ConnectedTo);
-
-                        foreach (SteamId p in players)
+                        foreach (MPPlayer p in players)
                         {
-                            playerConnections[p].SendMessage(disconnectMsg, MessageSendType.Reliable);
+                            p.Connection.SendMessage(disconnectMsg, MessageSendType.Reliable);
                         }
                     }
                     break;
@@ -257,10 +248,12 @@ namespace MultiplayerMod.Core
                 case MessageType.GunFire:
                     {
                         GunFireMessage gfm = new GunFireMessage(msg);
-                        byte LocalplayerId = smallPlayerIds[connection.ConnectedTo];
-                        if (playerObjects.ContainsKey(LocalplayerId))
+
+                        if (players.Contains(connection.ConnectedTo))
                         {
-                            PlayerRep pr = playerObjects[LocalplayerId];
+                            MPPlayer player = players[connection.ConnectedTo];
+                            PlayerRep pr = player.PlayerRep;
+
                             AmmoVariables ammoVariables = new AmmoVariables()
                             {
                                 AttackDamage = gfm.ammoDamage,
@@ -270,6 +263,7 @@ namespace MultiplayerMod.Core
                                 ProjectileMass = gfm.projectileMass,
                                 Tracer = false
                             };
+
                             if ((StressLevelZero.Handedness)gfm.handedness == StressLevelZero.Handedness.RIGHT)
                             {
                                 pr.rightGunScript.firePointTransform.position = gfm.firepointPos;
@@ -279,6 +273,7 @@ namespace MultiplayerMod.Core
                                 pr.leftGunScript.PullCartridge();
                                 pr.rightGunScript.Fire();
                             }
+
                             if ((StressLevelZero.Handedness)gfm.handedness == StressLevelZero.Handedness.LEFT)
                             {
                                 pr.leftGunScript.firePointTransform.position = gfm.firepointPos;
@@ -288,9 +283,10 @@ namespace MultiplayerMod.Core
                                 pr.leftGunScript.PullCartridge();
                                 pr.leftGunScript.Fire();
                             }
+
                             GunFireMessageOther gfmo = new GunFireMessageOther()
                             {
-                                playerId = LocalplayerId,
+                                playerId = player.SmallID,
                                 handedness = gfm.handedness,
                                 firepointPos = gfm.firepointPos,
                                 firepointRotation = gfm.firepointRotation,
@@ -299,6 +295,7 @@ namespace MultiplayerMod.Core
                                 exitVelocity = gfm.exitVelocity,
                                 muzzleVelocity = gfm.muzzleVelocity
                             };
+
                             pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Angry;
                             pr.faceAnimator.faceTime = 5;
                             ServerSendToAllExcept(gfmo, MessageSendType.Reliable, connection.ConnectedTo);
@@ -309,7 +306,7 @@ namespace MultiplayerMod.Core
                     {
                         if (msg.ReadByte() != MultiplayerMod.PROTOCOL_VERSION)
                         {
-                            // Somebody tried to join with an incompatible verison
+                            // Somebody tried to join with an incompatible verison. Kick 'em!
                             P2PMessage m2 = new P2PMessage();
                             m2.WriteByte((byte)MessageType.JoinRejected);
                             connection.SendMessage(m2, MessageSendType.Reliable);
@@ -318,84 +315,51 @@ namespace MultiplayerMod.Core
                         else
                         {
                             MelonLogger.Log("Player joined with ID: " + connection.ConnectedTo);
+
                             if (players.Contains(connection.ConnectedTo))
                                 players.Remove(connection.ConnectedTo);
 
-                            players.Add(connection.ConnectedTo);
-                            MelonLogger.Log("Player count: " + players.Count);
+                            string name = msg.ReadUnicodeString();
                             byte newPlayerId = smallIdCounter;
-
-                            if (smallPlayerIds.ContainsKey(newPlayerId))
-                                smallPlayerIds.Remove(newPlayerId);
-
-                            smallPlayerIds.Add(connection.ConnectedTo, newPlayerId);
-
-                            if (largePlayerIds.ContainsKey(newPlayerId))
-                                largePlayerIds.Remove(newPlayerId);
-
-                            largePlayerIds.Add(newPlayerId, connection.ConnectedTo);
                             smallIdCounter++;
 
-                            playerConnections.Add(connection.ConnectedTo, connection);
+                            var player = new MPPlayer(name, connection.ConnectedTo, newPlayerId, connection);
 
-                            string name = msg.ReadUnicodeString();
+                            MelonLogger.Log("Player count: " + players.Count);
                             MelonLogger.Log("Name: " + name);
 
-                            foreach (var smallId in playerNames.Keys)
+                            // Sync existing players to the newly joining player
+                            foreach (MPPlayer p in players)
                             {
                                 ClientJoinMessage cjm = new ClientJoinMessage
                                 {
-                                    playerId = smallId,
-                                    name = playerNames[smallId],
-                                    steamId = largePlayerIds[smallId]
+                                    playerId = p.SmallID,
+                                    name = p.Name,
+                                    steamId = p.FullID
                                 };
                                 connection.SendMessage(cjm.MakeMsg(), MessageSendType.Reliable);
                             }
 
-                            ClientJoinMessage cjm2 = new ClientJoinMessage
+                            // Sync the host player
                             {
-                                playerId = 0,
-                                name = SteamClient.Name,
-                                steamId = SteamClient.SteamId
-                            };
-                            connection.SendMessage(cjm2.MakeMsg(), MessageSendType.Reliable);
-
-                            if (playerNames.ContainsKey(newPlayerId))
-                                playerNames.Remove(newPlayerId);
-
-                            playerNames.Add(newPlayerId, name);
-
-                            ClientJoinMessage cjm3 = new ClientJoinMessage
-                            {
-                                playerId = newPlayerId,
-                                name = name,
-                                steamId = connection.ConnectedTo
-                            };
-                            ServerSendToAllExcept(cjm3, MessageSendType.Reliable, connection.ConnectedTo);
-
-                            if (playerObjects.ContainsKey(newPlayerId))
-                                playerObjects.Remove(newPlayerId);
-                            playerObjects.Add(newPlayerId, new PlayerRep(name, connection.ConnectedTo));
-
-                            RichPresence.SetActivity(
-                                new Activity()
+                                ClientJoinMessage cjm2 = new ClientJoinMessage
                                 {
-                                    Details = "Hosting a server",
-                                    Secrets = new ActivitySecrets()
-                                    {
-                                        Join = SteamClient.SteamId.ToString()
-                                    },
-                                    Party = new ActivityParty()
-                                    {
-                                        Id = partyId,
-                                        Size = new PartySize()
-                                        {
-                                            CurrentSize = players.Count + 1,
-                                            MaxSize = MultiplayerMod.MAX_PLAYERS
-                                        }
-                                    }
-                                });
+                                    playerId = 0,
+                                    name = SteamClient.Name,
+                                    steamId = SteamClient.SteamId
+                                };
+                                connection.SendMessage(cjm2.MakeMsg(), MessageSendType.Reliable);
 
+                                ClientJoinMessage cjm3 = new ClientJoinMessage
+                                {
+                                    playerId = newPlayerId,
+                                    name = name,
+                                    steamId = connection.ConnectedTo
+                                };
+                                ServerSendToAllExcept(cjm3, MessageSendType.Reliable, connection.ConnectedTo);
+                            }
+
+                            // Sync current scene, Discord party ID and player's small ID
                             SceneTransitionMessage stm = new SceneTransitionMessage()
                             {
                                 sceneName = BoneworksSceneManager.GetCurrentSceneName()
@@ -414,6 +378,7 @@ namespace MultiplayerMod.Core
                             };
                             connection.SendMessage(slsi.MakeMsg(), MessageSendType.Reliable);
 
+                            // Sync any allocated physics sync objects
                             foreach (var so in syncObjs)
                             {
                                 var iam = new IDAllocationMessage
@@ -425,12 +390,33 @@ namespace MultiplayerMod.Core
                                 connection.SendMessage(iam.MakeMsg(), MessageSendType.Reliable);
                             }
 
+                            players.Add(player);
+
                             ui.SetPlayerCount(players.Count, MultiplayerUIState.Server);
 
-                            foreach (PlayerRep pr in playerObjects.Values)
+                            RichPresence.SetActivity(
+                                new Activity()
+                                {
+                                    Details = "Hosting a server",
+                                    Secrets = new ActivitySecrets()
+                                    {
+                                        Join = SteamClient.SteamId.ToString()
+                                    },
+                                    Party = new ActivityParty()
+                                    {
+                                        Id = partyId,
+                                        Size = new PartySize()
+                                        {
+                                            CurrentSize = players.Count,
+                                            MaxSize = MultiplayerMod.MAX_PLAYERS
+                                        }
+                                    }
+                                });
+
+                            foreach (MPPlayer p in players)
                             {
-                                pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Happy;
-                                pr.faceAnimator.faceTime = 15;
+                                p.PlayerRep.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Happy;
+                                p.PlayerRep.faceAnimator.faceTime = 15;
                             }
                         }
                         break;
@@ -438,25 +424,23 @@ namespace MultiplayerMod.Core
                 case MessageType.Disconnect:
                     {
                         MelonLogger.Log("Player left with ID: " + connection.ConnectedTo);
-                        byte smallId = smallPlayerIds[connection.ConnectedTo];
 
-                        playerObjects[smallId].Delete();
-                        playerObjects.Remove(smallId);
-                        players.RemoveAll((ulong val) => val == connection.ConnectedTo);
-                        smallPlayerIds.Remove(connection.ConnectedTo);
+                        var smallId = players[connection.ConnectedTo].SmallID;
+                        players.Remove(connection.ConnectedTo);
 
                         P2PMessage disconnectMsg = new P2PMessage();
                         disconnectMsg.WriteByte((byte)MessageType.Disconnect);
                         disconnectMsg.WriteByte(smallId);
 
-                        foreach (SteamId p in players)
+                        foreach (MPPlayer p in players)
                         {
-                            playerConnections[p].SendMessage(disconnectMsg, MessageSendType.Reliable);
+                            p.Connection.SendMessage(disconnectMsg, MessageSendType.Reliable);
                         }
-                        foreach (PlayerRep pr in playerObjects.Values)
+
+                        foreach (MPPlayer p in players)
                         {
-                            pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Sad;
-                            pr.faceAnimator.faceTime = 6;
+                            p.PlayerRep.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Sad;
+                            p.PlayerRep.faceAnimator.faceTime = 6;
                         }
                         break;
                     }
@@ -464,10 +448,10 @@ namespace MultiplayerMod.Core
                     {
                         FullRigTransformMessage frtm = new FullRigTransformMessage(msg);
 
-                        byte playerId = smallPlayerIds[connection.ConnectedTo];
-                        if (playerObjects.ContainsKey(playerId))
+                        if (players.Contains(connection.ConnectedTo))
                         {
-                            PlayerRep pr = playerObjects[playerId];
+                            MPPlayer player = players[connection.ConnectedTo];
+                            PlayerRep pr = player.PlayerRep;
 
                             if (pr.rigTransforms.main != null)
                             {
@@ -476,7 +460,7 @@ namespace MultiplayerMod.Core
 
                                 OtherFullRigTransformMessage ofrtm = new OtherFullRigTransformMessage
                                 {
-                                    playerId = playerId,
+                                    playerId = player.SmallID,
 
                                     posMain = frtm.posMain,
                                     posRoot = frtm.posRoot,
@@ -539,8 +523,9 @@ namespace MultiplayerMod.Core
                 case MessageType.ChangeObjectOwnership:
                     {
                         var coom = new ChangeObjectOwnershipMessage(msg);
+                        var player = players[connection.ConnectedTo];
 
-                        if (coom.ownerId != smallPlayerIds[connection.ConnectedTo] && coom.ownerId != 0)
+                        if (coom.ownerId != player.SmallID && coom.ownerId != 0)
                         {
                             MelonLogger.LogError("Invalid object ownership change??");
                         }
@@ -576,6 +561,7 @@ namespace MultiplayerMod.Core
                     {
                         ObjectSyncMessage osm = new ObjectSyncMessage(msg);
                         GameObject obj = ObjectIDManager.GetObject(osm.id);
+                        var player = players[connection.ConnectedTo];
 
                         var so = obj.GetComponent<SyncedObject>();
 
@@ -585,7 +571,7 @@ namespace MultiplayerMod.Core
                         }
                         else
                         {
-                            if (so.owner != smallPlayerIds[connection.ConnectedTo])
+                            if (so.owner != player.SmallID)
                             {
                                 MelonLogger.LogError("Got object sync from client that doesn't own the object");
                                 var coom = new ChangeObjectOwnershipMessage(msg)
@@ -595,7 +581,7 @@ namespace MultiplayerMod.Core
                                     linVelocity = so.rb.velocity,
                                     angVelocity = so.rb.angularVelocity
                                 };
-                                playerConnections[so.owner].SendMessage(coom.MakeMsg(), MessageSendType.Reliable);
+                                player.Connection.SendMessage(coom.MakeMsg(), MessageSendType.Reliable);
                             }
                             else
                             {
@@ -619,31 +605,15 @@ namespace MultiplayerMod.Core
             ui.SetState(MultiplayerUIState.PreConnect);
             IsRunning = false;
 
-            try
-            {
-                foreach (PlayerRep r in playerObjects.Values)
-                {
-                    r.Delete();
-                }
-            }
-            catch (Exception)
-            {
-                MelonLogger.LogError("Caught exception destroying player objects");
-            }
-
-            playerObjects.Clear();
-            playerNames.Clear();
-            smallPlayerIds.Clear();
-            largePlayerIds.Clear();
             smallIdCounter = 1;
 
             P2PMessage shutdownMsg = new P2PMessage();
             shutdownMsg.WriteByte((byte)MessageType.ServerShutdown);
 
-            foreach (SteamId p in players)
+            foreach (MPPlayer p in players)
             {
-                playerConnections[p].SendMessage(shutdownMsg, MessageSendType.Reliable);
-                playerConnections[p].Disconnect();
+                p.Connection.SendMessage(shutdownMsg, MessageSendType.Reliable);
+                p.Connection.Disconnect();
             }
 
             players.Clear();
@@ -682,26 +652,26 @@ namespace MultiplayerMod.Core
         private void ServerSendToAll(INetworkMessage msg, MessageSendType send)
         {
             P2PMessage pMsg = msg.MakeMsg();
-            foreach (SteamId p in players)
+            foreach (MPPlayer p in players)
             {
-                playerConnections[p].SendMessage(pMsg, send);
+                p.Connection.SendMessage(pMsg, send);
             }
         }
 
-        private void ServerSendToAllExcept(INetworkMessage msg, MessageSendType send, SteamId except)
+        private void ServerSendToAllExcept(INetworkMessage msg, MessageSendType send, ulong except)
         {
             P2PMessage pMsg = msg.MakeMsg();
-            foreach (SteamId p in players)
+            foreach (MPPlayer p in players)
             {
-                if (p != except)
-                    playerConnections[p].SendMessage(pMsg, send);
+                if (p.FullID != except)
+                    p.Connection.SendMessage(pMsg, send);
             }
         }
 
-        private void SendToId(INetworkMessage msg, MessageSendType send, SteamId id)
+        private void SendToId(INetworkMessage msg, MessageSendType send, ulong id)
         {
             P2PMessage pMsg = msg.MakeMsg();
-            playerConnections[id].SendMessage(pMsg, send);
+            players[id].Connection.SendMessage(pMsg, send);
         }
 
         public void SetupSyncFor(GameObject obj, byte initialOwner = 0)

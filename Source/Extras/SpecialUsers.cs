@@ -17,9 +17,7 @@ namespace MultiplayerMod.Extras
             if (userID == 76561198078346603)
             {
                 GameObject crownObj = root.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt/Neck_02SHJnt/Neck_TopSHJnt/Head_Crown").gameObject;
-                //GameObject glassesObj = root.Find("Spine_01SHJnt/Spine_02SHJnt/Spine_TopSHJnt/Neck_01SHJnt/Neck_02SHJnt/Neck_TopSHJnt/Head_Glasses").gameObject;
                 crownObj.SetActive(true);
-                //glassesObj.SetActive(true);
 
                 text.color = DevRed;
             }

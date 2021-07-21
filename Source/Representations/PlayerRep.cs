@@ -34,7 +34,6 @@ namespace MultiplayerMod.Representations
         public GameObject footL;
         public GameObject footR;
         public GameObject namePlate;
-        public SteamId steamId;
         public BoneworksRigTransforms rigTransforms;
         public GameObject rightGun;
         public Gun rightGunScript;
@@ -49,10 +48,6 @@ namespace MultiplayerMod.Representations
 
         public static AssetBundle fordBundle;
 
-        // Async operations
-        //Task<Facepunch.Steamworks.Data.Image?> task_asyncLoadPlayerIcon;
-        //public bool isPlayerIconLoaded = false;
-
         public static void LoadFord()
         {
             fordBundle = AssetBundle.LoadFromFile("ford.ford");
@@ -65,14 +60,11 @@ namespace MultiplayerMod.Representations
         }
 
         // Constructor
-        public PlayerRep(string name, SteamId steamId)
+        public PlayerRep(string name)
         {
-            this.steamId = steamId;
-
-            // Create this player's "Ford" to represent them, known as their rep
             GameObject ford = Instantiate(fordBundle.LoadAsset("Assets/Ford.prefab").Cast<GameObject>());
 
-            // Makes sure that the rep isn't destroyed per level change.
+            // Don't destroy on level load so we can be lazy and avoid recreating the player reps.
             DontDestroyOnLoad(ford);
 
             ImpactPropertiesManager bloodManager = ford.AddComponent<ImpactPropertiesManager>();
@@ -189,10 +181,10 @@ namespace MultiplayerMod.Representations
             // Prevents the nameplate from being destroyed during a level change
             DontDestroyOnLoad(namePlate);
 
-            MelonCoroutines.Start(AsyncAvatarRoutine(steamId));
+            MelonCoroutines.Start(AsyncAvatarRoutine(fullId));
 
             // Gives certain users special appearances
-            Extras.SpecialUsers.GiveUniqueAppearances(steamId, realRoot, tm);
+            Extras.SpecialUsers.GiveUniqueAppearances(fullId, realRoot, tm);
 
             this.ford = ford;
         }
