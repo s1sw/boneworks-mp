@@ -23,17 +23,13 @@ namespace MultiplayerMod.Core
     public class Client
     {
         private BoneworksRigTransforms localRigTransforms;
-        private Player_Health localHealth;
 
         public SteamId ServerId
         {
             get; private set;
         }
 
-        private readonly Dictionary<byte, PlayerRep> playerObjects = new Dictionary<byte, PlayerRep>(MultiplayerMod.MAX_PLAYERS);
-        private readonly Dictionary<byte, string> playerNames = new Dictionary<byte, string>(MultiplayerMod.MAX_PLAYERS);
-        private readonly Dictionary<byte, SteamId> largePlayerIds = new Dictionary<byte, SteamId>(MultiplayerMod.MAX_PLAYERS);
-        private readonly Dictionary<SteamId, byte> smallPlayerIds = new Dictionary<SteamId, byte>(MultiplayerMod.MAX_PLAYERS);
+        private readonly Players players = new Players();
         private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
         private readonly List<SyncedObject> syncedObjects = new List<SyncedObject>();
         private readonly MultiplayerUI ui;
@@ -51,24 +47,6 @@ namespace MultiplayerMod.Core
         public void SetupRP()
         {
             RichPresence.OnJoin += RichPresence_OnJoin;
-        }
-
-        public void RecreatePlayers()
-        {
-            List<byte> ids = new List<byte>();
-            List<SteamId> steamIds = new List<SteamId>();
-
-            foreach (byte id in playerObjects.Keys)
-            {
-                ids.Add(id);
-                steamIds.Add(playerObjects[id].steamId);
-            }
-
-            int i = 0;
-            foreach (byte id in ids)
-            {
-                playerObjects[id] = new PlayerRep(playerNames[id], steamIds[i]);
-            }
         }
 
         public void Connect(string obj)
@@ -182,13 +160,15 @@ namespace MultiplayerMod.Core
 
         private void BWUtil_OnFire(Gun obj)
         {
-            BulletObject bobj = obj.chamberedBulletGameObject.GetComponent<BulletObject>();
             try
             {
-                AmmoVariables bObj = new AmmoVariables();
-                bObj.AttackDamage = 1;
-                bObj.ProjectileMass = 1;
-                bObj.ExitVelocity = 1;
+                AmmoVariables bObj = new AmmoVariables
+                {
+                    AttackDamage = 1,
+                    ProjectileMass = 1,
+                    ExitVelocity = 1
+                };
+
                 if (obj.chamberedCartridge != null)
                 {
                     bObj = obj.chamberedCartridge.ammoVariables;
@@ -197,6 +177,7 @@ namespace MultiplayerMod.Core
                 {
                     bObj = obj.overrideMagazine.AmmoSlots[0].ammoVariables;
                 }
+
                 GunFireMessage gfm = new GunFireMessage()
                 {
                     handedness = (byte)obj.host.GetHand(0).handedness,
@@ -228,7 +209,8 @@ namespace MultiplayerMod.Core
                     case MessageType.GunFire:
                         {
                             GunFireMessageOther gfmo = new GunFireMessageOther(msg);
-                            PlayerRep pr = GetPlayerRep(gfmo.playerId);
+                            PlayerRep pr = players[gfmo.playerId].PlayerRep;
+
                             AmmoVariables ammoVariables = new AmmoVariables()
                             {
                                 AttackDamage = gfmo.ammoDamage,
@@ -264,9 +246,9 @@ namespace MultiplayerMod.Core
                         {
                             OtherPlayerPositionMessage oppm = new OtherPlayerPositionMessage(msg);
 
-                            if (playerObjects.ContainsKey(oppm.playerId))
+                            if (players.Contains(oppm.playerId))
                             {
-                                PlayerRep pr = GetPlayerRep(oppm.playerId);
+                                PlayerRep pr = players[oppm.playerId].PlayerRep;
 
                                 pr.head.transform.position = oppm.headPos;
                                 pr.handL.transform.position = oppm.lHandPos;
@@ -291,9 +273,9 @@ namespace MultiplayerMod.Core
                             OtherFullRigTransformMessage ofrtm = new OtherFullRigTransformMessage(msg);
                             byte playerId = ofrtm.playerId;
 
-                            if (playerObjects.ContainsKey(ofrtm.playerId))
+                            if (players.Contains(ofrtm.playerId))
                             {
-                                PlayerRep pr = GetPlayerRep(playerId);
+                                PlayerRep pr = players[playerId].PlayerRep;
 
                                 pr.ApplyTransformMessage(ofrtm);
                             }
@@ -301,24 +283,18 @@ namespace MultiplayerMod.Core
                         }
                     case MessageType.ServerShutdown:
                         {
-                            foreach (PlayerRep pr in playerObjects.Values)
-                            {
-                                pr.Delete();
-                            }
+                            players.Clear();
                             break;
                         }
                     case MessageType.Disconnect:
                         {
                             byte pid = msg.ReadByte();
-                            playerObjects[pid].Delete();
-                            playerObjects.Remove(pid);
-                            largePlayerIds.Remove(pid);
-                            playerNames.Remove(pid);
+                            players.Remove(pid);
 
-                            foreach (PlayerRep pr in playerObjects.Values)
+                            foreach (MPPlayer player in players)
                             {
-                                pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Sad;
-                                pr.faceAnimator.faceTime = 10;
+                                player.PlayerRep.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Sad;
+                                player.PlayerRep.faceAnimator.faceTime = 10;
                             }
                             break;
                         }
@@ -340,14 +316,13 @@ namespace MultiplayerMod.Core
                     case MessageType.Join:
                         {
                             ClientJoinMessage cjm = new ClientJoinMessage(msg);
-                            largePlayerIds.Add(cjm.playerId, cjm.steamId);
-                            playerNames.Add(cjm.playerId, cjm.name);
-                            playerObjects.Add(cjm.playerId, new PlayerRep(cjm.name, cjm.steamId));
 
-                            foreach (PlayerRep pr in playerObjects.Values)
+                            var player = new MPPlayer(cjm.name, cjm.steamId, cjm.playerId, connection);
+
+                            foreach (MPPlayer p in players)
                             {
-                                pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Happy;
-                                pr.faceAnimator.faceTime = 15;
+                                p.PlayerRep.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Happy;
+                                p.PlayerRep.faceAnimator.faceTime = 15;
                             }
                             break;
                         }
@@ -481,25 +456,11 @@ namespace MultiplayerMod.Core
         public void Disconnect()
         {
             ui.SetState(MultiplayerUIState.PreConnect);
-            try
-            {
-                foreach (PlayerRep r in playerObjects.Values)
-                {
-                    r.Delete();
-                }
-            }
-            catch (Exception)
-            {
-                MelonLogger.LogError("Caught exception destroying player objects");
-            }
 
             MelonLogger.Log("Disconnecting...");
             isConnected = false;
             ServerId = 0;
-            playerObjects.Clear();
-            playerNames.Clear();
-            largePlayerIds.Clear();
-            smallPlayerIds.Clear();
+            players.Clear();
 
             if (connection.IsConnected)
                 connection.Disconnect();
@@ -565,10 +526,10 @@ namespace MultiplayerMod.Core
 
                 SendToServer(frtm, MessageSendType.Unreliable);
 
-                foreach (PlayerRep pr in playerObjects.Values)
+                foreach (MPPlayer p in players)
                 {
-                    pr.UpdateNameplateFacing(Camera.current.transform);
-                    pr.faceAnimator.Update();
+                    p.PlayerRep.UpdateNameplateFacing(Camera.current.transform);
+                    p.PlayerRep.faceAnimator.Update();
                 }
             }
 
@@ -580,11 +541,6 @@ namespace MultiplayerMod.Core
                     SendToServer(osm, MessageSendType.Reliable);
                 }
             }
-        }
-
-        private PlayerRep GetPlayerRep(byte playerId)
-        {
-            return playerObjects[playerId];
         }
 
         private void SendToServer(P2PMessage msg, MessageSendType send)
@@ -600,7 +556,6 @@ namespace MultiplayerMod.Core
         private void SetupPlayerReferences()
         {
             localRigTransforms = BWUtil.GetLocalRigTransforms();
-            localHealth = BWUtil.RigManager.GetComponent<Player_Health>();
         }
     }
 }

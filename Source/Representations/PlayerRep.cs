@@ -60,7 +60,7 @@ namespace MultiplayerMod.Representations
         }
 
         // Constructor
-        public PlayerRep(string name)
+        public PlayerRep(string name, ulong fullId)
         {
             GameObject ford = Instantiate(fordBundle.LoadAsset("Assets/Ford.prefab").Cast<GameObject>());
 
@@ -91,17 +91,15 @@ namespace MultiplayerMod.Representations
                 blood.Manager = bloodManager;
             }
 
-            GameObject root = ford.transform.Find("Ford/Brett@neutral").gameObject; // Get the rep's head
+            GameObject root = ford.transform.Find("Ford/Brett@neutral").gameObject; // Get the root of the model
 
-            faceAnimator = new FaceAnimator();
-            faceAnimator.animator = root.GetComponent<Animator>();
-            faceAnimator.faceTime = 10;
+            faceAnimator = new FaceAnimator
+            {
+                animator = root.GetComponent<Animator>(),
+                faceTime = 10
+            };
 
-            Transform realRoot = root.transform.Find("SHJntGrp/MAINSHJnt/ROOTSHJnt"); // Then get the head's root joint
-
-
-            // Assign targets for the IK system
-            GameObject pelvisTarget = new GameObject("Pelvis");
+            Transform realRoot = root.transform.Find("SHJntGrp/MAINSHJnt/ROOTSHJnt"); // Then get the root of the rig
 
             // Create an anchor object to hold the rep's gun
             gunRParent = new GameObject("gunRParent");

@@ -27,7 +27,7 @@ namespace MultiplayerMod.Core
 {
     public class Server
     {
-        private readonly Players players;
+        private readonly Players players = new Players();
         private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
         private readonly List<SyncedObject> syncObjs = new List<SyncedObject>();
         private string partyId = "";
