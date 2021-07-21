@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using MultiplayerMod.Networking;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace MultiplayerMod.Core
@@ -73,6 +74,25 @@ namespace MultiplayerMod.Core
 
         public bool Contains(ulong fullId) => fullIdPlayers.ContainsKey(fullId);
         public bool Contains(byte smallId) => smallIdPlayers.ContainsKey(smallId);
+
+        public void SendMessageToAll(INetworkMessage msg, MessageSendType send)
+        {
+            P2PMessage pMsg = msg.MakeMsg();
+            foreach (MPPlayer p in playerList)
+            {
+                p.Connection.SendMessage(pMsg, send);
+            }
+        }
+
+        public void SendMessageToAllExcept(INetworkMessage msg, MessageSendType send, ulong except)
+        {
+            P2PMessage pMsg = msg.MakeMsg();
+            foreach (MPPlayer p in playerList)
+            {
+                if (p.FullID != except)
+                    p.Connection.SendMessage(pMsg, send);
+            }
+        }
 
         /// <summary>
         /// Accesses a player by their full ID.

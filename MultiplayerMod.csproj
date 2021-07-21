@@ -281,6 +281,7 @@
     <Compile Include="Source\Boneworks\BWUtil.cs" />
     <Compile Include="Source\Core\MPPlayer.cs" />
     <Compile Include="Source\Core\ObjectIDManager.cs" />
+    <Compile Include="Source\Core\Peer.cs" />
     <Compile Include="Source\Core\Players.cs" />
     <Compile Include="Source\Extras\BasicFABRIK.cs" />
     <Compile Include="Source\Extras\GunResources.cs" />
@@ -301,6 +302,16 @@
     <Compile Include="Source\FileInfo.cs" />
     <Compile Include="Source\Core\Main.cs" />
     <Compile Include="Source\Core\MultiplayerUI.cs" />
+    <Compile Include="Source\MessageHandlers\IMessageHandler.cs" />
+    <Compile Include="Source\MessageHandlers\MessageHandlerAttribute.cs" />
+    <Compile Include="Source\MessageHandlers\MessageRouter.cs" />
+    <Compile Include="Source\MessageHandlers\Server\ChangeObjectOwnershipHandler.cs" />
+    <Compile Include="Source\MessageHandlers\Server\DisconnectHandler.cs" />
+    <Compile Include="Source\MessageHandlers\Server\FullRigHandler.cs" />
+    <Compile Include="Source\MessageHandlers\Server\GunFireHandler.cs" />
+    <Compile Include="Source\MessageHandlers\Server\IDRequestHandler.cs" />
+    <Compile Include="Source\MessageHandlers\Server\JoinHandler.cs" />
+    <Compile Include="Source\MessageHandlers\Server\ObjectSyncHandler.cs" />
     <Compile Include="Source\MonoBehaviours\IDHolder.cs" />
     <Compile Include="Source\MonoBehaviours\SyncedObject.cs" />
     <Compile Include="Source\Networking\ITransportLayer.cs" />
@@ -322,6 +333,7 @@
   <ItemGroup>
     <Content Include="BoneworksModdingToolkit.dll" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>XCOPY /Y "$(TargetPath)" $(BONEWORKS_DIR)\Mods"</PostBuildEvent>
