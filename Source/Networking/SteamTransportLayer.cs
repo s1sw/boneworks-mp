@@ -40,6 +40,7 @@ namespace MultiplayerMod.Networking
 
         public void SendMessage(P2PMessage msg, MessageSendType sendType)
         {
+            SteamTransportLayer.StartThreadIfNecessary();
             SteamTransportLayer.messageSendCmds.Enqueue(new SteamTransportLayer.MessageSendCmd() { msg = msg, sendType = sendType, id = ConnectedTo });
         }
     }
@@ -56,7 +57,7 @@ namespace MultiplayerMod.Networking
         public event Action<ITransportConnection, ConnectionClosedReason> OnConnectionClosed;
         public event Action<ITransportConnection, P2PMessage> OnMessageReceived;
 
-        private readonly Thread msgThread;
+        private static readonly Thread msgThread = new Thread(SendMessagesThread);
         private readonly Dictionary<ulong, SteamTransportConnection> connections = new Dictionary<ulong, SteamTransportConnection>();
         internal static readonly ConcurrentQueue<MessageSendCmd> messageSendCmds = new ConcurrentQueue<MessageSendCmd>();
 
@@ -64,8 +65,14 @@ namespace MultiplayerMod.Networking
         {
             // Allows for the networking to fallback onto steam's servers
             SteamNetworking.AllowP2PPacketRelay(true);
-            msgThread = new Thread(SendMessagesThread);
-            msgThread.Start();
+        }
+
+        internal static void StartThreadIfNecessary()
+        {
+            if (!msgThread.IsAlive)
+            {
+                msgThread.Start();
+            }
         }
 
         private ConnectionClosedReason GetConnectionClosedReason(P2PSessionError error)
@@ -153,15 +160,14 @@ namespace MultiplayerMod.Networking
             }
         }
 
-        // Horrid multithreading to hopefully speed things up a little
-        private void SendMessagesThread()
+        private static void SendMessagesThread()
         {
             while (true)
             {
                 try
                 {
                     if (messageSendCmds.Count == 0)
-                        Thread.Sleep(5);
+                        Thread.Sleep(15);
 
                     while (messageSendCmds.Count > 0)
                     {

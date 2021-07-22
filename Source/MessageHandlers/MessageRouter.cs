@@ -31,8 +31,19 @@ namespace MultiplayerMod.MessageHandlers
 
                 foreach (MessageHandlerAttribute attribute in attributes)
                 {
-                    if (attribute.Peer == PeerType.Both || attribute.Peer == peer.Type)
+                    if (attribute.Peer != PeerType.Both || attribute.Peer != peer.Type) continue;
+
+                    if (handlers.ContainsKey(attribute.Type))
+                    {
+                        MessageHandler existingHandler = handlers[attribute.Type];
+                        MelonLogger.Warning($"Message handler conflict!" +
+                            $"Handler {type.FullName} wants to handle {attribute.Type}," +
+                            $"but it's already handled by {existingHandler.GetType().FullName}");
+                    }
+                    else
+                    {
                         handlers.Add(attribute.Type, instance);
+                    }
                 }
             }
         }

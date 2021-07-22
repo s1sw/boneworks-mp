@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using Facepunch.Steamworks;
 using MelonLoader;
 using ModThatIsNotMod.BoneMenu;
@@ -63,8 +64,6 @@ namespace MultiplayerMod
             menuCategory = MenuManager.CreateCategory("Boneworks Multiplayer", Color.white);
             menuCategory.CreateBoolElement("Show Nameplates", Color.white, false, 
                 (bool val) => Features.ClientSettings.hiddenNametags = val);
-
-            UpdateBoneMenu();
         }
 
         private void UpdateBoneMenu()
@@ -76,20 +75,41 @@ namespace MultiplayerMod
             if (!client.IsConnected && !server.IsRunning)
             {
                 menuCategory.CreateFunctionElement("Start Server", Color.white,
-                    () => { server.StartServer(); UpdateBoneMenu(); });
+                    () => {
+                        if (server.IsRunning) return;
+                        server.StartServer();
+                        UpdateBoneMenu(); 
+                    });
             }
             else
             {
                 if (client.IsConnected)
                 {
                     menuCategory.CreateFunctionElement("Disconnect", Color.white,
-                        () => { client.Disconnect(); UpdateBoneMenu(); });
+                        () => {
+                            if (!client.IsConnected) return;
+                            client.Disconnect();
+                            UpdateBoneMenu();
+                        });
                 }
                 else if (server.IsRunning)
                 {
                     menuCategory.CreateFunctionElement("Stop Server", Color.white,
-                        () => { server.StopServer(); UpdateBoneMenu(); });
+                        () => {
+                            if (!server.IsRunning) return;
+                            server.StopServer();
+                            UpdateBoneMenu();
+                        });
                 }
+            }
+
+            Type mmType = typeof(MenuManager);
+            FieldInfo categoryField = mmType.GetField("activeCategory", BindingFlags.NonPublic | BindingFlags.Static);
+
+            if (categoryField.GetValue(null) == menuCategory)
+            {
+                MethodInfo openCategory = mmType.GetMethod("OpenCategory", BindingFlags.NonPublic | BindingFlags.Static);
+                openCategory.Invoke(null, new object[] { menuCategory });
             }
         }
 
@@ -107,11 +127,15 @@ namespace MultiplayerMod
         {
             ui.Recreate();
             MelonLogger.Msg($"Initialized scene {name}");
+            UpdateBoneMenu();
         }
 
         public override void OnUpdate()
         {
             RichPresence.Update();
+
+            if (Input.GetKeyDown(KeyCode.U))
+                UpdateBoneMenu();
 
             if (Input.GetKeyDown(KeyCode.X))
                 Features.ClientSettings.hiddenNametags = !Features.ClientSettings.hiddenNametags;
