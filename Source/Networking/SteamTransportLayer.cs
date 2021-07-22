@@ -24,7 +24,7 @@ namespace MultiplayerMod.Networking
             ConnectedTo = id;
             SendMessage(initialMessage, MessageSendType.Reliable);
 
-            MelonLogger.Log($"Steam: Sent initial message to {id}");
+            MelonLogger.Msg($"Steam: Sent initial message to {id}");
         }
 
         internal SteamTransportConnection(ulong id)
@@ -94,7 +94,7 @@ namespace MultiplayerMod.Networking
                     connections.Remove(id);
             }
 
-            MelonLogger.Log($"Steam: Connecting to {id}");
+            MelonLogger.Msg($"Steam: Connecting to {id}");
             SteamTransportConnection connection = new SteamTransportConnection(id, initialMessage);
             connections.Add(id, connection);
             SteamNetworking.OnP2PSessionRequest = ClientOnP2PSessionRequest;
@@ -130,7 +130,7 @@ namespace MultiplayerMod.Networking
         private void ListenOnP2PSessionRequest(SteamId id)
         {
             SteamNetworking.AcceptP2PSessionWithUser(id);
-            MelonLogger.Log("Accepted session for " + id.ToString());
+            MelonLogger.Msg("Accepted session for " + id.ToString());
             connections.Add(id, new SteamTransportConnection(id));
         }
 
@@ -172,7 +172,7 @@ namespace MultiplayerMod.Networking
                 }
                 catch (Exception e)
                 {
-                    MelonLogger.LogError($"Caught exception in message send thread: {e}");
+                    MelonLogger.Error($"Caught exception in message send thread: {e}");
                 }
             }
         }

@@ -20,15 +20,15 @@ namespace MultiplayerMod.MessageHandlers.Server
 
             if (coom.ownerId != player.SmallID && coom.ownerId != 0)
             {
-                MelonLogger.LogError("Invalid object ownership change??");
+                MelonLogger.Error("Invalid object ownership change??");
             }
 
             if (!ObjectIDManager.objects.ContainsKey(coom.objectId))
             {
-                MelonLogger.LogError($"Got ownership change for invalid object ID {coom.objectId}");
+                MelonLogger.Error($"Got ownership change for invalid object ID {coom.objectId}");
             }
 
-            MelonLogger.Log($"Object {coom.objectId} is now owned by {coom.ownerId}");
+            MelonLogger.Msg($"Object {coom.objectId} is now owned by {coom.ownerId}");
 
             var obj = ObjectIDManager.GetObject(coom.objectId);
             var so = obj.GetComponent<SyncedObject>();

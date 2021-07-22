@@ -43,7 +43,7 @@ namespace MultiplayerMod.MessageHandlers
 
             if (!handlers.TryGetValue(msgType, out MessageHandler handler))
             {
-                MelonLogger.LogWarning($"Unknown message type: {msgType}");
+                MelonLogger.Warning($"Unknown message type: {msgType}");
                 return;
             }
 
@@ -53,7 +53,7 @@ namespace MultiplayerMod.MessageHandlers
             }
             catch (Exception e)
             {
-                MelonLogger.LogError($"Caught exception in message handler for message {msgType}: {e}");
+                MelonLogger.Error($"Caught exception in message handler for message {msgType}: {e}");
             }
         }
     }

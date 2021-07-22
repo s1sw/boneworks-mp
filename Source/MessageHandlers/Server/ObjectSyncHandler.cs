@@ -25,13 +25,13 @@ namespace MultiplayerMod.MessageHandlers.Server
 
             if (!obj)
             {
-                MelonLogger.LogError($"Couldn't find object with ID {osm.id}");
+                MelonLogger.Error($"Couldn't find object with ID {osm.id}");
             }
             else
             {
                 if (so.owner != player.SmallID)
                 {
-                    MelonLogger.LogError("Got object sync from client that doesn't own the object");
+                    MelonLogger.Error("Got object sync from client that doesn't own the object");
                     var coom = new ChangeObjectOwnershipMessage(msg)
                     {
                         ownerId = so.owner,

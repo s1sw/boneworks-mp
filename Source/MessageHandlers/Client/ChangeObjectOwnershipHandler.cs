@@ -27,7 +27,7 @@ namespace MultiplayerMod.MessageHandlers.Client
             else
                 so.rb.isKinematic = true;
 
-            MelonLogger.Log($"Object {coom.objectId} is now owned by {coom.ownerId} (kinematic: {so.rb.isKinematic})");
+            MelonLogger.Msg($"Object {coom.objectId} is now owned by {coom.ownerId} (kinematic: {so.rb.isKinematic})");
         }
     }
 }

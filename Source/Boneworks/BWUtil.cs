@@ -27,7 +27,6 @@ namespace MultiplayerMod.Boneworks
 
     static class BWUtil
     {
-        public static event Action<Gun> OnFire;
         public static int gunOffset = -1;
 
         public static Player_Health LocalPlayerHealth

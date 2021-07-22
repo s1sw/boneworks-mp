@@ -17,7 +17,7 @@ namespace MultiplayerMod.MessageHandlers.Server
         public override void HandleMessage(MessageType msgType, ITransportConnection connection, P2PMessage msg)
         {
             var idrqm = new IDRequestMessage(msg);
-            MelonLogger.Log("ID request: " + idrqm.namePath);
+            MelonLogger.Msg("ID request: " + idrqm.namePath);
             var obj = BWUtil.GetObjectFromFullPath(idrqm.namePath);
 
             ((Core.Server)peer).SetupSyncFor(obj, idrqm.initialOwner);

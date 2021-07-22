@@ -25,7 +25,6 @@ namespace MultiplayerMod
         private MenuCategory menuCategory;
 
         internal static event Action<int> OnLevelWasLoadedEvent;
-        internal static event Action<int> OnLevelWasInitializedEvent;
         internal static ITransportLayer TransportLayer;
 
 #if DEBUG

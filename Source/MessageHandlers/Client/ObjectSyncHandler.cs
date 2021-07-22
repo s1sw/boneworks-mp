@@ -15,7 +15,7 @@ namespace MultiplayerMod.MessageHandlers.Client
 
             if (!obj)
             {
-                MelonLogger.LogError($"Couldn't find object with ID {osm.id}");
+                MelonLogger.Error($"Couldn't find object with ID {osm.id}");
             }
             else
             {

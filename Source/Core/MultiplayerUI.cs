@@ -31,7 +31,7 @@ namespace MultiplayerMod.Core
 
             if (uiBundle == null)
             {
-                MelonLogger.LogError("Failed to load canvas bundle");
+                MelonLogger.Error("Failed to load canvas bundle");
                 
                 // Create a world space UI to display the error message
                 GameObject tmObj = new GameObject("TextMesh");
@@ -42,7 +42,7 @@ namespace MultiplayerMod.Core
             }
             else
             {
-                MelonLogger.Log("Loaded canvas bundle");
+                MelonLogger.Msg("Loaded canvas bundle");
                 Recreate();
 
             }
@@ -62,7 +62,7 @@ namespace MultiplayerMod.Core
 
                 if (panelTransform == null)
                 {
-                    MelonLogger.LogError("You appear to be using an outdated version of the UI canvas bundle. " +
+                    MelonLogger.Error("You appear to be using an outdated version of the UI canvas bundle. " +
                                          "Please wait for this version of the mod to be released publicly.");
                 }
 
@@ -71,7 +71,7 @@ namespace MultiplayerMod.Core
             }
             catch (NullReferenceException)
             {
-                MelonLogger.LogError("Error loading UI");
+                MelonLogger.Error("Error loading UI");
             }
         }
 

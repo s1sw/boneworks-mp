@@ -311,6 +311,6 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>XCOPY /Y "$(TargetPath)" $(BONEWORKS_DIR)\Mods"</PostBuildEvent>
+    <PostBuildEvent>XCOPY /Y "$(TargetPath)" "$(BONEWORKS_DIR)\Mods"</PostBuildEvent>
   </PropertyGroup>
 </Project>

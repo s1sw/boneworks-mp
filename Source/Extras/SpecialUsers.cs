@@ -32,7 +32,7 @@ namespace MultiplayerMod.Extras
                 root.parent.parent.parent.Find("geoGrp/brett_body").GetComponent<SkinnedMeshRenderer>().materials[1].color = new Color(0.5141f, 1, 0.6199f);
                 GameObject weaponWings = PlayerRep.fordBundle.LoadAsset("Assets/WeaponWings.prefab").Cast<GameObject>();
                 if (weaponWings == null)
-                    MelonLogger.LogError("Failed to load WeaponWings from bundle.");
+                    MelonLogger.Error("Failed to load WeaponWings from bundle.");
                 else
                 {
                     GameObject wingInstance = GameObject.Instantiate(weaponWings);

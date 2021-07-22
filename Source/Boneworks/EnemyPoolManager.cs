@@ -19,7 +19,7 @@ namespace MultiplayerMod.Boneworks
 
             foreach (Pool p in FindObjectsOfType<Pool>())
             {
-                MelonLogger.Log("Prefab: " + p.Prefab.name);
+                MelonLogger.Msg("Prefab: " + p.Prefab.name);
                 if (p.Prefab != null && p.Prefab.name.ToLowerInvariant().Contains("nullbody"))
                 {
                     enemyPools.Add(EnemyType.NullBody, p); 
@@ -33,7 +33,7 @@ namespace MultiplayerMod.Boneworks
             {
                 foreach (Pool p in FindObjectsOfType<Pool>())
                 {
-                    MelonLogger.Log("Prefab: " + p.Prefab.name);
+                    MelonLogger.Msg("Prefab: " + p.Prefab.name);
                     if (p.Prefab != null && p.Prefab.name.ToLowerInvariant().Contains("nullbody"))
                     {
                         enemyPools.Add(EnemyType.NullBody, p);

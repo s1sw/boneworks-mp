@@ -30,7 +30,7 @@ namespace MultiplayerMod.Features
             }
             catch (Exception e)
             {
-                MelonLogger.Log(e.Message);
+                MelonLogger.Msg(e.Message);
             }
         }
     }

@@ -19,7 +19,7 @@ namespace MultiplayerMod
         // Prints the properties of a given type
         public static void PrintProps<T>(T t)
         {
-            MelonLogger.Log("====== Type " + t.ToString() + "======");
+            MelonLogger.Msg("====== Type " + t.ToString() + "======");
 
             System.Reflection.PropertyInfo[] props = typeof(T).GetProperties();
 
@@ -30,13 +30,13 @@ namespace MultiplayerMod
                 {
                     var val = pi.GetValue(t);
                     if (val != null)
-                        MelonLogger.Log(pi.Name + ": " + val.ToString());
+                        MelonLogger.Msg(pi.Name + ": " + val.ToString());
                     else
-                        MelonLogger.Log(pi.Name + ": null");
+                        MelonLogger.Msg(pi.Name + ": null");
                 }
                 catch
                 {
-                    MelonLogger.LogError("Error tring to get property " + pi.Name);
+                    MelonLogger.Error("Error tring to get property " + pi.Name);
                 }
             }
         }
@@ -47,14 +47,14 @@ namespace MultiplayerMod
             try
             {
                 if (go == null)
-                    MelonLogger.LogError("go was null???");
+                    MelonLogger.Error("go was null???");
 
                 T t = go.GetComponent<T>();
 
                 if (t == null)
-                    MelonLogger.LogError("Couldn't find component " + t.GetType().Name);
+                    MelonLogger.Error("Couldn't find component " + t.GetType().Name);
 
-                MelonLogger.Log("====== Component type " + t.ToString() + "======");
+                MelonLogger.Msg("====== Component type " + t.ToString() + "======");
 
                 System.Reflection.PropertyInfo[] props = typeof(T).GetProperties();
 
@@ -65,19 +65,19 @@ namespace MultiplayerMod
                     {
                         var val = pi.GetValue(t);
                         if (val != null)
-                            MelonLogger.Log(pi.Name + ": " + val.ToString());
+                            MelonLogger.Msg(pi.Name + ": " + val.ToString());
                         else
-                            MelonLogger.Log(pi.Name + ": null");
+                            MelonLogger.Msg(pi.Name + ": null");
                     }
                     catch
                     {
-                        MelonLogger.LogError("Error tring to get property " + pi.Name);
+                        MelonLogger.Error("Error tring to get property " + pi.Name);
                     }
                 }
             }
             catch
             {
-                MelonLogger.LogError("i don't know anymore");
+                MelonLogger.Error("i don't know anymore");
             }
         }
 
@@ -91,11 +91,11 @@ namespace MultiplayerMod
                 offset += "\t";
             }
 
-            MelonLogger.Log(offset + " Has components:");
+            MelonLogger.Msg(offset + " Has components:");
 
             foreach (Component c in parent.GetComponents<Component>())
             {
-                MelonLogger.Log(offset + c.ToString());
+                MelonLogger.Msg(offset + c.ToString());
             }
 
             for (int i = 0; i < parent.transform.childCount; i++)
@@ -104,7 +104,7 @@ namespace MultiplayerMod
 
 
 
-                MelonLogger.Log(offset + "-" + child.name);
+                MelonLogger.Msg(offset + "-" + child.name);
 
 
 
@@ -193,17 +193,17 @@ namespace MultiplayerMod
                     //PrintProps(childNullbody.GetComponent<AIBrain>().behaviour.health);
                     var brain = childNullbody.GetComponent<AIBrain>();
                     //if (!brain.isDead)
-                    MelonLogger.Log("A: " + childNullbody.name);
+                    MelonLogger.Msg("A: " + childNullbody.name);
                 }
                 //}
 
                 foreach (AIBrain brain in FindObjectsOfType<AIBrain>())
                 {
-                    MelonLogger.Log("B: " + brain.gameObject.name);
+                    MelonLogger.Msg("B: " + brain.gameObject.name);
                     AIBrain brain2 = brain.gameObject.GetComponent<AIBrain>();
                     Attack attack = new Attack();
                     attack.damage = 0.3f;
-                    MelonLogger.Log("pain");
+                    MelonLogger.Msg("pain");
                     brain2.behaviour.health.TakeDamage(1, attack);
 
                     brain2.behaviour.sfx.Pain(50.0f);

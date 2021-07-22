@@ -14,7 +14,7 @@ namespace MultiplayerMod.MessageHandlers.Server
     {
         public override void HandleMessage(MessageType msgType, ITransportConnection connection, P2PMessage msg)
         {
-            MelonLogger.Log("Player left with ID: " + connection.ConnectedTo);
+            MelonLogger.Msg("Player left with ID: " + connection.ConnectedTo);
 
             var smallId = players[connection.ConnectedTo].SmallID;
             players.Remove(connection.ConnectedTo);

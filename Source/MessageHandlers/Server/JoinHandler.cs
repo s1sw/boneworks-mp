@@ -29,7 +29,7 @@ namespace MultiplayerMod.MessageHandlers.Server
             }
             else
             {
-                MelonLogger.Log("Player joined with ID: " + connection.ConnectedTo);
+                MelonLogger.Msg("Player joined with ID: " + connection.ConnectedTo);
 
                 if (players.Contains(connection.ConnectedTo))
                     players.Remove(connection.ConnectedTo);
@@ -40,8 +40,8 @@ namespace MultiplayerMod.MessageHandlers.Server
 
                 var player = new MPPlayer(name, connection.ConnectedTo, newPlayerId, connection);
 
-                MelonLogger.Log("Player count: " + players.Count);
-                MelonLogger.Log("Name: " + name);
+                MelonLogger.Msg("Player count: " + players.Count);
+                MelonLogger.Msg("Name: " + name);
 
                 ClientJoinMessage cjm3 = new ClientJoinMessage
                 {
