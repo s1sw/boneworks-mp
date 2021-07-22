@@ -12,16 +12,10 @@ using StressLevelZero.Utilities;
 
 namespace MultiplayerMod.MessageHandlers.Server
 {
-    [MessageHandler(MessageType.Join, HandlerPeer.Server)]
+    [MessageHandler(MessageType.Join, PeerType.Server)]
     class JoinHandler : MessageHandler
     {
-        readonly Core.Server server;
         byte smallIdCounter = 1;
-
-        public JoinHandler(Players players, Peer peer) : base(players, peer)
-        {
-            server = (Core.Server)peer;
-        }
 
         public override void HandleMessage(MessageType msgType, ITransportConnection connection, P2PMessage msg)
         {
@@ -75,7 +69,7 @@ namespace MultiplayerMod.MessageHandlers.Server
                         },
                         Party = new ActivityParty()
                         {
-                            Id = server.PartyID,
+                            Id = ((Core.Server)peer).PartyID,
                             Size = new PartySize()
                             {
                                 CurrentSize = players.Count,

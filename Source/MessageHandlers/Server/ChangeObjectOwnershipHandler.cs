@@ -10,11 +10,9 @@ using MultiplayerMod.MonoBehaviours;
 
 namespace MultiplayerMod.MessageHandlers.Server
 {
-    [MessageHandler(MessageType.ChangeObjectOwnership, HandlerPeer.Server)]
+    [MessageHandler(MessageType.ChangeObjectOwnership, PeerType.Server)]
     class ChangeObjectOwnershipHandler : MessageHandler
     {
-        public ChangeObjectOwnershipHandler(Players players, Peer peer) : base(players, peer) { }
-
         public override void HandleMessage(MessageType msgType, ITransportConnection connection, P2PMessage msg)
         {
             var coom = new ChangeObjectOwnershipMessage(msg);

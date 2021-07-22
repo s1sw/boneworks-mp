@@ -102,7 +102,7 @@ namespace MultiplayerMod
         {
             RichPresence.Update();
 
-            if (!client.isConnected && !server.IsRunning)
+            if (!client.IsConnected && !server.IsRunning)
             {
                 // This used to be used to connect to a server by using the SteamID in a config file,
                 // but now it only causes confusion.
@@ -179,7 +179,7 @@ namespace MultiplayerMod
 
         public override void OnFixedUpdate()
         {
-            if (client.isConnected)
+            if (client.IsConnected)
                 client.Update();
 
             if (server.IsRunning)
@@ -188,7 +188,7 @@ namespace MultiplayerMod
 
         public override void OnApplicationQuit()
         {
-            if (client.isConnected)
+            if (client.IsConnected)
                 client.Disconnect();
 
             if (server.IsRunning)

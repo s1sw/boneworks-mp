@@ -9,11 +9,9 @@ using MultiplayerMod.Representations;
 
 namespace MultiplayerMod.MessageHandlers.Server
 {
-    [MessageHandler(MessageType.FullRig, HandlerPeer.Server)]
+    [MessageHandler(MessageType.FullRig, PeerType.Server)]
     public class FullRigHandler : MessageHandler
     {
-        public FullRigHandler(Players players, Peer peer) : base(players, peer) { }
-
         public override void HandleMessage(MessageType msgType, ITransportConnection connection, P2PMessage msg)
         {
             FullRigTransformMessage frtm = new FullRigTransformMessage(msg);

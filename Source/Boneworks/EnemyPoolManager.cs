@@ -7,9 +7,9 @@ using System.Text;
 using System.Threading.Tasks;
 using static UnityEngine.Object;
 
-namespace MultiplayerMod
+namespace MultiplayerMod.Boneworks
 {
-    class EnemyPoolManager
+    public class EnemyPoolManager
     {
         private readonly Dictionary<EnemyType, Pool> enemyPools = new Dictionary<EnemyType, Pool>();
 

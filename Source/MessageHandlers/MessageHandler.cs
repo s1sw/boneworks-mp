@@ -8,7 +8,7 @@ namespace MultiplayerMod.MessageHandlers
         protected Players players;
         protected Peer peer;
 
-        public MessageHandler(Players players, Peer peer)
+        public void Init(Players players, Peer peer)
         {
             this.players = players;
             this.peer = peer;

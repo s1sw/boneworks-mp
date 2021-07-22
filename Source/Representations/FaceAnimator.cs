@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace MultiplayerMod.Source.Representations
+namespace MultiplayerMod.Representations
 {
     public class FaceAnimator
     {

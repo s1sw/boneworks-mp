@@ -16,7 +16,7 @@ using BoneworksModdingToolkit;
 using StressLevelZero.UI.Radial;
 using StressLevelZero.Data;
 
-namespace MultiplayerMod
+namespace MultiplayerMod.Boneworks
 {
     public enum EnemyType
     {

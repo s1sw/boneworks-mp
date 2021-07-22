@@ -9,11 +9,9 @@ using MultiplayerMod.Networking;
 
 namespace MultiplayerMod.MessageHandlers.Server
 {
-    [MessageHandler(MessageType.Disconnect, HandlerPeer.Server)]
+    [MessageHandler(MessageType.Disconnect, PeerType.Server)]
     class DisconnectHandler : MessageHandler
     {
-        public DisconnectHandler(Players players, Peer peer) : base(players, peer) { }
-
         public override void HandleMessage(MessageType msgType, ITransportConnection connection, P2PMessage msg)
         {
             MelonLogger.Log("Player left with ID: " + connection.ConnectedTo);

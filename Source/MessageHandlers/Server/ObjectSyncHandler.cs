@@ -11,12 +11,10 @@ using MelonLoader;
 
 namespace MultiplayerMod.MessageHandlers.Server
 {
-    [MessageHandler(MessageType.ChangeObjectOwnership, HandlerPeer.Server)]
+    [MessageHandler(MessageType.ChangeObjectOwnership, PeerType.Server)]
 
     class ObjectSyncHandler : MessageHandler
     {
-        public ObjectSyncHandler(Players players, Peer peer) : base(players, peer) { }
-
         public override void HandleMessage(MessageType msgType, ITransportConnection connection, P2PMessage msg)
         {
             ObjectSyncMessage osm = new ObjectSyncMessage(msg);

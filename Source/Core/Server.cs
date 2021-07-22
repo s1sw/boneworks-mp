@@ -1,44 +1,35 @@
-﻿using Discord;
-using Facepunch.Steamworks;
-using Facepunch.Steamworks.Data;
-using MelonLoader;
-using StressLevelZero.Pool;
-using StressLevelZero.Props.Weapons;
-using StressLevelZero.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TMPro;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using static UnityEngine.Object;
-
-using MultiplayerMod.Structs;
+using BoneworksModdingToolkit.BoneHook;
+using Discord;
+using Facepunch.Steamworks;
+using MelonLoader;
+using MultiplayerMod.Boneworks;
+using MultiplayerMod.MessageHandlers;
+using MultiplayerMod.MonoBehaviours;
 using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
-using MultiplayerMod.MonoBehaviours;
-using MultiplayerMod.Extras;
+using MultiplayerMod.Structs;
 using StressLevelZero.Combat;
-using BoneworksModdingToolkit.BoneHook;
-using MultiplayerMod.MessageHandlers;
+using StressLevelZero.Props.Weapons;
+using StressLevelZero.Utilities;
+using UnityEngine;
 
 namespace MultiplayerMod.Core
 {
     public class Server : Peer
     {
-        private readonly Players players = new Players();
-        private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
         public List<SyncedObject> SyncedObjects { get; private set; } = new List<SyncedObject>();
-        public string PartyID { get; private set; } = String.Empty;
+        public string PartyID { get; private set; } = string.Empty;
+        public bool IsRunning { get; private set; }
+        public override PeerType Type => PeerType.Server;
 
-        private BoneworksRigTransforms localRigTransforms;
         private readonly MultiplayerUI ui;
         private readonly ITransportLayer transportLayer;
+        private readonly Players players = new Players();
+        private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
         private MessageRouter messageRouter;
-
-        public bool IsRunning { get; private set; }
+        private BoneworksRigTransforms localRigTransforms;
 
         public Server(MultiplayerUI ui, ITransportLayer transportLayer)
         {
@@ -236,7 +227,7 @@ namespace MultiplayerMod.Core
             MelonLogger.Log("Starting server...");
             localRigTransforms = BWUtil.GetLocalRigTransforms();
             PartyID = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString() + "P" + SteamClient.SteamId;
-            messageRouter = new MessageRouter(players, HandlerPeer.Server);
+            messageRouter = new MessageRouter(players, this);
 
             RichPresence.SetActivity(
                 new Activity()

@@ -1,23 +1,21 @@
-﻿using MultiplayerMod.Networking;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using MelonLoader;
 using MultiplayerMod.Core;
+using MultiplayerMod.Networking;
 
 namespace MultiplayerMod.MessageHandlers
 {
     public class MessageRouter
     {
-        private Dictionary<MessageType, MessageHandler> handlers = new Dictionary<MessageType, MessageHandler>();
+        private readonly Dictionary<MessageType, MessageHandler> handlers = new Dictionary<MessageType, MessageHandler>();
 
-        public MessageRouter(Players players, HandlerPeer peer)
+        public MessageRouter(Players players, Peer peer)
         {
-            if (peer == HandlerPeer.Both) 
-                throw new ArgumentException("Can't create a message router routing for server and client");
-
             Assembly assembly = Assembly.GetCallingAssembly();
 
+            // Find and register all message handlers
             foreach (Type type in assembly.GetTypes())
             {
                 var attributes = (MessageHandlerAttribute[])type.GetCustomAttributes(typeof(MessageHandlerAttribute), true);
@@ -25,13 +23,15 @@ namespace MultiplayerMod.MessageHandlers
                 if (attributes.Length == 0) continue;
 
                 if (!typeof(MessageHandler).IsAssignableFrom(type))
-                    throw new ApplicationException("Can't have a message handler that doesn't implement IMessageHandler");
+                    throw new ApplicationException("Can't have a message handler that isn't derived from MessageHandler");
 
-                var instance = (MessageHandler)Activator.CreateInstance(type, players);
+                var instance = (MessageHandler)Activator.CreateInstance(type);
+
+                instance.Init(players, peer);
 
                 foreach (MessageHandlerAttribute attribute in attributes)
                 {
-                    if (attribute.Peer == HandlerPeer.Both || attribute.Peer == peer)
+                    if (attribute.Peer == PeerType.Both || attribute.Peer == peer.Type)
                         handlers.Add(attribute.Type, instance);
                 }
             }
@@ -47,7 +47,14 @@ namespace MultiplayerMod.MessageHandlers
                 return;
             }
 
-            handler.HandleMessage(msgType, connection, msg);
+            try
+            {
+                handler.HandleMessage(msgType, connection, msg);
+            }
+            catch (Exception e)
+            {
+                MelonLogger.LogError($"Caught exception in message handler for message {msgType}: {e}");
+            }
         }
     }
 }
