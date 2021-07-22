@@ -1,29 +1,28 @@
-﻿using Facepunch.Steamworks;
-using MelonLoader;
-using System;
+﻿using System;
+using System.Collections;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Facepunch.Steamworks;
+using Facepunch.Steamworks.Data;
+using MelonLoader;
+using ModThatIsNotMod;
+using MultiplayerMod.Boneworks;
+using MultiplayerMod.Features;
+using MultiplayerMod.Networking;
+using MultiplayerMod.Structs;
+using StressLevelZero.Combat;
+using StressLevelZero.Data;
+using StressLevelZero.Props.Weapons;
+using StressLevelZero.UI.Radial;
 using TMPro;
 using UnityEngine;
 using static UnityEngine.Object;
-using MultiplayerMod.Structs;
-using MultiplayerMod.Networking;
-using MultiplayerMod.Features;
-using Facepunch.Steamworks.Data;
-using System.Collections;
-using MultiplayerMod.Source.Representations;
-using StressLevelZero.Props.Weapons;
-using StressLevelZero.Combat;
-using BoneworksModdingToolkit;
-using StressLevelZero.UI.Radial;
-using StressLevelZero.Data;
 
 namespace MultiplayerMod.Representations
 {
     public class PlayerRep
     {
         public static bool showBody = true;
-        public static bool showHair = true;
 
         public GameObject ford;
         public GameObject head;
@@ -52,11 +51,11 @@ namespace MultiplayerMod.Representations
         {
             fordBundle = AssetBundle.LoadFromFile("ford.ford");
             if (fordBundle == null)
-                MelonLogger.LogError("Failed to load Ford asset bundle");
+                MelonLogger.Error("Failed to load Ford asset bundle");
 
             GameObject fordPrefab = fordBundle.LoadAsset("Assets/Ford.prefab").Cast<GameObject>();
             if (fordPrefab == null)
-                MelonLogger.LogError("Failed to load Ford from the asset bundle???");
+                MelonLogger.Error("Failed to load Ford from the asset bundle???");
         }
 
         // Constructor
@@ -107,7 +106,7 @@ namespace MultiplayerMod.Representations
             gunRParent.transform.localPosition = new Vector3(0.0758f, -0.0459f, -0.0837f);
             gunRParent.transform.localEulerAngles = new Vector3(2.545f, -251.689f, 149.121f);
 
-            GameObject rig = Player.FindRigManager();
+            GameObject rig = Player.GetRigManager();
             PopUpMenuView menu = rig.GetComponentInChildren<PopUpMenuView>();
             GameObject spawnGun = menu.utilityGunSpawnable.prefab;
             SpawnableMasterListData masterList = spawnGun.GetComponent<SpawnGun>().masterList;

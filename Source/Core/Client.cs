@@ -11,6 +11,7 @@ using StressLevelZero.Combat;
 using StressLevelZero.Interaction;
 using StressLevelZero.Props.Weapons;
 using UnityEngine;
+using ModThatIsNotMod;
 
 namespace MultiplayerMod.Core
 {
@@ -46,10 +47,10 @@ namespace MultiplayerMod.Core
 
         public void Connect(string obj)
         {
-            MelonLogger.Log("Starting client and connecting");
+            MelonLogger.Msg("Starting client and connecting");
 
             ServerFullId = ulong.Parse(obj);
-            MelonLogger.Log("Connecting to " + obj);
+            MelonLogger.Msg("Connecting to " + obj);
 
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.Join);
@@ -64,36 +65,37 @@ namespace MultiplayerMod.Core
             localRigTransforms = BWUtil.GetLocalRigTransforms();
 
             ui.SetState(MultiplayerUIState.Client);
-            GunHooks.OnGunFire += BWUtil_OnFire;
-            PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
-            PlayerHooks.OnPlayerReleaseObject += PlayerHooks_OnPlayerReleaseObject;
+            Hooking.OnPostFireGun += OnPostFireGun;
+            Hooking.OnGripAttached += OnGripAttached;
+            Hooking.OnGripDetached += OnGripDetached;
 
-            MultiplayerMod.OnLevelWasLoadedEvent += MultiplayerMod_OnLevelWasLoadedEvent;
+            MultiplayerMod.OnLevelWasLoadedEvent += OnLevelWasLoaded;
 
             messageRouter = new MessageRouter(Players, this);
         }
 
-        private void MultiplayerMod_OnLevelWasLoadedEvent(int obj)
+        private void OnLevelWasLoaded(int obj)
         {
             SyncedObjects.Clear();
         }
 
-        private void PlayerHooks_OnPlayerReleaseObject(GameObject grabObj)
+        private void OnGripDetached(Grip grip, Hand hand)
         {
+            GameObject grabObj = grip.gameObject;
 
-            MelonLogger.Log($"Released {grabObj.name}");
+            MelonLogger.Msg($"Released {grabObj.name}");
             var rb = grabObj.GetComponentInParent<Rigidbody>();
 
             Grip[] grips = rb.GetComponentsInChildren<Grip>();
-            foreach (Grip grip in grips)
+            foreach (Grip objectGrip in grips)
             {
-                MelonLogger.Log(grip.gameObject.name);
-                HandToGripState htgsL = grip.GetHandState(BoneworksModdingToolkit.Player.leftHand);
+                MelonLogger.Msg(objectGrip.gameObject.name);
+                HandToGripState htgsL = objectGrip.GetHandState(Player.leftHand);
                 if (htgsL != null)
                     if (htgsL.isActive == true)
                         return;
 
-                HandToGripState htgsR = grip.GetHandState(BoneworksModdingToolkit.Player.rightHand);
+                HandToGripState htgsR = objectGrip.GetHandState(Player.rightHand);
                 if (htgsR != null)
                     if (htgsR.isActive == true)
                         return;
@@ -118,21 +120,24 @@ namespace MultiplayerMod.Core
             }
         }
 
-        private void PlayerHooks_OnPlayerGrabObject(GameObject grabObj)
+        private void OnGripAttached(Grip grip, Hand hand)
         {
+            GameObject grabObj = grip.gameObject;
             var rb = grabObj.GetComponentInParent<Rigidbody>();
+
             if (rb == null)
             {
                 return;
             }
-            MelonLogger.Log($"Grabbed {rb.gameObject.name}");
+
+            MelonLogger.Msg($"Grabbed {rb.gameObject.name}");
 
             var obj = rb.gameObject;
             var so = obj.GetComponent<SyncedObject>();
 
             if (!so)
             {
-                MelonLogger.Log($"Requesting ID for {obj.name}");
+                MelonLogger.Msg($"Requesting ID for {obj.name}");
                 var req = new IDRequestMessage
                 {
                     namePath = BWUtil.GetFullNamePath(obj),
@@ -143,7 +148,7 @@ namespace MultiplayerMod.Core
             }
             else
             {
-                MelonLogger.Log($"Grapped object has ID of {so.ID}");
+                MelonLogger.Msg($"Grapped object has ID of {so.ID}");
                 var coom = new ChangeObjectOwnershipMessage
                 {
                     objectId = so.ID,
@@ -154,7 +159,7 @@ namespace MultiplayerMod.Core
             }
         }
 
-        private void BWUtil_OnFire(Gun obj)
+        private void OnPostFireGun(Gun obj)
         {
             try
             {
@@ -203,12 +208,12 @@ namespace MultiplayerMod.Core
         {
             if (connection.ConnectedTo != ServerFullId)
             {
-                MelonLogger.LogError("Connection with non-server ID was closed - but we're a client???");
+                MelonLogger.Error("Connection with non-server ID was closed - but we're a client???");
                 return;
             }
 
             ui.SetState(MultiplayerUIState.PreConnect);
-            MelonLogger.LogError("Got P2P connection error " + reason.ToString());
+            MelonLogger.Error("Got P2P connection error " + reason.ToString());
             Disconnect();
         }
 
@@ -221,7 +226,7 @@ namespace MultiplayerMod.Core
         {
             ui.SetState(MultiplayerUIState.PreConnect);
 
-            MelonLogger.Log("Disconnecting...");
+            MelonLogger.Msg("Disconnecting...");
             IsConnected = false;
             ServerFullId = 0;
             Players.Clear();
@@ -230,7 +235,7 @@ namespace MultiplayerMod.Core
             if (connection.IsConnected)
                 connection.Disconnect();
 
-            GunHooks.OnGunFire -= BWUtil_OnFire;
+            Hooking.OnPostFireGun -= OnPostFireGun;
         }
 
         public void Update()

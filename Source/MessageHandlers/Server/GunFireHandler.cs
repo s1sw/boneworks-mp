@@ -64,7 +64,7 @@ namespace MultiplayerMod.MessageHandlers.Server
                     muzzleVelocity = gfm.muzzleVelocity
                 };
 
-                pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Angry;
+                pr.faceAnimator.faceState = Representations.FaceAnimator.FaceState.Angry;
                 pr.faceAnimator.faceTime = 5;
                 players.SendMessageToAllExcept(gfmo, MessageSendType.Reliable, connection.ConnectedTo);
             }

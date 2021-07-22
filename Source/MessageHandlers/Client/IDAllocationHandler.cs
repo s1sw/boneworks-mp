@@ -19,7 +19,7 @@ namespace MultiplayerMod.MessageHandlers.Client
 
             if (!obj)
             {
-                MelonLogger.LogWarning("Got IdAllocation for nonexistent object???");
+                MelonLogger.Warning("Got IdAllocation for nonexistent object???");
                 return;
             }
 
@@ -35,7 +35,7 @@ namespace MultiplayerMod.MessageHandlers.Client
             if (so.owner != client.LocalSmallId)
                 so.rb.isKinematic = true;
 
-            MelonLogger.Log($"ID Allocation: {iam.namePath}, {so.ID}");
+            MelonLogger.Msg($"ID Allocation: {iam.namePath}, {so.ID}");
         }
     }
 }

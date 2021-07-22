@@ -1,29 +1,15 @@
-﻿using MelonLoader;
-using UnityEngine;
-using System.Collections.Generic;
-using UnityEngine.SceneManagement;
-using System;
+﻿using System;
 using Facepunch.Steamworks;
-using Discord;
-using StressLevelZero.Props;
-using StressLevelZero.Props.Weapons;
-
-using static UnityEngine.Object;
-using Utilties;
-using StressLevelZero.Interaction;
-using StressLevelZero.Combat;
-using StressLevelZero.Utilities;
-using StressLevelZero.Pool;
-using StressLevelZero.AI;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Linq;
-
+using MelonLoader;
+using ModThatIsNotMod.BoneMenu;
+using MultiplayerMod.Boneworks;
 using MultiplayerMod.Core;
-using MultiplayerMod.Structs;
-using MultiplayerMod.Representations;
-using MultiplayerMod.Networking;
 using MultiplayerMod.MonoBehaviours;
+using MultiplayerMod.Networking;
+using MultiplayerMod.Representations;
+using StressLevelZero.Utilities;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace MultiplayerMod
 {
@@ -36,6 +22,7 @@ namespace MultiplayerMod
         private MultiplayerUI ui;
         private Client client;
         private Server server;
+        private MenuCategory menuCategory;
 
         internal static event Action<int> OnLevelWasLoadedEvent;
         internal static event Action<int> OnLevelWasInitializedEvent;
@@ -54,11 +41,7 @@ namespace MultiplayerMod
             MelonModLogger.LogWarning("Debug build!");
 #endif
 
-            MelonLogger.Log($"Multiplayer initialising with protocol version {PROTOCOL_VERSION}. Special brick sync build!");
-
-            // Set up prefs
-            MelonPrefs.RegisterCategory("MPMod", "Multiplayer Settings");
-            MelonPrefs.RegisterBool("MPMod", "BaldFord", false, "90% effective hair removal solution");
+            MelonLogger.Msg($"Multiplayer initialising with protocol version {PROTOCOL_VERSION}.");
 
             // Initialise transport layer
             TransportLayer = new SteamTransportLayer();
@@ -71,65 +54,65 @@ namespace MultiplayerMod
 
             // Configures if the PlayerRep's are showing or hiding certain parts
             PlayerRep.showBody = true;
-            PlayerRep.showHair = MelonPrefs.GetBool("MPMod", "BaldFord");
 
             // Initialize Discord's RichPresence
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
 
-            BWUtil.Hook();
-
             UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<SyncedObject>();
+
+            menuCategory = MenuManager.CreateCategory("Boneworks Multiplayer", Color.white);
+            menuCategory.CreateBoolElement("Show Nameplates", Color.white, false, 
+                (bool val) => Features.ClientSettings.hiddenNametags = val);
+
+            UpdateBoneMenu();
         }
 
-        public override void OnLevelWasLoaded(int level)
+        private void UpdateBoneMenu()
+        {
+            menuCategory.RemoveElement("Start Server");
+            menuCategory.RemoveElement("Stop Server");
+            menuCategory.RemoveElement("Disconnect");
+
+            if (!client.IsConnected && !server.IsRunning)
+            {
+                menuCategory.CreateFunctionElement("Start Server", Color.white,
+                    () => { server.StartServer(); UpdateBoneMenu(); });
+            }
+            else
+            {
+                if (client.IsConnected)
+                {
+                    menuCategory.CreateFunctionElement("Disconnect", Color.white,
+                        () => { client.Disconnect(); UpdateBoneMenu(); });
+                }
+                else if (server.IsRunning)
+                {
+                    menuCategory.CreateFunctionElement("Stop Server", Color.white,
+                        () => { server.StopServer(); UpdateBoneMenu(); });
+                }
+            }
+        }
+
+        public override void OnSceneWasLoaded(int level, string name)
         {
             if (level == -1) return;
 
-            MelonLogger.Log("Loaded scene " + level.ToString() + "(" + BoneworksSceneManager.GetSceneNameFromScenePath(level) + ") (from " + SceneManager.GetActiveScene().name + ")");
+            MelonLogger.Msg($"Loaded scene {level} ({BoneworksSceneManager.GetSceneNameFromScenePath(level)} (from {SceneManager.GetActiveScene().name})");
 
             OnLevelWasLoadedEvent?.Invoke(level);
             BWUtil.UpdateGunOffset();
         }
 
-        public override void OnLevelWasInitialized(int level)
+        public override void OnSceneWasInitialized(int level, string name)
         {
             ui.Recreate();
-            MelonLogger.Log("Initialized scene " + level.ToString());
+            MelonLogger.Msg($"Initialized scene {name}");
         }
 
         public override void OnUpdate()
         {
             RichPresence.Update();
-
-            if (!client.IsConnected && !server.IsRunning)
-            {
-                // This used to be used to connect to a server by using the SteamID in a config file,
-                // but now it only causes confusion.
-                if (Input.GetKeyDown(KeyCode.C))
-                {
-                    MelonLogger.LogError("Manually connecting to a server with the C keybind has been removed. Please use Discord invites.");
-                }
-
-                // If the user is not hosting, start their server
-                if (Input.GetKeyDown(KeyCode.S))
-                {
-                    server.StartServer();
-                }
-            }
-            else
-            {
-                // If the user is connected, disconnect them
-                if (Input.GetKeyDown(KeyCode.C))
-                    client.Disconnect();
-
-                // If the user is hosting, stop their server
-                if (Input.GetKeyDown(KeyCode.S))
-                {
-                    MelonLogger.Log("Stopping server...");
-                    server.StopServer();
-                }
-            }
 
             if (Input.GetKeyDown(KeyCode.X))
                 Features.ClientSettings.hiddenNametags = !Features.ClientSettings.hiddenNametags;

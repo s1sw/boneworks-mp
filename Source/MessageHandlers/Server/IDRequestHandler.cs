@@ -1,4 +1,5 @@
 ﻿using MelonLoader;
+using MultiplayerMod.Boneworks;
 using MultiplayerMod.Core;
 using MultiplayerMod.Networking;
 using System;

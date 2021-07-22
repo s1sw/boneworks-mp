@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using BoneworksModdingToolkit.BoneHook;
 using Discord;
 using Facepunch.Steamworks;
 using MelonLoader;
+using ModThatIsNotMod;
 using MultiplayerMod.Boneworks;
 using MultiplayerMod.MessageHandlers;
 using MultiplayerMod.MonoBehaviours;
@@ -11,6 +11,7 @@ using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
 using MultiplayerMod.Structs;
 using StressLevelZero.Combat;
+using StressLevelZero.Interaction;
 using StressLevelZero.Props.Weapons;
 using StressLevelZero.Utilities;
 using UnityEngine;
@@ -224,7 +225,7 @@ namespace MultiplayerMod.Core
         public void StartServer()
         {
             ui.SetState(MultiplayerUIState.Server);
-            MelonLogger.Log("Starting server...");
+            MelonLogger.Msg("Starting server...");
             localRigTransforms = BWUtil.GetLocalRigTransforms();
             PartyID = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString() + "P" + SteamClient.SteamId;
             messageRouter = new MessageRouter(players, this);
@@ -249,9 +250,9 @@ namespace MultiplayerMod.Core
                 });
             transportLayer.OnMessageReceived += TransportLayer_OnMessageReceived;
             transportLayer.OnConnectionClosed += TransportLayer_OnConnectionClosed;
-            GunHooks.OnGunFire += GunHooks_OnGunFire;
-            PlayerHooks.OnPlayerGrabObject += PlayerHooks_OnPlayerGrabObject;
-            PlayerHooks.OnPlayerReleaseObject += PlayerHooks_OnPlayerReleaseObject;
+            Hooking.OnPostFireGun += GunHooks_OnGunFire;
+            Hooking.OnGripAttached += OnGripAttached;
+            Hooking.OnGripDetached += OnGripReleased;
             transportLayer.StartListening();
 
             MultiplayerMod.OnLevelWasLoadedEvent += MultiplayerMod_OnLevelWasLoadedEvent;
@@ -270,7 +271,7 @@ namespace MultiplayerMod.Core
                         MPPlayer player = players[connection.ConnectedTo];
                         players.Remove(player);
 
-                        MelonLogger.Log($"Player {player.Name} left");
+                        MelonLogger.Msg($"Player {player.Name} left");
 
                         P2PMessage disconnectMsg = new P2PMessage();
                         disconnectMsg.WriteByte((byte)MessageType.Disconnect);
@@ -313,30 +314,32 @@ namespace MultiplayerMod.Core
 
             transportLayer.OnMessageReceived -= TransportLayer_OnMessageReceived;
             transportLayer.OnConnectionClosed -= TransportLayer_OnConnectionClosed;
-            GunHooks.OnGunFire -= GunHooks_OnGunFire;
-            PlayerHooks.OnPlayerGrabObject -= PlayerHooks_OnPlayerGrabObject;
-            PlayerHooks.OnPlayerReleaseObject -= PlayerHooks_OnPlayerReleaseObject;
+            Hooking.OnPostFireGun -= GunHooks_OnGunFire;
+            Hooking.OnGripAttached -= OnGripAttached;
+            Hooking.OnGripDetached -= OnGripReleased;
             transportLayer.StopListening();
 
             MultiplayerMod.OnLevelWasLoadedEvent -= MultiplayerMod_OnLevelWasLoadedEvent;
         }
 
-        private void PlayerHooks_OnPlayerReleaseObject(GameObject obj)
+        private void OnGripReleased(Grip grip, Hand hand)
         {
-            MelonLogger.Log($"Released {obj.name}");
+            GameObject obj = grip.gameObject;
+            MelonLogger.Msg($"Released {obj.name}");
         }
 
-        private void PlayerHooks_OnPlayerGrabObject(GameObject obj)
+        private void OnGripAttached(Grip grip, Hand hand)
         {
+            GameObject obj = grip.gameObject;
             var rb = obj.GetComponentInParent<Rigidbody>();
 
             if (rb == null)
             {
-                MelonLogger.LogWarning("Grabbed non-RB!!!");
+                MelonLogger.Warning("Grabbed non-RB!!!");
                 return;
             }
 
-            MelonLogger.Log($"Grabbed {rb.gameObject.name}");
+            MelonLogger.Msg($"Grabbed {rb.gameObject.name}");
 
             if (rb.gameObject.GetComponent<SyncedObject>() == null)
                 SetupSyncFor(rb.gameObject);

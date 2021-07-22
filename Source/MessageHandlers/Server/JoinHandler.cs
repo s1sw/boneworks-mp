@@ -80,7 +80,7 @@ namespace MultiplayerMod.MessageHandlers.Server
 
                 foreach (MPPlayer p in players)
                 {
-                    p.PlayerRep.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Happy;
+                    p.PlayerRep.faceAnimator.faceState = Representations.FaceAnimator.FaceState.Happy;
                     p.PlayerRep.faceAnimator.faceTime = 15;
                 }
             }

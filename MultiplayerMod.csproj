@@ -43,17 +43,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
-    <Reference Include="BoneworksModdingToolkit">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\BONEWORKS\BONEWORKS\Mods\BoneworksModdingToolkit.dll</HintPath>
-    </Reference>
-    <Reference Include="ch.sycoforge.Decal, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Managed\ch.sycoforge.Decal.dll</HintPath>
-    </Reference>
-    <Reference Include="com.unity.postprocessing.Runtime, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Managed\com.unity.postprocessing.Runtime.dll</HintPath>
-    </Reference>
     <Reference Include="Il2Cppmscorlib, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\Il2Cppmscorlib.dll</HintPath>
@@ -82,32 +71,11 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\Il2CppSystem.Xml.Linq.dll</HintPath>
     </Reference>
-    <Reference Include="MelonLoader.ModHandler">
-      <HintPath>C:\Program Files (x86)\Steam\steamapps\common\BONEWORKS\BONEWORKS\MelonLoader\MelonLoader.ModHandler.dll</HintPath>
+    <Reference Include="MelonLoader">
+      <HintPath>Dependencies\MelonLoader.dll</HintPath>
     </Reference>
-    <Reference Include="NavMeshComponents, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Managed\NavMeshComponents.dll</HintPath>
-    </Reference>
-    <Reference Include="Oculus.VR, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Managed\Oculus.VR.dll</HintPath>
-    </Reference>
-    <Reference Include="OPS.Rsa, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Managed\OPS.Rsa.dll</HintPath>
-    </Reference>
-    <Reference Include="ProBuilderCore, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Managed\ProBuilderCore.dll</HintPath>
-    </Reference>
-    <Reference Include="SteamVR, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Managed\SteamVR.dll</HintPath>
-    </Reference>
-    <Reference Include="SteamVR_Actions, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Managed\SteamVR_Actions.dll</HintPath>
+    <Reference Include="ModThatIsNotMod">
+      <HintPath>Dependencies\ModThatIsNotMod.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -126,10 +94,6 @@
     <Reference Include="UnhollowerRuntimeLib, Version=0.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\UnhollowerRuntimeLib.dll</HintPath>
-    </Reference>
-    <Reference Include="Unity.Recorder, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Managed\Unity.Recorder.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -343,9 +307,6 @@
       <Project>{ab3a459c-5413-4ea4-8faa-9cc935be61e1}</Project>
       <Name>Facepunch.Steamworks.Win64</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="BoneworksModdingToolkit.dll" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

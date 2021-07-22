@@ -48,7 +48,7 @@ namespace MultiplayerMod.MessageHandlers.Client
                 pr.leftGunScript.Fire();
             }
 
-            pr.faceAnimator.faceState = Source.Representations.FaceAnimator.FaceState.Angry;
+            pr.faceAnimator.faceState = Representations.FaceAnimator.FaceState.Angry;
             pr.faceAnimator.faceTime = 5;
         }
     }

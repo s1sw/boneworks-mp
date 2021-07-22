@@ -12,7 +12,7 @@ using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
 using Harmony;
 using StressLevelZero.Props.Weapons;
-using BoneworksModdingToolkit;
+using ModThatIsNotMod;
 using StressLevelZero.UI.Radial;
 using StressLevelZero.Data;
 
@@ -57,17 +57,6 @@ namespace MultiplayerMod.Boneworks
         private static Player_Health localPlayerHealth;
         private static GameObject rigManager;
 
-        public static void Hook()
-        {
-            var harmonyInst = HarmonyInstance.Create("BWMP");
-            harmonyInst.Patch(typeof(Gun).GetMethod("Fire"), new HarmonyMethod(typeof(BWUtil), "OnFireHook"));
-        }
-
-        private static void OnFireHook(Gun __instance)
-        {
-            OnFire?.Invoke(__instance);
-        }
-
         public static BoneworksRigTransforms GetLocalRigTransforms()
         {
             GameObject root = GameObject.Find("[RigManager (Default Brett)]/[SkeletonRig (GameWorld Brett)]/Brett@neutral");
@@ -79,7 +68,7 @@ namespace MultiplayerMod.Boneworks
         {
             if (gunOffset == -1)
             {
-                GameObject rig = Player.FindRigManager();
+                GameObject rig = Player.GetRigManager();
                 PopUpMenuView menu = rig.GetComponentInChildren<PopUpMenuView>();
                 GameObject spawnGun = menu.utilityGunSpawnable.prefab;
                 SpawnableMasterListData masterList = spawnGun.GetComponent<SpawnGun>().masterList;
