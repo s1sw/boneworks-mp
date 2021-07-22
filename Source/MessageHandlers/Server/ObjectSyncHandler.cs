@@ -39,14 +39,14 @@ namespace MultiplayerMod.MessageHandlers.Server
                         linVelocity = so.rb.velocity,
                         angVelocity = so.rb.angularVelocity
                     };
-                    player.Connection.SendMessage(coom.MakeMsg(), MessageSendType.Reliable);
+                    player.Connection.SendMessage(coom.MakeMsg(), SendReliability.Reliable);
                 }
                 else
                 {
                     obj.transform.position = osm.position;
                     obj.transform.rotation = osm.rotation;
 
-                    players.SendMessageToAllExcept(osm, MessageSendType.Reliable, connection.ConnectedTo);
+                    players.SendMessageToAllExcept(osm, SendReliability.Reliable, connection.ConnectedTo);
                 }
             }
         }

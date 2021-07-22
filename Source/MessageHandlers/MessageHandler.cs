@@ -8,6 +8,9 @@ namespace MultiplayerMod.MessageHandlers
         protected Players players;
         protected Peer peer;
 
+        protected Core.Client Client => (Core.Client)peer;
+        protected Core.Server Server => (Core.Server)peer;
+
         public void Init(Players players, Peer peer)
         {
             this.players = players;

@@ -47,7 +47,7 @@ namespace MultiplayerMod.MessageHandlers.Server
                 so.rb.angularVelocity = coom.angVelocity;
             }
 
-            players.SendMessageToAll(coom, MessageSendType.Reliable);
+            players.SendMessageToAll(coom, SendReliability.Reliable);
         }
     }
 }

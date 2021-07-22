@@ -66,7 +66,7 @@ namespace MultiplayerMod.MessageHandlers.Server
 
                 pr.faceAnimator.faceState = Representations.FaceAnimator.FaceState.Angry;
                 pr.faceAnimator.faceTime = 5;
-                players.SendMessageToAllExcept(gfmo, MessageSendType.Reliable, connection.ConnectedTo);
+                players.SendMessageToAllExcept(gfmo, SendReliability.Reliable, connection.ConnectedTo);
             }
         }
     }

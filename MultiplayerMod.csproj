@@ -74,7 +74,8 @@
     <Reference Include="MelonLoader">
       <HintPath>Dependencies\MelonLoader.dll</HintPath>
     </Reference>
-    <Reference Include="ModThatIsNotMod">
+    <Reference Include="ModThatIsNotMod, Version=0.2.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>Dependencies\ModThatIsNotMod.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -235,10 +236,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Managed\UnityEngine.XRModule.dll</HintPath>
     </Reference>
-    <Reference Include="Valve.Newtonsoft.Json, Version=3.7.1.6, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Managed\Valve.Newtonsoft.Json.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
@@ -249,7 +246,7 @@
     <Compile Include="Source\Core\Players.cs" />
     <Compile Include="Source\Extras\BasicFABRIK.cs" />
     <Compile Include="Source\Extras\GunResources.cs" />
-    <Compile Include="Source\Features\ClientSettings.cs" />
+    <Compile Include="Source\Settings\ClientSettings.cs" />
     <Compile Include="Source\Extras\RETools.cs" />
     <Compile Include="Source\Core\Client.cs" />
     <Compile Include="Discord\ActivityManager.cs" />
@@ -261,11 +258,9 @@
     <Compile Include="Discord\StoreManager.cs" />
     <Compile Include="Source\Boneworks\EnemyPoolManager.cs" />
     <Compile Include="Source\Extras\SpecialUsers.cs" />
-    <Compile Include="Source\Features\ServerSettings.cs" />
-    <Compile Include="Source\Features\UI.cs" />
+    <Compile Include="Source\Settings\ServerSettings.cs" />
     <Compile Include="Source\FileInfo.cs" />
     <Compile Include="Source\Core\Main.cs" />
-    <Compile Include="Source\Core\MultiplayerUI.cs" />
     <Compile Include="Source\MessageHandlers\Client\ChangeObjectOwnershipHandler.cs" />
     <Compile Include="Source\MessageHandlers\Client\DisconnectHandler.cs" />
     <Compile Include="Source\MessageHandlers\Client\EnemyRigTransformHandler.cs" />

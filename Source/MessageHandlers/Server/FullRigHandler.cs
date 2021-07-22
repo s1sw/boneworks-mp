@@ -74,7 +74,7 @@ namespace MultiplayerMod.MessageHandlers.Server
                 rotRWrist = frtm.rotRWrist
             };
 
-            players.SendMessageToAllExcept(ofrtm, MessageSendType.Unreliable, connection.ConnectedTo);
+            players.SendMessageToAllExcept(ofrtm, SendReliability.Unreliable, connection.ConnectedTo);
         }
     }
 }

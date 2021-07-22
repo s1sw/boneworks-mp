@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MultiplayerMod.MessageHandlers;
+using MultiplayerMod.Networking;
 
 namespace MultiplayerMod.Core
 {
@@ -13,11 +15,21 @@ namespace MultiplayerMod.Core
         Both
     }
 
-    // For now, this simply acts as a base class for the server and client so we can cast
-    // to the correct class in message handlers. However, there's lots of functionality that could be deduplicated
-    // later.
+    /// <summary>
+    /// Base class for both the client and the server.
+    /// </summary>
     public abstract class Peer
     {
         public abstract PeerType Type { get; }
+        public Players Players => players;
+
+        protected readonly Players players = new Players();
+        protected readonly ITransportLayer transportLayer;
+        protected MessageRouter messageRouter;
+
+        protected Peer(ITransportLayer transportLayer)
+        {
+            this.transportLayer = transportLayer;
+        }
     }
 }

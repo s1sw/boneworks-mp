@@ -20,7 +20,6 @@ namespace MultiplayerMod
         public const int MAX_PLAYERS = 16;
         public const byte PROTOCOL_VERSION = 31;
 
-        private MultiplayerUI ui;
         private Client client;
         private Server server;
         private MenuCategory menuCategory;
@@ -46,13 +45,11 @@ namespace MultiplayerMod
             // Initialise transport layer
             TransportLayer = new SteamTransportLayer();
 
-            // Create the UI and cache the PlayerRep's model
-            ui = new MultiplayerUI();
-            client = new Client(ui, TransportLayer);
-            server = new Server(ui, TransportLayer);
-            PlayerRep.LoadFord();
+            client = new Client(TransportLayer);
+            server = new Server(TransportLayer);
 
-            // Configures if the PlayerRep's are showing or hiding certain parts
+            // Cache the PlayerRep's model
+            PlayerRep.LoadFord();
             PlayerRep.showBody = true;
 
             // Initialize Discord's RichPresence
@@ -66,11 +63,13 @@ namespace MultiplayerMod
                 (bool val) => Features.ClientSettings.hiddenNametags = val);
         }
 
+        private string lastStatusDisplayText = "0/0 players";
         private void UpdateBoneMenu()
         {
             menuCategory.RemoveElement("Start Server");
             menuCategory.RemoveElement("Stop Server");
             menuCategory.RemoveElement("Disconnect");
+            menuCategory.RemoveElement(lastStatusDisplayText);
 
             if (!client.IsConnected && !server.IsRunning)
             {
@@ -91,6 +90,8 @@ namespace MultiplayerMod
                             client.Disconnect();
                             UpdateBoneMenu();
                         });
+
+                    lastStatusDisplayText = $"{client.Players.Count} / {MAX_PLAYERS} players";
                 }
                 else if (server.IsRunning)
                 {
@@ -100,7 +101,11 @@ namespace MultiplayerMod
                             server.StopServer();
                             UpdateBoneMenu();
                         });
+
+                    lastStatusDisplayText = $"{server.Players.Count} / {MAX_PLAYERS} players";
                 }
+
+                menuCategory.CreateFunctionElement(lastStatusDisplayText, Color.white, null);
             }
 
             Type mmType = typeof(MenuManager);
@@ -125,7 +130,6 @@ namespace MultiplayerMod
 
         public override void OnSceneWasInitialized(int level, string name)
         {
-            ui.Recreate();
             MelonLogger.Msg($"Initialized scene {name}");
             UpdateBoneMenu();
         }

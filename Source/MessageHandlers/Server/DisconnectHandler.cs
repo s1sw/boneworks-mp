@@ -25,7 +25,7 @@ namespace MultiplayerMod.MessageHandlers.Server
 
             foreach (MPPlayer p in players)
             {
-                p.Connection.SendMessage(disconnectMsg, MessageSendType.Reliable);
+                p.Connection.SendMessage(disconnectMsg, SendReliability.Reliable);
             }
 
             foreach (MPPlayer p in players)

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MultiplayerMod.Networking
 {
-    public enum MessageSendType
+    public enum SendReliability
     {
         Reliable,
         Unreliable
@@ -29,7 +29,7 @@ namespace MultiplayerMod.Networking
     {
         ulong ConnectedTo { get; }
         bool IsConnected { get; }
-        void SendMessage(P2PMessage msg, MessageSendType sendType);
+        void SendMessage(P2PMessage msg, SendReliability sendType);
         void Disconnect();
     }
 

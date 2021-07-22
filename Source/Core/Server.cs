@@ -20,25 +20,35 @@ namespace MultiplayerMod.Core
 {
     public class Server : Peer
     {
+        /// <summary>
+        /// List of all synced physics objects.
+        /// </summary>
         public List<SyncedObject> SyncedObjects { get; private set; } = new List<SyncedObject>();
+        /// <summary>
+        /// Rich presence party ID.
+        /// </summary>
         public string PartyID { get; private set; } = string.Empty;
         public bool IsRunning { get; private set; }
         public override PeerType Type => PeerType.Server;
 
-        private readonly MultiplayerUI ui;
-        private readonly ITransportLayer transportLayer;
-        private readonly Players players = new Players();
+        public event Action<MPPlayer> OnPlayerJoin;
+        public event Action<MPPlayer> OnPlayerLeave;
+
         private readonly EnemyPoolManager enemyPoolManager = new EnemyPoolManager();
-        private MessageRouter messageRouter;
         private BoneworksRigTransforms localRigTransforms;
 
-        public Server(MultiplayerUI ui, ITransportLayer transportLayer)
+        public Server(ITransportLayer transportLayer) : base(transportLayer)
         {
-            this.ui = ui;
-            this.transportLayer = transportLayer;
+            players.OnPlayerAdd += Players_OnPlayerAdd;
+            players.OnPlayerRemove += Players_OnPlayerRemove;
         }
 
-        public void SyncNewPlayer(MPPlayer player)
+        private void Players_OnPlayerRemove(MPPlayer player)
+        {
+            OnPlayerLeave?.Invoke(player);
+        }
+
+        private void Players_OnPlayerAdd(MPPlayer player)
         {
             var connection = player.Connection;
 
@@ -51,7 +61,7 @@ namespace MultiplayerMod.Core
                     namePath = BWUtil.GetFullNamePath(so.gameObject),
                     initialOwner = so.owner
                 };
-                connection.SendMessage(iam.MakeMsg(), MessageSendType.Reliable);
+                connection.SendMessage(iam.MakeMsg(), SendReliability.Reliable);
             }
 
             // Sync existing players to the newly joining player
@@ -63,7 +73,7 @@ namespace MultiplayerMod.Core
                     name = p.Name,
                     steamId = p.FullID
                 };
-                connection.SendMessage(cjm.MakeMsg(), MessageSendType.Reliable);
+                connection.SendMessage(cjm.MakeMsg(), SendReliability.Reliable);
             }
 
             // Sync the host player
@@ -74,7 +84,7 @@ namespace MultiplayerMod.Core
                     name = SteamClient.Name,
                     steamId = SteamClient.SteamId
                 };
-                connection.SendMessage(cjm2.MakeMsg(), MessageSendType.Reliable);
+                connection.SendMessage(cjm2.MakeMsg(), SendReliability.Reliable);
             }
 
             // Sync current scene, Discord party ID and player's small ID
@@ -82,13 +92,15 @@ namespace MultiplayerMod.Core
             {
                 sceneName = BoneworksSceneManager.GetCurrentSceneName()
             };
-            connection.SendMessage(stm.MakeMsg(), MessageSendType.Reliable);
+            connection.SendMessage(stm.MakeMsg(), SendReliability.Reliable);
 
             SetPartyIdMessage spid = new SetPartyIdMessage()
             {
                 partyId = PartyID
             };
-            connection.SendMessage(spid.MakeMsg(), MessageSendType.Reliable);
+            connection.SendMessage(spid.MakeMsg(), SendReliability.Reliable);
+
+            OnPlayerJoin?.Invoke(player);
         }
 
         private void GunHooks_OnGunFire(Gun obj)
@@ -123,7 +135,7 @@ namespace MultiplayerMod.Core
                     muzzleVelocity = obj.muzzleVelocity,
                     cartridgeType = (byte)bObj.cartridgeType
                 };
-                ServerSendToAll(gfmo, MessageSendType.Reliable);
+                players.SendMessageToAll(gfmo, SendReliability.Reliable);
             }
             catch
             {
@@ -136,8 +148,6 @@ namespace MultiplayerMod.Core
         {
             transportLayer.Update();
             if (SceneLoader.loading) return;
-
-            ui.SetPlayerCount(players.Count, MultiplayerUIState.Server);
 
             if (localRigTransforms.main == null)
                 localRigTransforms = BWUtil.GetLocalRigTransforms();
@@ -191,7 +201,7 @@ namespace MultiplayerMod.Core
                     rotRWrist = localRigTransforms.rWrist.rotation
                 };
 
-                ServerSendToAll(ofrtm, MessageSendType.Unreliable);
+                players.SendMessageToAll(ofrtm, SendReliability.Unreliable);
             }
 
             foreach (MPPlayer player in players)
@@ -201,11 +211,16 @@ namespace MultiplayerMod.Core
                 rep.faceAnimator.Update();
             }
 
+            SyncOwnedObjects();
+        }
+
+        private void SyncOwnedObjects()
+        {
             foreach (var obj in SyncedObjects)
             {
                 if (obj.owner == 0 && obj.NeedsSync())
                 {
-                    ServerSendToAll(obj.CreateSyncMessage(), MessageSendType.Unreliable);
+                    players.SendMessageToAll(obj.CreateSyncMessage(), SendReliability.Unreliable);
                     obj.UpdateLastSync();
                 }
             }
@@ -218,13 +233,12 @@ namespace MultiplayerMod.Core
             {
                 sceneName = BoneworksSceneManager.GetSceneNameFromScenePath(level)
             };
-            ServerSendToAll(stm, MessageSendType.Reliable);
+            players.SendMessageToAll(stm, SendReliability.Reliable);
             enemyPoolManager.FindAllPools();
         }
 
         public void StartServer()
         {
-            ui.SetState(MultiplayerUIState.Server);
             MelonLogger.Msg("Starting server...");
             localRigTransforms = BWUtil.GetLocalRigTransforms();
             PartyID = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString() + "P" + SteamClient.SteamId;
@@ -279,13 +293,12 @@ namespace MultiplayerMod.Core
 
                         foreach (MPPlayer p in players)
                         {
-                            p.Connection.SendMessage(disconnectMsg, MessageSendType.Reliable);
+                            p.Connection.SendMessage(disconnectMsg, SendReliability.Reliable);
                         }
                     }
                     break;
                 case ConnectionClosedReason.Other:
                     break;
-
             }
         }
 
@@ -296,7 +309,6 @@ namespace MultiplayerMod.Core
 
         public void StopServer()
         {
-            ui.SetState(MultiplayerUIState.PreConnect);
             IsRunning = false;
 
             messageRouter = null;
@@ -306,7 +318,7 @@ namespace MultiplayerMod.Core
 
             foreach (MPPlayer p in players)
             {
-                p.Connection.SendMessage(shutdownMsg, MessageSendType.Reliable);
+                p.Connection.SendMessage(shutdownMsg, SendReliability.Reliable);
                 p.Connection.Disconnect();
             }
 
@@ -345,31 +357,11 @@ namespace MultiplayerMod.Core
                 SetupSyncFor(rb.gameObject);
         }
 
-        public void ServerSendToAll(INetworkMessage msg, MessageSendType send)
-        {
-            P2PMessage pMsg = msg.MakeMsg();
-            foreach (MPPlayer p in players)
-            {
-                p.Connection.SendMessage(pMsg, send);
-            }
-        }
-
-        public void ServerSendToAllExcept(INetworkMessage msg, MessageSendType send, ulong except)
-        {
-            P2PMessage pMsg = msg.MakeMsg();
-            foreach (MPPlayer p in players)
-            {
-                if (p.FullID != except)
-                    p.Connection.SendMessage(pMsg, send);
-            }
-        }
-
-        public void SendToId(INetworkMessage msg, MessageSendType send, ulong id)
-        {
-            P2PMessage pMsg = msg.MakeMsg();
-            players[id].Connection.SendMessage(pMsg, send);
-        }
-
+        /// <summary>
+        /// Sets up physics sync for the specified object.
+        /// </summary>
+        /// <param name="obj">The object to sync.</param>
+        /// <param name="initialOwner">Small ID of the initial owner of the object.</param>
         public void SetupSyncFor(GameObject obj, byte initialOwner = 0)
         {
             ushort id = ObjectIDManager.AllocateID();
@@ -387,7 +379,8 @@ namespace MultiplayerMod.Core
                 namePath = BWUtil.GetFullNamePath(obj),
                 initialOwner = so.owner
             };
-            ServerSendToAll(iam, MessageSendType.Reliable);
+
+            players.SendMessageToAll(iam, SendReliability.Reliable);
         }
     }
 }

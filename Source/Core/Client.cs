@@ -24,20 +24,13 @@ namespace MultiplayerMod.Core
         public bool IsConnected { get; private set; }
         public EnemyPoolManager EnemyPoolManager { get; private set; } = new EnemyPoolManager();
         public List<SyncedObject> SyncedObjects { get; private set; } = new List<SyncedObject>();
-        public Players Players => players;
         
         public byte LocalSmallId;
 
-        private readonly Players players = new Players();
-        private readonly MultiplayerUI ui;
-        private readonly ITransportLayer transportLayer;
         private ITransportConnection connection;
-        private MessageRouter messageRouter;
 
-        public Client(MultiplayerUI ui, ITransportLayer transportLayer)
+        public Client(ITransportLayer transportLayer) : base(transportLayer)
         {
-            this.ui = ui;
-            this.transportLayer = transportLayer;
         }
 
         public void SetupRP()
@@ -64,7 +57,6 @@ namespace MultiplayerMod.Core
             IsConnected = true;
             localRigTransforms = BWUtil.GetLocalRigTransforms();
 
-            ui.SetState(MultiplayerUIState.Client);
             Hooking.OnPostFireGun += OnPostFireGun;
             Hooking.OnGripAttached += OnGripAttached;
             Hooking.OnGripDetached += OnGripDetached;
@@ -116,7 +108,7 @@ namespace MultiplayerMod.Core
                     angVelocity = rb.angularVelocity
                 };
 
-                SendToServer(coom, MessageSendType.Reliable);
+                SendToServer(coom, SendReliability.Reliable);
             }
         }
 
@@ -144,7 +136,7 @@ namespace MultiplayerMod.Core
                     initialOwner = LocalSmallId
                 };
 
-                SendToServer(req, MessageSendType.Reliable);
+                SendToServer(req, SendReliability.Reliable);
             }
             else
             {
@@ -155,7 +147,7 @@ namespace MultiplayerMod.Core
                     ownerId = LocalSmallId
                 };
 
-                SendToServer(coom, MessageSendType.Reliable);
+                SendToServer(coom, SendReliability.Reliable);
             }
         }
 
@@ -191,7 +183,7 @@ namespace MultiplayerMod.Core
                     cartridgeType = (byte)bObj.cartridgeType
                 };
 
-                SendToServer(gfm.MakeMsg(), MessageSendType.Reliable);
+                SendToServer(gfm.MakeMsg(), SendReliability.Reliable);
             }
             catch
             {
@@ -212,7 +204,6 @@ namespace MultiplayerMod.Core
                 return;
             }
 
-            ui.SetState(MultiplayerUIState.PreConnect);
             MelonLogger.Error("Got P2P connection error " + reason.ToString());
             Disconnect();
         }
@@ -224,8 +215,6 @@ namespace MultiplayerMod.Core
 
         public void Disconnect()
         {
-            ui.SetState(MultiplayerUIState.PreConnect);
-
             MelonLogger.Msg("Disconnecting...");
             IsConnected = false;
             ServerFullId = 0;
@@ -294,7 +283,7 @@ namespace MultiplayerMod.Core
                     rotRWrist = localRigTransforms.rWrist.rotation
                 };
 
-                SendToServer(frtm, MessageSendType.Unreliable);
+                SendToServer(frtm, SendReliability.Unreliable);
 
                 foreach (MPPlayer p in Players)
                 {
@@ -308,17 +297,17 @@ namespace MultiplayerMod.Core
                 if (so.owner == LocalSmallId && so.NeedsSync())
                 {
                     var osm = so.CreateSyncMessage();
-                    SendToServer(osm, MessageSendType.Reliable);
+                    SendToServer(osm, SendReliability.Reliable);
                 }
             }
         }
 
-        private void SendToServer(P2PMessage msg, MessageSendType send)
+        private void SendToServer(P2PMessage msg, SendReliability send)
         {
             connection.SendMessage(msg, send);
         }
 
-        private void SendToServer(INetworkMessage msg, MessageSendType send)
+        private void SendToServer(INetworkMessage msg, SendReliability send)
         {
             SendToServer(msg.MakeMsg(), send);
         }

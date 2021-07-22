@@ -1,6 +1,7 @@
-﻿using MultiplayerMod.Networking;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using MultiplayerMod.Networking;
 
 namespace MultiplayerMod.Core
 {
@@ -11,6 +12,8 @@ namespace MultiplayerMod.Core
     public class Players : IEnumerable<MPPlayer>
     {
         public int Count => playerList.Count;
+        public event Action<MPPlayer> OnPlayerAdd;
+        public event Action<MPPlayer> OnPlayerRemove;
 
         // We frequently need to look up players with different IDs and also iterate over them.
         // It's therefore useful to maintain multiple structures for players.
@@ -29,11 +32,13 @@ namespace MultiplayerMod.Core
             fullIdPlayers.Add(player.FullID, player);
             smallIdPlayers.Add(player.SmallID, player);
             playerList.Add(player);
+            OnPlayerAdd?.Invoke(player);
         }
 
         /// <summary>
         /// Removes a player. 
         /// </summary>
+        /// <param name="destroyRep">If true, the player's representation GameObject is destroyed.</param>
         public void Remove(MPPlayer player, bool destroyRep = true)
         {
             if (destroyRep)
@@ -42,11 +47,13 @@ namespace MultiplayerMod.Core
             fullIdPlayers.Remove(player.FullID);
             smallIdPlayers.Remove(player.SmallID);
             playerList.Remove(player);
+            OnPlayerRemove?.Invoke(player);
         }
 
         /// <summary>
         /// Removes a player by their full ID.
         /// </summary>
+        /// <param name="destroyRep">If true, the player's representation GameObject is destroyed.</param>
         public void Remove(ulong fullId, bool destroyRep = true)
         {
             Remove(fullIdPlayers[fullId], destroyRep);
@@ -55,11 +62,16 @@ namespace MultiplayerMod.Core
         /// <summary>
         /// Removes a player by their small ID.
         /// </summary>
+        /// <param name="destroyRep">If true, the player's representation GameObject is destroyed.</param>
         public void Remove(byte smallId, bool destroyRep = true)
         {
             Remove(smallIdPlayers[smallId], destroyRep);
         }
 
+        /// <summary>
+        /// Removes all players from the list.
+        /// </summary>
+        /// <param name="destroyReps">If true, the representation GameObjects of every player are destroyed.</param>
         public void Clear(bool destroyReps = true)
         {
             foreach (MPPlayer player in playerList)
@@ -75,22 +87,30 @@ namespace MultiplayerMod.Core
         public bool Contains(ulong fullId) => fullIdPlayers.ContainsKey(fullId);
         public bool Contains(byte smallId) => smallIdPlayers.ContainsKey(smallId);
 
-        public void SendMessageToAll(INetworkMessage msg, MessageSendType send)
+        /// <summary>
+        /// Sends a message directly to every player in the list. Should really only be used by servers.
+        /// </summary>
+        public void SendMessageToAll(INetworkMessage msg, SendReliability reliability)
         {
             P2PMessage pMsg = msg.MakeMsg();
             foreach (MPPlayer p in playerList)
             {
-                p.Connection.SendMessage(pMsg, send);
+                p.Connection.SendMessage(pMsg, reliability);
             }
         }
 
-        public void SendMessageToAllExcept(INetworkMessage msg, MessageSendType send, ulong except)
+        /// <summary>
+        /// Sends a message directly to every player in the list except the specified full ID. 
+        /// Should really only be used by servers.
+        /// </summary>
+        /// <param name="except">The full ID of the player to exclude from being sent the message.</param>
+        public void SendMessageToAllExcept(INetworkMessage msg, SendReliability reliability, ulong except)
         {
             P2PMessage pMsg = msg.MakeMsg();
             foreach (MPPlayer p in playerList)
             {
                 if (p.FullID != except)
-                    p.Connection.SendMessage(pMsg, send);
+                    p.Connection.SendMessage(pMsg, reliability);
             }
         }
 

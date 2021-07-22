@@ -24,7 +24,7 @@ namespace MultiplayerMod.MessageHandlers.Server
                 // Somebody tried to join with an incompatible verison. Kick 'em!
                 P2PMessage m2 = new P2PMessage();
                 m2.WriteByte((byte)MessageType.JoinRejected);
-                connection.SendMessage(m2, MessageSendType.Reliable);
+                connection.SendMessage(m2, SendReliability.Reliable);
                 connection.Disconnect();
             }
             else
@@ -49,13 +49,13 @@ namespace MultiplayerMod.MessageHandlers.Server
                     name = name,
                     steamId = connection.ConnectedTo
                 };
-                players.SendMessageToAllExcept(cjm3, MessageSendType.Reliable, connection.ConnectedTo);
+                players.SendMessageToAllExcept(cjm3, SendReliability.Reliable, connection.ConnectedTo);
 
                 SetLocalSmallIdMessage slsi = new SetLocalSmallIdMessage()
                 {
                     smallId = newPlayerId
                 };
-                connection.SendMessage(slsi.MakeMsg(), MessageSendType.Reliable);
+                connection.SendMessage(slsi.MakeMsg(), SendReliability.Reliable);
 
                 players.Add(player);
 

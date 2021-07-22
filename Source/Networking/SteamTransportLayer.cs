@@ -22,7 +22,7 @@ namespace MultiplayerMod.Networking
         internal SteamTransportConnection(ulong id, P2PMessage initialMessage)
         {
             ConnectedTo = id;
-            SendMessage(initialMessage, MessageSendType.Reliable);
+            SendMessage(initialMessage, SendReliability.Reliable);
 
             MelonLogger.Msg($"Steam: Sent initial message to {id}");
         }
@@ -38,7 +38,7 @@ namespace MultiplayerMod.Networking
             IsValid = false;
         }
 
-        public void SendMessage(P2PMessage msg, MessageSendType sendType)
+        public void SendMessage(P2PMessage msg, SendReliability sendType)
         {
             SteamTransportLayer.StartThreadIfNecessary();
             SteamTransportLayer.messageSendCmds.Enqueue(new SteamTransportLayer.MessageSendCmd() { msg = msg, sendType = sendType, id = ConnectedTo });
@@ -50,7 +50,7 @@ namespace MultiplayerMod.Networking
         internal struct MessageSendCmd
         {
             public P2PMessage msg;
-            public MessageSendType sendType;
+            public SendReliability sendType;
             public ulong id;
         }
 
@@ -173,7 +173,7 @@ namespace MultiplayerMod.Networking
                     {
                         MessageSendCmd sendCmd;
                         while (!messageSendCmds.TryDequeue(out sendCmd)) continue;
-                        SteamNetworking.SendP2PPacket(sendCmd.id, sendCmd.msg.GetBytes(), -1, 0, sendCmd.sendType == MessageSendType.Reliable ? P2PSend.Reliable : P2PSend.Unreliable);
+                        SteamNetworking.SendP2PPacket(sendCmd.id, sendCmd.msg.GetBytes(), -1, 0, sendCmd.sendType == SendReliability.Reliable ? P2PSend.Reliable : P2PSend.Unreliable);
                     }
                 }
                 catch (Exception e)
