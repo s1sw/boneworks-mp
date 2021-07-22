@@ -42,7 +42,8 @@ namespace MultiplayerMod.Networking
         GunFireHit,
         Death,
         ChangeObjectOwnership,
-        SetLocalSmallId
+        SetLocalSmallId,
+        PoolSpawn
     }
 
     public interface INetworkMessage
@@ -907,6 +908,33 @@ namespace MultiplayerMod.Networking
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.SetLocalSmallId);
             msg.WriteByte(smallId);
+            return msg;
+        }
+    }
+
+    public class PoolSpawnMessage : INetworkMessage
+    {
+        public string poolId;
+        public Vector3 position;
+        public Quaternion rotation;
+
+        public PoolSpawnMessage() { }
+
+        public PoolSpawnMessage(P2PMessage msg)
+        {
+            poolId = msg.ReadUnicodeString();
+            position = msg.ReadVector3();
+            rotation = msg.ReadQuaternion();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+
+            msg.WriteByte((byte)MessageType.PoolSpawn);
+            msg.WriteVector3(position);
+            msg.WriteQuaternion(rotation);
+
             return msg;
         }
     }

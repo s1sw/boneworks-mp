@@ -12,6 +12,8 @@ using StressLevelZero.Interaction;
 using StressLevelZero.Props.Weapons;
 using UnityEngine;
 using ModThatIsNotMod;
+using StressLevelZero.Data;
+using System.Collections;
 
 namespace MultiplayerMod.Core
 {
@@ -62,8 +64,55 @@ namespace MultiplayerMod.Core
             Hooking.OnGripDetached += OnGripDetached;
 
             MultiplayerMod.OnLevelWasLoadedEvent += OnLevelWasLoaded;
+            BWUtil.OnSpawnGunFire += BWUtil_OnSpawnGunFire;
 
             messageRouter = new MessageRouter(Players, this);
+        }
+
+        private void BWUtil_OnSpawnGunFire(SpawnGun gun, SpawnableObject spawnable)
+        {
+            MelonCoroutines.Start(SyncSpawn(gun, spawnable));
+        }
+
+        private IEnumerator SyncSpawn(SpawnGun gun, SpawnableObject spawnable)
+        {
+            // OnFire appears to be the earliest method we can hook for spawning, but it's still run before
+            // the object actually spawns. We therefore wait a frame to get the newly spawned object.
+            // This is janky and horrible and could very easily break but I'm unsure of a better way to solve this.
+            yield return null;
+
+            var pool = StressLevelZero.Pool.PoolManager.GetPool(spawnable.title);
+
+            if (pool == null)
+            {
+                MelonLogger.Error("Pool was null");
+                yield break;
+            }
+
+            var spawned = pool._lastSpawn;
+
+            if (spawned == null)
+            {
+                MelonLogger.Error("Spawned was null");
+                yield break;
+            }
+
+            var spawnMessage = new PoolSpawnMessage()
+            {
+                poolId = spawnable.title,
+                position = spawned.transform.position,
+                rotation = spawned.transform.rotation
+            };
+
+            SendToServer(spawnMessage, SendReliability.Reliable);
+
+            var req = new IDRequestMessage
+            {
+                namePath = BWUtil.GetFullNamePath(spawned.gameObject),
+                initialOwner = LocalSmallId
+            };
+
+            SendToServer(req, SendReliability.Reliable);
         }
 
         private void OnLevelWasLoaded(int obj)

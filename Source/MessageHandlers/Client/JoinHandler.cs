@@ -1,11 +1,5 @@
 ﻿using MultiplayerMod.Core;
-using MultiplayerMod.MessageHandlers;
 using MultiplayerMod.Networking;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MultiplayerMod.MessageHandlers.Client
 {
@@ -17,6 +11,7 @@ namespace MultiplayerMod.MessageHandlers.Client
             ClientJoinMessage cjm = new ClientJoinMessage(msg);
 
             var player = new MPPlayer(cjm.name, cjm.steamId, cjm.playerId, connection);
+            Client.Players.Add(player);
 
             foreach (MPPlayer p in players)
             {

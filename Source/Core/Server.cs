@@ -15,6 +15,8 @@ using StressLevelZero.Interaction;
 using StressLevelZero.Props.Weapons;
 using StressLevelZero.Utilities;
 using UnityEngine;
+using StressLevelZero.Data;
+using System.Collections;
 
 namespace MultiplayerMod.Core
 {
@@ -105,6 +107,8 @@ namespace MultiplayerMod.Core
 
         private void GunHooks_OnGunFire(Gun obj)
         {
+            MelonLogger.Msg($"Gun {obj.gameObject.name} fired");
+            
             try
             {
                 AmmoVariables bObj = new AmmoVariables
@@ -262,16 +266,58 @@ namespace MultiplayerMod.Core
                         }
                     }
                 });
-            transportLayer.OnMessageReceived += TransportLayer_OnMessageReceived;
+            transportLayer.OnMessageReceived += messageRouter.HandleMessage;
             transportLayer.OnConnectionClosed += TransportLayer_OnConnectionClosed;
+
             Hooking.OnPostFireGun += GunHooks_OnGunFire;
             Hooking.OnGripAttached += OnGripAttached;
             Hooking.OnGripDetached += OnGripReleased;
-            transportLayer.StartListening();
 
             MultiplayerMod.OnLevelWasLoadedEvent += MultiplayerMod_OnLevelWasLoadedEvent;
+            BWUtil.OnSpawnGunFire += BWUtil_OnSpawnGunFire;
+
+            transportLayer.StartListening();
 
             IsRunning = true;
+        }
+
+        private void BWUtil_OnSpawnGunFire(SpawnGun gun, SpawnableObject spawnable)
+        {
+            MelonCoroutines.Start(SyncSpawn(gun, spawnable));
+        }
+
+        private IEnumerator SyncSpawn(SpawnGun gun, SpawnableObject spawnable)
+        {
+            // OnFire appears to be the earliest method we can hook for spawning, but it's still run before
+            // the object actually spawns. We therefore wait a frame to get the newly spawned object.
+            // This is janky and horrible and could very easily break but I'm unsure of a better way to solve this.
+            yield return null;
+
+            var pool = StressLevelZero.Pool.PoolManager.GetPool(spawnable.title);
+
+            if (pool == null)
+            {
+                MelonLogger.Error("Pool was null");
+                yield break;
+            }
+
+            var spawned = pool._lastSpawn;
+
+            if (spawned == null)
+            {
+                MelonLogger.Error("Spawned was null");
+                yield break;
+            }
+
+            var spawnMessage = new PoolSpawnMessage()
+            {
+                poolId = spawnable.title,
+                position = spawned.transform.position,
+                rotation = spawned.transform.rotation
+            };
+
+            Players.SendMessageToAll(spawnMessage, SendReliability.Reliable);
+            SetupSyncFor(spawned.gameObject);
         }
 
         private void TransportLayer_OnConnectionClosed(ITransportConnection connection, ConnectionClosedReason reason)
@@ -302,11 +348,6 @@ namespace MultiplayerMod.Core
             }
         }
 
-        private void TransportLayer_OnMessageReceived(ITransportConnection connection, P2PMessage msg)
-        {
-            messageRouter.HandleMessage(connection, msg);
-        }
-
         public void StopServer()
         {
             IsRunning = false;
@@ -324,14 +365,17 @@ namespace MultiplayerMod.Core
 
             players.Clear();
 
-            transportLayer.OnMessageReceived -= TransportLayer_OnMessageReceived;
+            transportLayer.StopListening();
+
+
+            transportLayer.OnMessageReceived -= messageRouter.HandleMessage;
             transportLayer.OnConnectionClosed -= TransportLayer_OnConnectionClosed;
             Hooking.OnPostFireGun -= GunHooks_OnGunFire;
             Hooking.OnGripAttached -= OnGripAttached;
             Hooking.OnGripDetached -= OnGripReleased;
-            transportLayer.StopListening();
 
             MultiplayerMod.OnLevelWasLoadedEvent -= MultiplayerMod_OnLevelWasLoadedEvent;
+            BWUtil.OnSpawnGunFire -= BWUtil_OnSpawnGunFire;
         }
 
         private void OnGripReleased(Grip grip, Hand hand)

@@ -52,6 +52,9 @@ namespace MultiplayerMod
             PlayerRep.LoadFord();
             PlayerRep.showBody = true;
 
+            // Initialise Boneworks hooks
+            BWUtil.Hook();
+
             // Initialize Discord's RichPresence
             RichPresence.Initialise(701895326600265879);
             client.SetupRP();
@@ -108,6 +111,7 @@ namespace MultiplayerMod
                 menuCategory.CreateFunctionElement(lastStatusDisplayText, Color.white, null);
             }
 
+            // Janky reflection stuff to get the menu to update and display our new elements
             Type mmType = typeof(MenuManager);
             FieldInfo categoryField = mmType.GetField("activeCategory", BindingFlags.NonPublic | BindingFlags.Static);
 

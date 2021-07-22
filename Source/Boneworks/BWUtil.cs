@@ -10,14 +10,17 @@ using UnityEngine.Rendering;
 using static UnityEngine.Object;
 using MultiplayerMod.Structs;
 using MultiplayerMod.Networking;
-using Harmony;
+using HarmonyLib;
 using StressLevelZero.Props.Weapons;
 using ModThatIsNotMod;
 using StressLevelZero.UI.Radial;
 using StressLevelZero.Data;
 
+
 namespace MultiplayerMod.Boneworks
 {
+    using Harmony = HarmonyLib.Harmony;
+
     public enum EnemyType
     {
         NullBody,
@@ -53,8 +56,23 @@ namespace MultiplayerMod.Boneworks
             }
         }
 
+        public static event Action<SpawnGun, SpawnableObject> OnSpawnGunFire;
+
         private static Player_Health localPlayerHealth;
         private static GameObject rigManager;
+
+        public static void Hook()
+        {
+            var harmonyInst = new Harmony("BWMP");
+            harmonyInst.Patch(typeof(SpawnGun).GetMethod("OnFire"), new HarmonyMethod(typeof(BWUtil), "OnSpawnGunFireHook"));
+        }
+
+        private static void OnSpawnGunFireHook(SpawnGun __instance)
+        {
+            var spawnable = __instance._selectedSpawnable;
+
+            OnSpawnGunFire?.Invoke(__instance, spawnable);
+        }
 
         public static BoneworksRigTransforms GetLocalRigTransforms()
         {

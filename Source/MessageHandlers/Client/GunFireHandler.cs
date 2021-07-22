@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MultiplayerMod.Core;
+﻿using MultiplayerMod.Core;
 using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
 using StressLevelZero.Combat;
