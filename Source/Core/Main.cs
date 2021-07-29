@@ -8,8 +8,10 @@ using MultiplayerMod.Core;
 using MultiplayerMod.MonoBehaviours;
 using MultiplayerMod.Networking;
 using MultiplayerMod.Representations;
+using StressLevelZero.Combat;
 using StressLevelZero.Utilities;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
 namespace MultiplayerMod
@@ -37,7 +39,7 @@ namespace MultiplayerMod
             SteamClient.Init(823500);
 
 #if DEBUG
-            MelonModLogger.LogWarning("Debug build!");
+            MelonLogger.Warning("Debug build!");
 #endif
 
             MelonLogger.Msg($"Multiplayer initialising with protocol version {PROTOCOL_VERSION}.");
@@ -50,14 +52,13 @@ namespace MultiplayerMod
 
             // Cache the PlayerRep's model
             PlayerRep.LoadFord();
-            PlayerRep.showBody = true;
 
             // Initialise Boneworks hooks
             BWUtil.Hook();
 
             // Initialize Discord's RichPresence
-            RichPresence.Initialise(701895326600265879);
-            client.SetupRP();
+            //RichPresence.Initialise(701895326600265879);
+            //client.SetupRP();
 
             UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<SyncedObject>();
 
@@ -140,7 +141,7 @@ namespace MultiplayerMod
 
         public override void OnUpdate()
         {
-            RichPresence.Update();
+            //RichPresence.Update();
 
             if (Input.GetKeyDown(KeyCode.U))
                 UpdateBoneMenu();
@@ -157,14 +158,13 @@ namespace MultiplayerMod
             if (GUILayout.Button("Create Dummy", null))
             {
                 if (dummyRep == null)
-                    dummyRep = new PlayerRep("Dummy", SteamClient.SteamId);
+                {
+                    MPPlayer fakePlayer = new MPPlayer("Rabscuttle", 76561197960287930, 0, null);
+                    dummyRep = new PlayerRep("Dummy", fakePlayer);
+                    dummyRep.OnDamage += DummyRep_OnDamage;
+                }
                 else
                     dummyRep.Delete();
-            }
-
-            if (GUILayout.Button("Create Main Panel", null))
-            {
-                Features.UI.CreateMainPanel();
             }
 
             if (GUILayout.Button("Test Object IDs", null))
@@ -172,23 +172,55 @@ namespace MultiplayerMod
                 var testObj = GameObject.Find("[RigManager (Default Brett)]/[SkeletonRig (GameWorld Brett)]/Brett@neutral");
                 string fullPath = BWUtil.GetFullNamePath(testObj);
 
-                MelonLogger.Log($"Got path {fullPath} for Brett@neutral");
-                MelonLogger.Log("Trying to get object from path...");
-
+                MelonLogger.Msg($"Got path {fullPath} for Brett@neutral");
+                MelonLogger.Msg("Trying to get object from path...");
                 var gotObj = BWUtil.GetObjectFromFullPath(fullPath);
 
                 if (gotObj == testObj)
                 {
-                    MelonLogger.Log("Success!!!!!");
+                    MelonLogger.Msg("Success!!!!!");
                 }
                 else
                 {
-                    MelonLogger.Log($"Failed :( Got {gotObj.name}");
+                    MelonLogger.Msg($"Failed :( Got {gotObj.name}");
                 }
+            }
+
+            if (GUILayout.Button("Create testing damage receiver", null))
+            {
+                GameObject testReceiver = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                var attackRecv = testReceiver.AddComponent<GenericAttackReceiver>();
+                attackRecv.AttackEvent = new UnityEventFloat();
+                attackRecv.AttackEvent.AddListener(new Action<float>((float f) => { MelonLogger.Msg($"Received {f} damage"); }));
+
+                ImpactPropertiesManager bloodManager = testReceiver.AddComponent<ImpactPropertiesManager>();
+                bloodManager.material = ImpactPropertiesVariables.Material.Blood;
+                bloodManager.modelType = ImpactPropertiesVariables.ModelType.Model;
+                bloodManager.MainColor = Color.red;
+                bloodManager.SecondaryColor = Color.red;
+                bloodManager.PenetrationResistance = 0.9f;
+                bloodManager.megaPascalModifier = 5f;
+                
+                ImpactProperties blood = testReceiver.AddComponent<ImpactProperties>();
+                blood.material = ImpactPropertiesVariables.Material.Blood;
+                blood.modelType = ImpactPropertiesVariables.ModelType.Model;
+                blood.MainColor = Color.red;
+                blood.SecondaryColor = Color.red;
+                blood.PenetrationResistance = 0.9f;
+                blood.megaPascalModifier = 5f;
+                blood.MyCollider = testReceiver.GetComponent<Collider>();
+                blood.hasManager = true;
+                blood.Manager = bloodManager;
+                testReceiver.AddComponent<Rigidbody>().isKinematic = true;
             }
 
             GUILayout.EndVertical();
 #endif
+        }
+
+        private void DummyRep_OnDamage(float arg1, PlayerRep arg2)
+        {
+            MelonLogger.Msg($"Dummy rep took {arg1} damage");
         }
 
         public override void OnFixedUpdate()

@@ -19,54 +19,12 @@ namespace MultiplayerMod.MessageHandlers.Server
             if (pr.rigTransforms.main == null) return;
 
             //ApplyTransformMessage(pr, frtm);
-            pr.ApplyTransformMessage(frtm);
+            pr.ApplyTransformMessage(frtm.transforms);
 
             OtherFullRigTransformMessage ofrtm = new OtherFullRigTransformMessage
             {
                 playerId = player.SmallID,
-
-                posMain = frtm.posMain,
-                posRoot = frtm.posRoot,
-                posLHip = frtm.posLHip,
-                posRHip = frtm.posRHip,
-                posLKnee = frtm.posLKnee,
-                posRKnee = frtm.posRKnee,
-                posLAnkle = frtm.posLAnkle,
-                posRAnkle = frtm.posRAnkle,
-
-                posSpine1 = frtm.posSpine1,
-                posSpine2 = frtm.posSpine2,
-                posSpineTop = frtm.posSpineTop,
-                posLClavicle = frtm.posLClavicle,
-                posRClavicle = frtm.posRClavicle,
-                posNeck = frtm.posNeck,
-                posLShoulder = frtm.posLShoulder,
-                posRShoulder = frtm.posRShoulder,
-                posLElbow = frtm.posLElbow,
-                posRElbow = frtm.posRElbow,
-                posLWrist = frtm.posLWrist,
-                posRWrist = frtm.posRWrist,
-
-                rotMain = frtm.rotMain,
-                rotRoot = frtm.rotRoot,
-                rotLHip = frtm.rotLHip,
-                rotRHip = frtm.rotRHip,
-                rotLKnee = frtm.rotLKnee,
-                rotRKnee = frtm.rotRKnee,
-                rotLAnkle = frtm.rotLAnkle,
-                rotRAnkle = frtm.rotRAnkle,
-                rotSpine1 = frtm.rotSpine1,
-                rotSpine2 = frtm.rotSpine2,
-                rotSpineTop = frtm.rotSpineTop,
-                rotLClavicle = frtm.rotLClavicle,
-                rotRClavicle = frtm.rotRClavicle,
-                rotNeck = frtm.rotNeck,
-                rotLShoulder = frtm.rotLShoulder,
-                rotRShoulder = frtm.rotRShoulder,
-                rotLElbow = frtm.rotLElbow,
-                rotRElbow = frtm.rotRElbow,
-                rotLWrist = frtm.rotLWrist,
-                rotRWrist = frtm.rotRWrist
+                transforms = frtm.transforms
             };
 
             players.SendMessageToAllExcept(ofrtm, SendReliability.Unreliable, connection.ConnectedTo);

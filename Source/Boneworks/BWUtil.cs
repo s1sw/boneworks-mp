@@ -15,7 +15,8 @@ using StressLevelZero.Props.Weapons;
 using ModThatIsNotMod;
 using StressLevelZero.UI.Radial;
 using StressLevelZero.Data;
-
+using System.Collections;
+using StressLevelZero.Interaction;
 
 namespace MultiplayerMod.Boneworks
 {
@@ -56,7 +57,7 @@ namespace MultiplayerMod.Boneworks
             }
         }
 
-        public static event Action<SpawnGun, SpawnableObject> OnSpawnGunFire;
+        public static event Action<SpawnGun, SpawnableObject, GameObject> OnSpawnGunFire;
 
         private static Player_Health localPlayerHealth;
         private static GameObject rigManager;
@@ -65,13 +66,52 @@ namespace MultiplayerMod.Boneworks
         {
             var harmonyInst = new Harmony("BWMP");
             harmonyInst.Patch(typeof(SpawnGun).GetMethod("OnFire"), new HarmonyMethod(typeof(BWUtil), "OnSpawnGunFireHook"));
+            harmonyInst.Patch(typeof(ForcePullGrip).GetMethod("Pull"), new HarmonyMethod(typeof(BWUtil), "OnForceGripPull"));
+            harmonyInst.Patch(typeof(ForcePullGrip).GetMethod("CancelPull"), new HarmonyMethod(typeof(BWUtil), "OnForceGripCancelPull"));
+            Player_Health.add_OnPlayerDamageReceived(new Action<float>((float f) => { MelonLogger.Msg($"Received {f} damage"); }));
         }
 
         private static void OnSpawnGunFireHook(SpawnGun __instance)
         {
             var spawnable = __instance._selectedSpawnable;
+            MelonCoroutines.Start(FireSpawnEvent(__instance, spawnable));
+        }
 
-            OnSpawnGunFire?.Invoke(__instance, spawnable);
+        private static void OnForceGripPull(ForcePullGrip __instance)
+        {
+            MelonLogger.Msg($"Force grip pull {__instance.gameObject.name}");
+        }
+
+        private static void OnForceGripCancelPull(ForcePullGrip __instance)
+        {
+            MelonLogger.Msg($"Force grip pull canceled for {__instance.gameObject.name}");
+        }
+
+        private static IEnumerator FireSpawnEvent(SpawnGun gun, SpawnableObject spawnable)
+        {
+            // OnFire appears to be the earliest method we can hook for spawning, but it's still run before
+            // the object actually spawns. We therefore wait a frame to get the newly spawned object.
+            // This is janky and horrible and could very easily break but I'm unsure of a better way to solve this.
+            yield return null;
+            yield return null;
+
+            var pool = StressLevelZero.Pool.PoolManager.GetPool(spawnable.title);
+
+            if (pool == null)
+            {
+                MelonLogger.Error("Pool was null");
+                yield break;
+            }
+
+            var spawned = pool._lastSpawn;
+
+            if (spawned == null)
+            {
+                MelonLogger.Error("Spawned was null");
+                yield break;
+            }
+
+            OnSpawnGunFire?.Invoke(gun, spawnable, spawned.gameObject);
         }
 
         public static BoneworksRigTransforms GetLocalRigTransforms()
@@ -131,7 +171,7 @@ namespace MultiplayerMod.Boneworks
             return brt;
         }
 
-        public static void ApplyRigTransform(BoneworksRigTransforms rigTransforms, RigTFMsgBase tfMsg)
+        public static void ApplyRigTransform(BoneworksRigTransforms rigTransforms, RigTransforms tfMsg)
         {
             rigTransforms.main.position = tfMsg.posMain;
             rigTransforms.main.rotation = tfMsg.rotMain;
@@ -213,7 +253,7 @@ namespace MultiplayerMod.Boneworks
             // but bleh
 
             GameObject rootObj;
-            rootObj = GameObject.Find(pathComponents[0]);
+            rootObj = GameObject.Find("/" + pathComponents[0]);
             if (rootObj == null)
                 return null;
 

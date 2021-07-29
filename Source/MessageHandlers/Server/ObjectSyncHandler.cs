@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace MultiplayerMod.MessageHandlers.Server
 {
-    [MessageHandler(MessageType.ChangeObjectOwnership, PeerType.Server)]
+    [MessageHandler(MessageType.ObjectSync, PeerType.Server)]
 
     class ObjectSyncHandler : MessageHandler
     {

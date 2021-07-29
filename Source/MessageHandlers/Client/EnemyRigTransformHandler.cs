@@ -22,7 +22,7 @@ namespace MultiplayerMod.MessageHandlers.Client
             Transform enemyTf = pool.transform.GetChild(ertm.poolChildIdx);
             GameObject rootObj = enemyTf.Find("enemyBrett@neutral").gameObject;
             BoneworksRigTransforms brt = BWUtil.GetHumanoidRigTransforms(rootObj);
-            BWUtil.ApplyRigTransform(brt, ertm);
+            BWUtil.ApplyRigTransform(brt, ertm.transforms);
         }
     }
 }

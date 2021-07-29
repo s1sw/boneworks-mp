@@ -16,7 +16,7 @@ namespace MultiplayerMod.MessageHandlers.Client
             {
                 PlayerRep pr = players[playerId].PlayerRep;
 
-                pr.ApplyTransformMessage(ofrtm);
+                pr.ApplyTransformMessage(ofrtm.transforms);
             }
         }
     }

@@ -34,8 +34,8 @@ namespace MultiplayerMod.Networking
 
     public class P2PMessage
     {
-        readonly List<byte[]> byteChunks = new List<byte[]>();
-        readonly byte[] rBytes;
+        readonly List<byte> byteList = new List<byte>();
+        readonly byte[] readBytes;
         int rPos = 0;
 
         // Blank constructor?
@@ -45,52 +45,37 @@ namespace MultiplayerMod.Networking
 
         public P2PMessage(byte[] bytes)
         {
-            rBytes = bytes;
+            readBytes = bytes;
         }
 
         public byte[] GetBytes()
         {
-            int totalLength = 0;
-            foreach (byte[] chunk in byteChunks)
-            {
-                totalLength += chunk.Length;
-            }
-
-            byte[] bArr = new byte[totalLength];
-            int cPos = 0;
-
-            foreach (byte[] chunk in byteChunks)
-            {
-                chunk.CopyTo(bArr, cPos);
-                cPos += chunk.Length;
-            }
-
-            return bArr;
+            return byteList.ToArray();
         }
 
         public void WriteByte(byte b)
         {
-            byteChunks.Add(new byte[] { b });
+            byteList.Add(b);
         }
 
         public void WriteSignedByte(sbyte s)
         {
-            byteChunks.Add(new byte[] { (byte)s });
+            byteList.Add(unchecked((byte)s));
         }
 
         public void WriteFloat(float f)
         {
-            byteChunks.Add(BitConverter.GetBytes(f));
+            byteList.AddRange(BitConverter.GetBytes(f));
         }
 
         public void WriteShort(short s)
         {
-            byteChunks.Add(BitConverter.GetBytes(s));
+            byteList.AddRange(BitConverter.GetBytes(s));
         }
 
         public void WriteUShort(ushort s)
         {
-            byteChunks.Add(BitConverter.GetBytes(s));
+            byteList.AddRange(BitConverter.GetBytes(s));
         }
 
         public void WriteVector3(Vector3 v3)
@@ -219,13 +204,13 @@ namespace MultiplayerMod.Networking
         {
             byte[] bArr = System.Text.Encoding.UTF8.GetBytes(str);
             WriteByte((byte)bArr.Length);
-            byteChunks.Add(bArr);
+            byteList.AddRange(bArr);
         }
 
         public void WriteUlong(ulong l)
         {
             byte[] bArr = BitConverter.GetBytes(l);
-            byteChunks.Add(bArr);
+            byteList.AddRange(bArr);
         }
 
         public Quaternion ReadCompressedQuaternion()
@@ -249,9 +234,9 @@ namespace MultiplayerMod.Networking
             }
 
             // Read the other three fields and derive the value of the omitted field
-            var a = (float)ReadShort() / FLOAT_PRECISION_MULT;
-            var b = (float)ReadShort() / FLOAT_PRECISION_MULT;
-            var c = (float)ReadShort() / FLOAT_PRECISION_MULT;
+            var a = ReadShort() / FLOAT_PRECISION_MULT;
+            var b = ReadShort() / FLOAT_PRECISION_MULT;
+            var c = ReadShort() / FLOAT_PRECISION_MULT;
             var d = Mathf.Sqrt(1f - (a * a + b * b + c * c));
 
             if (maxIndex == 0)
@@ -284,35 +269,35 @@ namespace MultiplayerMod.Networking
 
         public byte ReadByte()
         {
-            byte v = rBytes[rPos];
+            byte v = readBytes[rPos];
             rPos++;
             return v;
         }
 
         public sbyte ReadSignedByte()
         {
-            sbyte v = (sbyte)rBytes[rPos];
+            sbyte v = unchecked((sbyte)readBytes[rPos]);
             rPos++;
             return v;
         }
 
         public float ReadFloat()
         {
-            float v = BitConverter.ToSingle(rBytes, rPos);
+            float v = BitConverter.ToSingle(readBytes, rPos);
             rPos += sizeof(float);
             return v;
         }
 
         public short ReadShort()
         {
-            short x = BitConverter.ToInt16(rBytes, rPos);
+            short x = BitConverter.ToInt16(readBytes, rPos);
             rPos += sizeof(short);
             return x;
         }
 
         public ushort ReadUShort()
         {
-            ushort x = BitConverter.ToUInt16(rBytes, rPos);
+            ushort x = BitConverter.ToUInt16(readBytes, rPos);
             rPos += sizeof(ushort);
             return x;
         }
@@ -330,7 +315,7 @@ namespace MultiplayerMod.Networking
 
         public ulong ReadUlong()
         {
-            ulong id = BitConverter.ToUInt64(rBytes, rPos);
+            ulong id = BitConverter.ToUInt64(readBytes, rPos);
             rPos += sizeof(ulong);
             return id;
         }
@@ -350,7 +335,7 @@ namespace MultiplayerMod.Networking
         public string ReadUnicodeString()
         {
             byte length = ReadByte();
-            string ret = System.Text.Encoding.UTF8.GetString(rBytes, rPos, length);
+            string ret = System.Text.Encoding.UTF8.GetString(readBytes, rPos, length);
             rPos += length;
 
             return ret;

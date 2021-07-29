@@ -15,7 +15,7 @@ namespace MultiplayerMod.MessageHandlers.Server
             MelonLogger.Msg("ID request: " + idrqm.namePath);
             var obj = BWUtil.GetObjectFromFullPath(idrqm.namePath);
 
-            ((Core.Server)peer).SetupSyncFor(obj, idrqm.initialOwner);
+            ((Core.Server)peer).SetupSyncFor(obj, idrqm.initialOwner, idrqm.priorityLevel);
         }
     }
 }

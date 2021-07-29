@@ -11,7 +11,7 @@ namespace MultiplayerMod
         public const string Name = "Multiplayer Mod - PVP";
         public const string Author = "Someone Somewhere, Maranara, zCubed";
         public const string Company = null;
-        public const string Version = "0.13.0";
+        public const string Version = "0.13.1";
         public const string DownloadLink = "https://discord.gg/2Wn3N2P";
     }
 

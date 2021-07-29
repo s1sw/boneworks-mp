@@ -69,6 +69,8 @@ namespace MultiplayerMod.Core
             // Sync existing players to the newly joining player
             foreach (MPPlayer p in players)
             {
+                if (p == player) continue;
+
                 ClientJoinMessage cjm = new ClientJoinMessage
                 {
                     playerId = p.SmallID,
@@ -103,6 +105,19 @@ namespace MultiplayerMod.Core
             connection.SendMessage(spid.MakeMsg(), SendReliability.Reliable);
 
             OnPlayerJoin?.Invoke(player);
+
+            player.PlayerRep.OnDamage += PlayerRep_OnDamage;
+        }
+
+        private void PlayerRep_OnDamage(float damage, PlayerRep rep)
+        {
+            PlayerDamageMessage pdm = new PlayerDamageMessage()
+            {
+                playerId = rep.player.SmallID,
+                damage = damage
+            };
+
+            Players.SendMessageToAll(pdm, SendReliability.Reliable);
         }
 
         private void GunHooks_OnGunFire(Gun obj)
@@ -127,10 +142,9 @@ namespace MultiplayerMod.Core
                     bObj = obj.overrideMagazine.AmmoSlots[0].ammoVariables;
                 }
 
-                GunFireMessageOther gfmo = new GunFireMessageOther()
+                GunFireInfo fireInfo = new GunFireInfo()
                 {
                     handedness = (byte)obj.host.GetHand(0).handedness,
-                    playerId = 0,
                     firepointPos = obj.firePointTransform.position,
                     firepointRotation = obj.firePointTransform.rotation,
                     ammoDamage = bObj.AttackDamage,
@@ -138,6 +152,12 @@ namespace MultiplayerMod.Core
                     exitVelocity = bObj.ExitVelocity,
                     muzzleVelocity = obj.muzzleVelocity,
                     cartridgeType = (byte)bObj.cartridgeType
+                };
+
+                GunFireMessageOther gfmo = new GunFireMessageOther()
+                {
+                    playerId = 0,
+                    fireInfo = fireInfo
                 };
                 players.SendMessageToAll(gfmo, SendReliability.Reliable);
             }
@@ -158,9 +178,8 @@ namespace MultiplayerMod.Core
 
             if (localRigTransforms.main != null)
             {
-                OtherFullRigTransformMessage ofrtm = new OtherFullRigTransformMessage
+                RigTransforms rigTransforms = new RigTransforms
                 {
-                    playerId = 0,
                     posMain = localRigTransforms.main.position,
                     posRoot = localRigTransforms.root.position,
                     posLHip = localRigTransforms.lHip.position,
@@ -205,6 +224,12 @@ namespace MultiplayerMod.Core
                     rotRWrist = localRigTransforms.rWrist.rotation
                 };
 
+                OtherFullRigTransformMessage ofrtm = new OtherFullRigTransformMessage
+                {
+                    playerId = 0,
+                    transforms = rigTransforms
+                };
+
                 players.SendMessageToAll(ofrtm, SendReliability.Unreliable);
             }
 
@@ -212,7 +237,7 @@ namespace MultiplayerMod.Core
             {
                 PlayerRep rep = player.PlayerRep;
                 rep.UpdateNameplateFacing(Camera.current.transform);
-                rep.faceAnimator.Update();
+                //rep.faceAnimator.Update();
             }
 
             SyncOwnedObjects();
@@ -278,37 +303,19 @@ namespace MultiplayerMod.Core
 
             transportLayer.StartListening();
 
+            Action<GameObject, OwnershipPriorityLevel> onCollideCallback = 
+                (GameObject obj, OwnershipPriorityLevel priorityLevel) => { SetupSyncFor(obj, 0, OwnershipPriorityLevel.Touched); };
+
+            var syncOnCollideL = Player.leftHand.gameObject.AddComponent<SyncOnCollide>();
+            syncOnCollideL.SyncObjectCallback = onCollideCallback;
+            var syncOnCollideR = Player.rightHand.gameObject.AddComponent<SyncOnCollide>();
+            syncOnCollideR.SyncObjectCallback = onCollideCallback;
+
             IsRunning = true;
         }
 
-        private void BWUtil_OnSpawnGunFire(SpawnGun gun, SpawnableObject spawnable)
+        private void BWUtil_OnSpawnGunFire(SpawnGun gun, SpawnableObject spawnable, GameObject spawned)
         {
-            MelonCoroutines.Start(SyncSpawn(gun, spawnable));
-        }
-
-        private IEnumerator SyncSpawn(SpawnGun gun, SpawnableObject spawnable)
-        {
-            // OnFire appears to be the earliest method we can hook for spawning, but it's still run before
-            // the object actually spawns. We therefore wait a frame to get the newly spawned object.
-            // This is janky and horrible and could very easily break but I'm unsure of a better way to solve this.
-            yield return null;
-
-            var pool = StressLevelZero.Pool.PoolManager.GetPool(spawnable.title);
-
-            if (pool == null)
-            {
-                MelonLogger.Error("Pool was null");
-                yield break;
-            }
-
-            var spawned = pool._lastSpawn;
-
-            if (spawned == null)
-            {
-                MelonLogger.Error("Spawned was null");
-                yield break;
-            }
-
             var spawnMessage = new PoolSpawnMessage()
             {
                 poolId = spawnable.title,
@@ -317,7 +324,7 @@ namespace MultiplayerMod.Core
             };
 
             Players.SendMessageToAll(spawnMessage, SendReliability.Reliable);
-            SetupSyncFor(spawned.gameObject);
+            SetupSyncFor(spawned.gameObject, 0, OwnershipPriorityLevel.Touched);
         }
 
         private void TransportLayer_OnConnectionClosed(ITransportConnection connection, ConnectionClosedReason reason)
@@ -376,6 +383,9 @@ namespace MultiplayerMod.Core
 
             MultiplayerMod.OnLevelWasLoadedEvent -= MultiplayerMod_OnLevelWasLoadedEvent;
             BWUtil.OnSpawnGunFire -= BWUtil_OnSpawnGunFire;
+
+            UnityEngine.Object.Destroy(Player.leftHand.GetComponent<SyncOnCollide>());
+            UnityEngine.Object.Destroy(Player.rightHand.GetComponent<SyncOnCollide>());
         }
 
         private void OnGripReleased(Grip grip, Hand hand)
@@ -398,7 +408,7 @@ namespace MultiplayerMod.Core
             MelonLogger.Msg($"Grabbed {rb.gameObject.name}");
 
             if (rb.gameObject.GetComponent<SyncedObject>() == null)
-                SetupSyncFor(rb.gameObject);
+                SetupSyncFor(rb.gameObject, 0, OwnershipPriorityLevel.Grabbed);
         }
 
         /// <summary>
@@ -406,8 +416,12 @@ namespace MultiplayerMod.Core
         /// </summary>
         /// <param name="obj">The object to sync.</param>
         /// <param name="initialOwner">Small ID of the initial owner of the object.</param>
-        public void SetupSyncFor(GameObject obj, byte initialOwner = 0)
+        public void SetupSyncFor(GameObject obj, byte initialOwner = 0, OwnershipPriorityLevel priorityLevel = OwnershipPriorityLevel.Touched)
         {
+            if (obj.GetComponent<SyncedObject>() != null)
+            {
+                return;
+            }
             ushort id = ObjectIDManager.AllocateID();
             ObjectIDManager.AddObject(id, obj);
 
@@ -421,7 +435,8 @@ namespace MultiplayerMod.Core
             {
                 allocatedId = id,
                 namePath = BWUtil.GetFullNamePath(obj),
-                initialOwner = so.owner
+                initialOwner = so.owner,
+                initialPriority = priorityLevel
             };
 
             players.SendMessageToAll(iam, SendReliability.Reliable);

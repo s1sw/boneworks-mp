@@ -7,6 +7,7 @@ using Facepunch.Steamworks.Data;
 using MelonLoader;
 using ModThatIsNotMod;
 using MultiplayerMod.Boneworks;
+using MultiplayerMod.Core;
 using MultiplayerMod.Features;
 using MultiplayerMod.Networking;
 using MultiplayerMod.Structs;
@@ -22,8 +23,6 @@ namespace MultiplayerMod.Representations
 {
     public class PlayerRep
     {
-        public static bool showBody = true;
-
         public GameObject ford;
         public GameObject head;
         public GameObject handL;
@@ -45,6 +44,10 @@ namespace MultiplayerMod.Representations
         public GameObject gunLParent;
         public FaceAnimator faceAnimator;
 
+        public MPPlayer player;
+
+        public event Action<float, PlayerRep> OnDamage;
+
         public static AssetBundle fordBundle;
 
         public static void LoadFord()
@@ -59,13 +62,26 @@ namespace MultiplayerMod.Representations
         }
 
         // Constructor
-        public PlayerRep(string name, ulong fullId)
+        public PlayerRep(string name, MPPlayer player)
         {
             GameObject ford = Instantiate(fordBundle.LoadAsset("Assets/Ford.prefab").Cast<GameObject>());
+
+            this.player = player;
+
+            Rigidbody rb = ford.AddComponent<Rigidbody>();
+            rb.isKinematic = true;
+
+            // Set up damage receiver
+            GenericAttackReceiver attackReceiver = ford.AddComponent<GenericAttackReceiver>();
+            attackReceiver.AttackEvent = new UnityEventFloat();
+            Action<float> attackEvent = (float damage) => { OnDamage?.Invoke(damage, this); };
+            attackReceiver.AttackEvent.AddListener(attackEvent);
+            
 
             // Don't destroy on level load so we can be lazy and avoid recreating the player reps.
             DontDestroyOnLoad(ford);
 
+            // Set up impact properties (so the rep can be stabbed and receive damage)
             ImpactPropertiesManager bloodManager = ford.AddComponent<ImpactPropertiesManager>();
             bloodManager.material = ImpactPropertiesVariables.Material.Blood;
             bloodManager.modelType = ImpactPropertiesVariables.ModelType.Skinned;
@@ -74,21 +90,19 @@ namespace MultiplayerMod.Representations
             bloodManager.PenetrationResistance = 0.8f;
             bloodManager.megaPascalModifier = 1;
             bloodManager.FireResistance = 100;
+
             Collider[] colliders = ford.GetComponentsInChildren<Collider>();
-            foreach (Collider c in colliders)
-            {
-                ImpactProperties blood = c.gameObject.AddComponent<ImpactProperties>();
-                blood.material = ImpactPropertiesVariables.Material.Blood;
-                blood.modelType = ImpactPropertiesVariables.ModelType.Skinned;
-                blood.MainColor = UnityEngine.Color.red;
-                blood.SecondaryColor = UnityEngine.Color.red;
-                blood.PenetrationResistance = 0.8f;
-                blood.megaPascalModifier = 1;
-                blood.FireResistance = 100;
-                blood.MyCollider = c;
-                blood.hasManager = true;
-                blood.Manager = bloodManager;
-            }
+            ImpactProperties blood = ford.AddComponent<ImpactProperties>();
+            blood.material = ImpactPropertiesVariables.Material.Blood;
+            blood.modelType = ImpactPropertiesVariables.ModelType.Skinned;
+            blood.MainColor = UnityEngine.Color.red;
+            blood.SecondaryColor = UnityEngine.Color.red;
+            blood.PenetrationResistance = 0.8f;
+            blood.megaPascalModifier = 1;
+            blood.FireResistance = 100;
+            blood.MyCollider = colliders[0];
+            blood.hasManager = true;
+            blood.Manager = bloodManager;
 
             GameObject root = ford.transform.Find("Ford/Brett@neutral").gameObject; // Get the root of the model
 
@@ -154,10 +168,6 @@ namespace MultiplayerMod.Representations
             foreach (var col in gunRParent.GetComponentsInChildren<Collider>())
                 Destroy(col);
 
-            // If for whatever reason this is needed, show or hide the rep's body and hair
-            root.transform.Find("geoGrp/brett_body").GetComponent<SkinnedMeshRenderer>().enabled = showBody;
-            //root.transform.Find("geoGrp/brett_hairCards").gameObject.SetActive(showHair);
-
             // Assign the transforms for the rep
             rigTransforms = BWUtil.GetHumanoidRigTransforms(root);
 
@@ -178,10 +188,10 @@ namespace MultiplayerMod.Representations
             // Prevents the nameplate from being destroyed during a level change
             DontDestroyOnLoad(namePlate);
 
-            MelonCoroutines.Start(AsyncAvatarRoutine(fullId));
+            MelonCoroutines.Start(AsyncAvatarRoutine(player.FullID));
 
             // Gives certain users special appearances
-            Extras.SpecialUsers.GiveUniqueAppearances(fullId, realRoot, tm);
+            Extras.SpecialUsers.GiveUniqueAppearances(player.FullID, realRoot, tm);
 
             this.ford = ford;
         }
@@ -191,7 +201,6 @@ namespace MultiplayerMod.Representations
             Task<Image?> imageTask = SteamFriends.GetLargeAvatarAsync(id);
             while (!imageTask.IsCompleted)
             {
-                // WaitForEndOfFrame is broken in MelonLoader, so use WaitForSeconds
                 yield return null;
             }
 
@@ -228,16 +237,8 @@ namespace MultiplayerMod.Representations
 
             if (namePlate.activeInHierarchy)
             {
-                if (showBody)
-                {
-                    namePlate.transform.position = head.transform.position + (Vector3.up * 0.3f);
-                    namePlate.transform.rotation = cameraTransform.rotation;
-                }
-                else
-                {
-                    namePlate.transform.position = rigTransforms.neck.transform.position + (Vector3.up * 0.3f);
-                    namePlate.transform.rotation = cameraTransform.rotation;
-                }
+                namePlate.transform.position = head.transform.position + (Vector3.up * 0.3f);
+                namePlate.transform.rotation = cameraTransform.rotation;
             }
         }
 
@@ -253,7 +254,7 @@ namespace MultiplayerMod.Representations
         }
 
         // Applies the information recieved from the Transform packet
-        public void ApplyTransformMessage<T>(T tfMsg) where T : RigTFMsgBase
+        public void ApplyTransformMessage(RigTransforms tfMsg)
         {
             BWUtil.ApplyRigTransform(rigTransforms, tfMsg);
         }

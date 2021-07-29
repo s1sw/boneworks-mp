@@ -31,7 +31,7 @@ namespace MultiplayerMod.MessageHandlers
 
                 foreach (MessageHandlerAttribute attribute in attributes)
                 {
-                    if (attribute.Peer != PeerType.Both || attribute.Peer != peer.Type) continue;
+                    if (attribute.Peer != PeerType.Both && attribute.Peer != peer.Type) continue;
 
                     if (handlers.ContainsKey(attribute.Type))
                     {

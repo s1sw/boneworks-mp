@@ -17,6 +17,8 @@ namespace MultiplayerMod.MessageHandlers.Unified
         {
             PoolSpawnMessage spawnMessage = new PoolSpawnMessage(msg);
 
+            MelonLoader.MelonLogger.Msg($"Spawning {spawnMessage.poolId}");
+
             CustomItems.SpawnFromPool(spawnMessage.poolId, spawnMessage.position, spawnMessage.rotation);
 
             if (peer.Type == PeerType.Server)

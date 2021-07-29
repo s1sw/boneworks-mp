@@ -16,11 +16,11 @@ namespace MultiplayerMod.Core
 
         public MPPlayer(string name, ulong fullId, byte smallId, ITransportConnection connection)
         {
-            PlayerRep = new PlayerRep(name, fullId);
             Name = name;
             FullID = fullId;
             SmallID = smallId;
             Connection = connection;
+            PlayerRep = new PlayerRep(name, this);
         }
 
         public void Destroy()

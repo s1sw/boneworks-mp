@@ -114,11 +114,6 @@ namespace MultiplayerMod
             }
         }
 
-#if DEBUG
-        private bool useTestModel = false;
-        private PlayerRep testRep;
-#endif
-
         public static void DbgUpdate()
         {
             //#if DEBUG

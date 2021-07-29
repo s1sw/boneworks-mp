@@ -66,36 +66,28 @@ namespace MultiplayerMod.Core
             BWUtil.OnSpawnGunFire += BWUtil_OnSpawnGunFire;
 
             messageRouter = new MessageRouter(Players, this);
+
+            Players.OnPlayerAdd += Players_OnPlayerAdd;
         }
 
-        private void BWUtil_OnSpawnGunFire(SpawnGun gun, SpawnableObject spawnable)
+        private void Players_OnPlayerAdd(MPPlayer obj)
         {
-            MelonCoroutines.Start(SyncSpawn(gun, spawnable));
+            obj.PlayerRep.OnDamage += PlayerRep_OnDamage;
         }
 
-        private IEnumerator SyncSpawn(SpawnGun gun, SpawnableObject spawnable)
+        private void PlayerRep_OnDamage(float damage, Representations.PlayerRep rep)
         {
-            // OnFire appears to be the earliest method we can hook for spawning, but it's still run before
-            // the object actually spawns. We therefore wait a frame to get the newly spawned object.
-            // This is janky and horrible and could very easily break but I'm unsure of a better way to solve this.
-            yield return null;
-
-            var pool = StressLevelZero.Pool.PoolManager.GetPool(spawnable.title);
-
-            if (pool == null)
+            PlayerDamageMessage pdm = new PlayerDamageMessage()
             {
-                MelonLogger.Error("Pool was null");
-                yield break;
-            }
+                playerId = rep.player.SmallID,
+                damage = damage
+            };
 
-            var spawned = pool._lastSpawn;
+            SendToServer(pdm, SendReliability.Reliable);
+        }
 
-            if (spawned == null)
-            {
-                MelonLogger.Error("Spawned was null");
-                yield break;
-            }
-
+        private void BWUtil_OnSpawnGunFire(SpawnGun gun, SpawnableObject spawnable, GameObject spawned)
+        {
             var spawnMessage = new PoolSpawnMessage()
             {
                 poolId = spawnable.title,
@@ -107,7 +99,7 @@ namespace MultiplayerMod.Core
 
             var req = new IDRequestMessage
             {
-                namePath = BWUtil.GetFullNamePath(spawned.gameObject),
+                namePath = BWUtil.GetFullNamePath(spawned),
                 initialOwner = LocalSmallId
             };
 
@@ -177,25 +169,21 @@ namespace MultiplayerMod.Core
 
             if (!so)
             {
-                MelonLogger.Msg($"Requesting ID for {obj.name}");
-                var req = new IDRequestMessage
-                {
-                    namePath = BWUtil.GetFullNamePath(obj),
-                    initialOwner = LocalSmallId
-                };
-
-                SendToServer(req, SendReliability.Reliable);
+                RequestObjectSync(obj, OwnershipPriorityLevel.Grabbed);
             }
             else
             {
-                MelonLogger.Msg($"Grapped object has ID of {so.ID}");
-                var coom = new ChangeObjectOwnershipMessage
+                if (so.ShouldChangeOwnership(OwnershipPriorityLevel.Grabbed))
                 {
-                    objectId = so.ID,
-                    ownerId = LocalSmallId
-                };
+                    MelonLogger.Msg($"Grapped object has ID of {so.ID}");
+                    var coom = new ChangeObjectOwnershipMessage
+                    {
+                        objectId = so.ID,
+                        ownerId = LocalSmallId
+                    };
 
-                SendToServer(coom, SendReliability.Reliable);
+                    SendToServer(coom, SendReliability.Reliable);
+                }
             }
         }
 
@@ -219,7 +207,7 @@ namespace MultiplayerMod.Core
                     bObj = obj.overrideMagazine.AmmoSlots[0].ammoVariables;
                 }
 
-                GunFireMessage gfm = new GunFireMessage()
+                GunFireInfo fireInfo = new GunFireInfo()
                 {
                     handedness = (byte)obj.host.GetHand(0).handedness,
                     firepointPos = obj.firePointTransform.position,
@@ -229,6 +217,11 @@ namespace MultiplayerMod.Core
                     exitVelocity = bObj.ExitVelocity,
                     muzzleVelocity = obj.muzzleVelocity,
                     cartridgeType = (byte)bObj.cartridgeType
+                };
+
+                GunFireMessage gfm = new GunFireMessage()
+                {
+                    fireInfo = fireInfo
                 };
 
                 SendToServer(gfm.MakeMsg(), SendReliability.Reliable);
@@ -285,7 +278,7 @@ namespace MultiplayerMod.Core
 
             if (localRigTransforms.main != null)
             {
-                FullRigTransformMessage frtm = new FullRigTransformMessage
+                RigTransforms rigTransforms = new RigTransforms
                 {
                     posMain = localRigTransforms.main.position,
                     posRoot = localRigTransforms.root.position,
@@ -331,6 +324,11 @@ namespace MultiplayerMod.Core
                     rotRWrist = localRigTransforms.rWrist.rotation
                 };
 
+                FullRigTransformMessage frtm = new FullRigTransformMessage
+                {
+                    transforms = rigTransforms
+                };
+
                 SendToServer(frtm, SendReliability.Unreliable);
 
                 foreach (MPPlayer p in Players)
@@ -363,6 +361,19 @@ namespace MultiplayerMod.Core
         private void SetupPlayerReferences()
         {
             localRigTransforms = BWUtil.GetLocalRigTransforms();
+        }
+
+        private void RequestObjectSync(GameObject obj, OwnershipPriorityLevel priorityLevel)
+        {
+            MelonLogger.Msg($"Requesting ID for {obj.name}");
+            var req = new IDRequestMessage
+            {
+                namePath = BWUtil.GetFullNamePath(obj),
+                initialOwner = LocalSmallId,
+                priorityLevel = priorityLevel
+            };
+
+            SendToServer(req, SendReliability.Reliable);
         }
     }
 }

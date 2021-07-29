@@ -1,5 +1,6 @@
 ﻿using Facepunch.Steamworks;
 using MultiplayerMod.Boneworks;
+using MultiplayerMod.MonoBehaviours;
 using Oculus.Platform;
 using Oculus.Platform.Models;
 using System;
@@ -43,7 +44,8 @@ namespace MultiplayerMod.Networking
         Death,
         ChangeObjectOwnership,
         SetLocalSmallId,
-        PoolSpawn
+        PoolSpawn,
+        PlayerDamage
     }
 
     public interface INetworkMessage
@@ -51,7 +53,7 @@ namespace MultiplayerMod.Networking
         P2PMessage MakeMsg();
     }
 
-    public class GunFireBase
+    public struct GunFireInfo
     {
         public byte handedness;
         public Vector3 firepointPos;
@@ -61,93 +63,75 @@ namespace MultiplayerMod.Networking
         public float exitVelocity;
         public float muzzleVelocity;
         public byte cartridgeType;
+
+        public GunFireInfo(P2PMessage msg)
+        {
+            handedness = msg.ReadByte();
+            firepointPos = msg.ReadVector3();
+            firepointRotation = msg.ReadQuaternion();
+            ammoDamage = msg.ReadFloat();
+            projectileMass = msg.ReadFloat();
+            exitVelocity = msg.ReadFloat();
+            muzzleVelocity = msg.ReadFloat();
+            cartridgeType = msg.ReadByte();
+        }
+
+        public void WriteToMessage(P2PMessage msg)
+        {
+            msg.WriteByte(handedness);
+            msg.WriteVector3(firepointPos);
+            msg.WriteQuaternion(firepointRotation);
+            msg.WriteFloat(ammoDamage);
+            msg.WriteFloat(projectileMass);
+            msg.WriteFloat(exitVelocity);
+            msg.WriteFloat(muzzleVelocity);
+            msg.WriteByte(cartridgeType);
+        }
     }
 
-    public class GunFireMessage : GunFireBase, INetworkMessage
+    public struct GunFireMessage : INetworkMessage
     {
-        public GunFireMessage()
-        {
-            //fortnite fortnite fornitet fnioretneit a
-        }
+        public GunFireInfo fireInfo;
 
         public GunFireMessage(P2PMessage msg)
         {
-            handedness = msg.ReadByte();
-            firepointPos = msg.ReadVector3();
-            firepointRotation = msg.ReadQuaternion();
-            ammoDamage = msg.ReadFloat();
-            projectileMass = msg.ReadFloat();
-            exitVelocity = msg.ReadFloat();
-            muzzleVelocity = msg.ReadFloat();
-            cartridgeType = msg.ReadByte();
+            fireInfo = new GunFireInfo(msg);
         }
 
         public P2PMessage MakeMsg()
         {
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.GunFire);
-            msg.WriteByte(handedness);
-            msg.WriteVector3(firepointPos);
-            msg.WriteQuaternion(firepointRotation);
-            msg.WriteFloat(ammoDamage);
-            msg.WriteFloat(projectileMass);
-            msg.WriteFloat(exitVelocity);
-            msg.WriteFloat(muzzleVelocity);
-            msg.WriteByte(cartridgeType);
+            fireInfo.WriteToMessage(msg);
             return msg;
         }
     }
 
-    public class GunFireHitToServer : INetworkMessage
-    {
-        public P2PMessage MakeMsg()
-        {
-            P2PMessage msg = new P2PMessage();
-            msg.WriteByte((byte)MessageType.GunFireHit);
-            return msg;
-        }
-    }
-
-    public class GunFireMessageOther : GunFireBase, INetworkMessage
+    public struct GunFireMessageOther : INetworkMessage
     {
         public byte playerId;
-        public GunFireMessageOther()
-        {
-
-        }
+        public GunFireInfo fireInfo;
 
         public GunFireMessageOther(P2PMessage msg)
         {
-            handedness = msg.ReadByte();
             playerId = msg.ReadByte();
-            firepointPos = msg.ReadVector3();
-            firepointRotation = msg.ReadQuaternion();
-            ammoDamage = msg.ReadFloat();
-            projectileMass = msg.ReadFloat();
-            exitVelocity = msg.ReadFloat();
-            muzzleVelocity = msg.ReadFloat();
-            cartridgeType = msg.ReadByte();
+
+            fireInfo = new GunFireInfo(msg);
         }
 
         public P2PMessage MakeMsg()
         {
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.GunFire);
-            msg.WriteByte(handedness);
             msg.WriteByte(playerId);
-            msg.WriteVector3(firepointPos);
-            msg.WriteQuaternion(firepointRotation);
-            msg.WriteFloat(ammoDamage);
-            msg.WriteFloat(projectileMass);
-            msg.WriteFloat(exitVelocity);
-            msg.WriteFloat(muzzleVelocity);
-            msg.WriteByte(cartridgeType);
+
+            fireInfo.WriteToMessage(msg);
             return msg;
         }
     }
 
     // Server -> clients
-    public class OtherPlayerPositionMessage : INetworkMessage
+    public struct OtherPlayerPositionMessage : INetworkMessage
     {
         public Vector3 headPos;
         public Vector3 lHandPos;
@@ -183,9 +167,6 @@ namespace MultiplayerMod.Networking
             rFootRot = msg.ReadCompressedQuaternion();
         }
 
-        public OtherPlayerPositionMessage()
-        { }
-
         public P2PMessage MakeMsg()
         {
             P2PMessage msg = new P2PMessage();
@@ -210,7 +191,7 @@ namespace MultiplayerMod.Networking
     }
 
     // Client player -> server
-    public class PlayerPositionMessage : INetworkMessage
+    public struct PlayerPositionMessage : INetworkMessage
     {
         public Vector3 headPos;
         public Vector3 lHandPos;
@@ -243,9 +224,6 @@ namespace MultiplayerMod.Networking
             rFootRot = msg.ReadCompressedQuaternion();
         }
 
-        public PlayerPositionMessage()
-        { }
-
         public P2PMessage MakeMsg()
         {
             P2PMessage msg = new P2PMessage();
@@ -268,18 +246,13 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class SceneTransitionMessage : INetworkMessage
+    public struct SceneTransitionMessage : INetworkMessage
     {
         public string sceneName;
 
         public SceneTransitionMessage(P2PMessage msg)
         {
             sceneName = msg.ReadUnicodeString();
-        }
-
-        public SceneTransitionMessage()
-        {
-
         }
 
         public P2PMessage MakeMsg()
@@ -291,14 +264,9 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class PlayerNameMessage : INetworkMessage
+    public struct PlayerNameMessage : INetworkMessage
     {
         public string name;
-
-        public PlayerNameMessage()
-        {
-
-        }
 
         public PlayerNameMessage(P2PMessage msg)
         {
@@ -314,15 +282,10 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class OtherPlayerNameMessage : INetworkMessage
+    public struct OtherPlayerNameMessage : INetworkMessage
     {
         public byte playerId;
         public string name;
-
-        public OtherPlayerNameMessage()
-        {
-
-        }
 
         public OtherPlayerNameMessage(P2PMessage msg)
         {
@@ -340,16 +303,11 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class ClientJoinMessage : INetworkMessage
+    public struct ClientJoinMessage : INetworkMessage
     {
         public byte playerId;
         public string name;
         public SteamId steamId;
-
-        public ClientJoinMessage()
-        {
-
-        }
 
         public ClientJoinMessage(P2PMessage msg)
         {
@@ -369,7 +327,7 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class RigTFMsgBase
+    public struct RigTransforms
     {
         public Vector3 posMain;
         public Vector3 posRoot;
@@ -417,17 +375,8 @@ namespace MultiplayerMod.Networking
         public Quaternion rotRElbow;
         public Quaternion rotLWrist;
         public Quaternion rotRWrist;
-    }
 
-    public class FullRigTransformMessage : RigTFMsgBase, INetworkMessage
-    {
-
-        public FullRigTransformMessage()
-        {
-
-        }
-
-        public FullRigTransformMessage(P2PMessage msg)
+        public RigTransforms(P2PMessage msg)
         {
             posMain = msg.ReadVector3();
             posRoot = msg.ReadVector3();
@@ -475,10 +424,8 @@ namespace MultiplayerMod.Networking
             rotRWrist = msg.ReadSmallerCompressedQuaternion();
         }
 
-        public P2PMessage MakeMsg()
+        public void WriteToMessage(P2PMessage msg)
         {
-            P2PMessage msg = new P2PMessage();
-            msg.WriteByte((byte)MessageType.FullRig);
             msg.WriteVector3(posMain);
             msg.WriteVector3(posRoot);
 
@@ -523,66 +470,37 @@ namespace MultiplayerMod.Networking
             msg.WriteSmallerCompressedQuaternion(rotRElbow);
             msg.WriteSmallerCompressedQuaternion(rotLWrist);
             msg.WriteSmallerCompressedQuaternion(rotRWrist);
+        }
+    }
+
+    public struct FullRigTransformMessage : INetworkMessage
+    {
+        public RigTransforms transforms;
+
+        public FullRigTransformMessage(P2PMessage msg)
+        {
+            transforms = new RigTransforms(msg);
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+            msg.WriteByte((byte)MessageType.FullRig);
+            transforms.WriteToMessage(msg);
 
             return msg;
         }
     }
 
-    public class OtherFullRigTransformMessage : RigTFMsgBase, INetworkMessage
+    public struct OtherFullRigTransformMessage : INetworkMessage
     {
         public byte playerId;
-
-        public OtherFullRigTransformMessage()
-        {
-
-        }
+        public RigTransforms transforms;
 
         public OtherFullRigTransformMessage(P2PMessage msg)
         {
             playerId = msg.ReadByte();
-            posMain = msg.ReadVector3();
-            posRoot = msg.ReadVector3();
-            posLHip = msg.ReadCompressedVector3(posRoot);
-            posRHip = msg.ReadCompressedVector3(posRoot);
-
-            posLKnee = msg.ReadCompressedVector3(posRoot);
-            posRKnee = msg.ReadCompressedVector3(posRoot);
-            posLAnkle = msg.ReadCompressedVector3(posRoot);
-            posRAnkle = msg.ReadCompressedVector3(posRoot);
-
-            posSpine1 = msg.ReadCompressedVector3(posRoot);
-            posSpine2 = msg.ReadCompressedVector3(posRoot);
-            posSpineTop = msg.ReadCompressedVector3(posRoot);
-            posLClavicle = msg.ReadCompressedVector3(posRoot);
-            posRClavicle = msg.ReadCompressedVector3(posRoot);
-            posNeck = msg.ReadCompressedVector3(posRoot);
-            posLShoulder = msg.ReadCompressedVector3(posRoot);
-            posRShoulder = msg.ReadCompressedVector3(posRoot);
-            posLElbow = msg.ReadCompressedVector3(posRoot);
-            posRElbow = msg.ReadCompressedVector3(posRoot);
-            posLWrist = msg.ReadCompressedVector3(posRoot);
-            posRWrist = msg.ReadCompressedVector3(posRoot);
-
-            rotMain = msg.ReadSmallerCompressedQuaternion();
-            rotRoot = msg.ReadSmallerCompressedQuaternion();
-            rotLHip = msg.ReadSmallerCompressedQuaternion();
-            rotRHip = msg.ReadSmallerCompressedQuaternion();
-            rotLKnee = msg.ReadSmallerCompressedQuaternion();
-            rotRKnee = msg.ReadSmallerCompressedQuaternion();
-            rotLAnkle = msg.ReadSmallerCompressedQuaternion();
-            rotRAnkle = msg.ReadSmallerCompressedQuaternion();
-            rotSpine1 = msg.ReadSmallerCompressedQuaternion();
-            rotSpine2 = msg.ReadSmallerCompressedQuaternion();
-            rotSpineTop = msg.ReadSmallerCompressedQuaternion();
-            rotLClavicle = msg.ReadSmallerCompressedQuaternion();
-            rotRClavicle = msg.ReadSmallerCompressedQuaternion();
-            rotNeck = msg.ReadSmallerCompressedQuaternion();
-            rotLShoulder = msg.ReadSmallerCompressedQuaternion();
-            rotRShoulder = msg.ReadSmallerCompressedQuaternion();
-            rotLElbow = msg.ReadSmallerCompressedQuaternion();
-            rotRElbow = msg.ReadSmallerCompressedQuaternion();
-            rotLWrist = msg.ReadSmallerCompressedQuaternion();
-            rotRWrist = msg.ReadSmallerCompressedQuaternion();
+            transforms = new RigTransforms(msg);
         }
 
         public P2PMessage MakeMsg()
@@ -590,112 +508,23 @@ namespace MultiplayerMod.Networking
             P2PMessage msg = new P2PMessage();
             msg.WriteByte((byte)MessageType.OtherFullRig);
             msg.WriteByte(playerId);
-            msg.WriteVector3(posMain);
-            msg.WriteVector3(posRoot);
-
-            msg.WriteCompressedVector3(posLHip, posRoot);
-            msg.WriteCompressedVector3(posRHip, posRoot);
-            msg.WriteCompressedVector3(posLKnee, posRoot);
-            msg.WriteCompressedVector3(posRKnee, posRoot);
-            msg.WriteCompressedVector3(posLAnkle, posRoot);
-            msg.WriteCompressedVector3(posRAnkle, posRoot);
-
-            msg.WriteCompressedVector3(posSpine1, posRoot);
-            msg.WriteCompressedVector3(posSpine2, posRoot);
-            msg.WriteCompressedVector3(posSpineTop, posRoot);
-            msg.WriteCompressedVector3(posLClavicle, posRoot);
-            msg.WriteCompressedVector3(posRClavicle, posRoot);
-            msg.WriteCompressedVector3(posNeck, posRoot);
-            msg.WriteCompressedVector3(posLShoulder, posRoot);
-            msg.WriteCompressedVector3(posRShoulder, posRoot);
-            msg.WriteCompressedVector3(posLElbow, posRoot);
-            msg.WriteCompressedVector3(posRElbow, posRoot);
-            msg.WriteCompressedVector3(posLWrist, posRoot);
-            msg.WriteCompressedVector3(posRWrist, posRoot);
-
-            msg.WriteSmallerCompressedQuaternion(rotMain);
-            msg.WriteSmallerCompressedQuaternion(rotRoot);
-            msg.WriteSmallerCompressedQuaternion(rotLHip);
-            msg.WriteSmallerCompressedQuaternion(rotRHip);
-            msg.WriteSmallerCompressedQuaternion(rotLKnee);
-            msg.WriteSmallerCompressedQuaternion(rotRKnee);
-            msg.WriteSmallerCompressedQuaternion(rotLAnkle);
-            msg.WriteSmallerCompressedQuaternion(rotRAnkle);
-
-            msg.WriteSmallerCompressedQuaternion(rotSpine1);
-            msg.WriteSmallerCompressedQuaternion(rotSpine2);
-            msg.WriteSmallerCompressedQuaternion(rotSpineTop);
-            msg.WriteSmallerCompressedQuaternion(rotLClavicle);
-            msg.WriteSmallerCompressedQuaternion(rotRClavicle);
-            msg.WriteSmallerCompressedQuaternion(rotNeck);
-            msg.WriteSmallerCompressedQuaternion(rotLShoulder);
-            msg.WriteSmallerCompressedQuaternion(rotRShoulder);
-            msg.WriteSmallerCompressedQuaternion(rotLElbow);
-            msg.WriteSmallerCompressedQuaternion(rotRElbow);
-            msg.WriteSmallerCompressedQuaternion(rotLWrist);
-            msg.WriteSmallerCompressedQuaternion(rotRWrist);
+            transforms.WriteToMessage(msg);
 
             return msg;
         }
     }
 
-    public class EnemyRigTransformMessage : RigTFMsgBase, INetworkMessage
+    public struct EnemyRigTransformMessage : INetworkMessage
     {
         public byte poolChildIdx;
         public EnemyType enemyType;
-
-        public EnemyRigTransformMessage()
-        {
-
-        }
+        public RigTransforms transforms;
 
         public EnemyRigTransformMessage(P2PMessage msg)
         {
             poolChildIdx = msg.ReadByte();
             enemyType = (EnemyType)msg.ReadByte();
-            posMain = msg.ReadVector3();
-            posRoot = msg.ReadVector3();
-            posLHip = msg.ReadCompressedVector3(posRoot);
-            posRHip = msg.ReadCompressedVector3(posRoot);
-
-            posLKnee = msg.ReadCompressedVector3(posRoot);
-            posRKnee = msg.ReadCompressedVector3(posRoot);
-            posLAnkle = msg.ReadCompressedVector3(posRoot);
-            posRAnkle = msg.ReadCompressedVector3(posRoot);
-
-            posSpine1 = msg.ReadCompressedVector3(posRoot);
-            posSpine2 = msg.ReadCompressedVector3(posRoot);
-            posSpineTop = msg.ReadCompressedVector3(posRoot);
-            posLClavicle = msg.ReadCompressedVector3(posRoot);
-            posRClavicle = msg.ReadCompressedVector3(posRoot);
-            posNeck = msg.ReadCompressedVector3(posRoot);
-            posLShoulder = msg.ReadCompressedVector3(posRoot);
-            posRShoulder = msg.ReadCompressedVector3(posRoot);
-            posLElbow = msg.ReadCompressedVector3(posRoot);
-            posRElbow = msg.ReadCompressedVector3(posRoot);
-            posLWrist = msg.ReadCompressedVector3(posRoot);
-            posRWrist = msg.ReadCompressedVector3(posRoot);
-
-            rotMain = msg.ReadSmallerCompressedQuaternion();
-            rotRoot = msg.ReadSmallerCompressedQuaternion();
-            rotLHip = msg.ReadSmallerCompressedQuaternion();
-            rotRHip = msg.ReadSmallerCompressedQuaternion();
-            rotLKnee = msg.ReadSmallerCompressedQuaternion();
-            rotRKnee = msg.ReadSmallerCompressedQuaternion();
-            rotLAnkle = msg.ReadSmallerCompressedQuaternion();
-            rotRAnkle = msg.ReadSmallerCompressedQuaternion();
-            rotSpine1 = msg.ReadSmallerCompressedQuaternion();
-            rotSpine2 = msg.ReadSmallerCompressedQuaternion();
-            rotSpineTop = msg.ReadSmallerCompressedQuaternion();
-            rotLClavicle = msg.ReadSmallerCompressedQuaternion();
-            rotRClavicle = msg.ReadSmallerCompressedQuaternion();
-            rotNeck = msg.ReadSmallerCompressedQuaternion();
-            rotLShoulder = msg.ReadSmallerCompressedQuaternion();
-            rotRShoulder = msg.ReadSmallerCompressedQuaternion();
-            rotLElbow = msg.ReadSmallerCompressedQuaternion();
-            rotRElbow = msg.ReadSmallerCompressedQuaternion();
-            rotLWrist = msg.ReadSmallerCompressedQuaternion();
-            rotRWrist = msg.ReadSmallerCompressedQuaternion();
+            transforms = new RigTransforms(msg);
         }
 
         public P2PMessage MakeMsg()
@@ -704,63 +533,15 @@ namespace MultiplayerMod.Networking
             msg.WriteByte((byte)MessageType.EnemyRigTransform);
             msg.WriteByte(poolChildIdx);
             msg.WriteByte((byte)enemyType);
-            msg.WriteVector3(posMain);
-            msg.WriteVector3(posRoot);
-
-            msg.WriteCompressedVector3(posLHip, posRoot);
-            msg.WriteCompressedVector3(posRHip, posRoot);
-            msg.WriteCompressedVector3(posLKnee, posRoot);
-            msg.WriteCompressedVector3(posRKnee, posRoot);
-            msg.WriteCompressedVector3(posLAnkle, posRoot);
-            msg.WriteCompressedVector3(posRAnkle, posRoot);
-
-            msg.WriteCompressedVector3(posSpine1, posRoot);
-            msg.WriteCompressedVector3(posSpine2, posRoot);
-            msg.WriteCompressedVector3(posSpineTop, posRoot);
-            msg.WriteCompressedVector3(posLClavicle, posRoot);
-            msg.WriteCompressedVector3(posRClavicle, posRoot);
-            msg.WriteCompressedVector3(posNeck, posRoot);
-            msg.WriteCompressedVector3(posLShoulder, posRoot);
-            msg.WriteCompressedVector3(posRShoulder, posRoot);
-            msg.WriteCompressedVector3(posLElbow, posRoot);
-            msg.WriteCompressedVector3(posRElbow, posRoot);
-            msg.WriteCompressedVector3(posLWrist, posRoot);
-            msg.WriteCompressedVector3(posRWrist, posRoot);
-
-            msg.WriteSmallerCompressedQuaternion(rotMain);
-            msg.WriteSmallerCompressedQuaternion(rotRoot);
-            msg.WriteSmallerCompressedQuaternion(rotLHip);
-            msg.WriteSmallerCompressedQuaternion(rotRHip);
-            msg.WriteSmallerCompressedQuaternion(rotLKnee);
-            msg.WriteSmallerCompressedQuaternion(rotRKnee);
-            msg.WriteSmallerCompressedQuaternion(rotLAnkle);
-            msg.WriteSmallerCompressedQuaternion(rotRAnkle);
-
-            msg.WriteSmallerCompressedQuaternion(rotSpine1);
-            msg.WriteSmallerCompressedQuaternion(rotSpine2);
-            msg.WriteSmallerCompressedQuaternion(rotSpineTop);
-            msg.WriteSmallerCompressedQuaternion(rotLClavicle);
-            msg.WriteSmallerCompressedQuaternion(rotRClavicle);
-            msg.WriteSmallerCompressedQuaternion(rotNeck);
-            msg.WriteSmallerCompressedQuaternion(rotLShoulder);
-            msg.WriteSmallerCompressedQuaternion(rotRShoulder);
-            msg.WriteSmallerCompressedQuaternion(rotLElbow);
-            msg.WriteSmallerCompressedQuaternion(rotRElbow);
-            msg.WriteSmallerCompressedQuaternion(rotLWrist);
-            msg.WriteSmallerCompressedQuaternion(rotRWrist);
+            transforms.WriteToMessage(msg);
 
             return msg;
         }
     }
 
-    public class SetPartyIdMessage : INetworkMessage
+    public struct SetPartyIdMessage : INetworkMessage
     {
         public string partyId;
-
-        public SetPartyIdMessage()
-        {
-
-        }
 
         public SetPartyIdMessage(P2PMessage msg)
         {
@@ -776,22 +557,19 @@ namespace MultiplayerMod.Networking
         }
     }
     
-    public class IDAllocationMessage : INetworkMessage
+    public struct IDAllocationMessage : INetworkMessage
     {
         public string namePath;
         public ushort allocatedId;
         public byte initialOwner;
-
-        public IDAllocationMessage()
-        {
-
-        }
+        public OwnershipPriorityLevel initialPriority;
 
         public IDAllocationMessage(P2PMessage msg)
         {
             namePath = msg.ReadUnicodeString();
             allocatedId = msg.ReadUShort();
             initialOwner = msg.ReadByte();
+            initialPriority = (OwnershipPriorityLevel)msg.ReadByte();
         }
 
         public P2PMessage MakeMsg()
@@ -802,25 +580,23 @@ namespace MultiplayerMod.Networking
             msg.WriteUnicodeString(namePath);
             msg.WriteUShort(allocatedId);
             msg.WriteByte(initialOwner);
+            msg.WriteByte((byte)initialPriority);
 
             return msg;
         }
     }
 
-    public class IDRequestMessage : INetworkMessage
+    public struct IDRequestMessage : INetworkMessage
     {
         public string namePath;
         public byte initialOwner;
-
-        public IDRequestMessage()
-        {
-
-        }
+        public OwnershipPriorityLevel priorityLevel;
 
         public IDRequestMessage(P2PMessage msg)
         {
             namePath = msg.ReadUnicodeString();
             initialOwner = msg.ReadByte();
+            priorityLevel = (OwnershipPriorityLevel)msg.ReadByte();
         }
 
         public P2PMessage MakeMsg()
@@ -830,19 +606,17 @@ namespace MultiplayerMod.Networking
             msg.WriteByte((byte)MessageType.IdRequest);
             msg.WriteUnicodeString(namePath);
             msg.WriteByte(initialOwner);
+            msg.WriteByte((byte)priorityLevel);
 
             return msg;
         }
     }
 
-    public class ObjectSyncMessage : INetworkMessage
+    public struct ObjectSyncMessage : INetworkMessage
     {
         public ushort id;
         public Vector3 position;
         public Quaternion rotation;
-
-        public ObjectSyncMessage()
-        { }
 
         public ObjectSyncMessage(P2PMessage msg)
         {
@@ -863,15 +637,12 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class ChangeObjectOwnershipMessage : INetworkMessage
+    public struct ChangeObjectOwnershipMessage : INetworkMessage
     {
         public ushort objectId;
         public byte ownerId;
         public Vector3 linVelocity;
         public Vector3 angVelocity;
-
-        public ChangeObjectOwnershipMessage()
-        { }
 
         public ChangeObjectOwnershipMessage(P2PMessage msg)
         {
@@ -893,11 +664,10 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class SetLocalSmallIdMessage : INetworkMessage
+    public struct SetLocalSmallIdMessage : INetworkMessage
     {
         public byte smallId;
 
-        public SetLocalSmallIdMessage() { }
         public SetLocalSmallIdMessage(P2PMessage msg)
         {
             smallId = msg.ReadByte();
@@ -912,13 +682,11 @@ namespace MultiplayerMod.Networking
         }
     }
 
-    public class PoolSpawnMessage : INetworkMessage
+    public struct PoolSpawnMessage : INetworkMessage
     {
         public string poolId;
         public Vector3 position;
         public Quaternion rotation;
-
-        public PoolSpawnMessage() { }
 
         public PoolSpawnMessage(P2PMessage msg)
         {
@@ -932,8 +700,32 @@ namespace MultiplayerMod.Networking
             P2PMessage msg = new P2PMessage();
 
             msg.WriteByte((byte)MessageType.PoolSpawn);
+            msg.WriteUnicodeString(poolId);
             msg.WriteVector3(position);
             msg.WriteQuaternion(rotation);
+
+            return msg;
+        }
+    }
+
+    public struct PlayerDamageMessage : INetworkMessage
+    {
+        public byte playerId;
+        public float damage;
+
+        public PlayerDamageMessage(P2PMessage msg)
+        {
+            playerId = msg.ReadByte();
+            damage = msg.ReadFloat();
+        }
+
+        public P2PMessage MakeMsg()
+        {
+            P2PMessage msg = new P2PMessage();
+
+            msg.WriteByte((byte)MessageType.PlayerDamage);
+            msg.WriteByte(playerId);
+            msg.WriteFloat(damage);
 
             return msg;
         }

@@ -17,31 +17,33 @@ namespace MultiplayerMod.MessageHandlers.Server
                 MPPlayer player = players[connection.ConnectedTo];
                 PlayerRep pr = player.PlayerRep;
 
+                GunFireInfo fireInfo = gfm.fireInfo;
+
                 AmmoVariables ammoVariables = new AmmoVariables()
                 {
-                    AttackDamage = gfm.ammoDamage,
+                    AttackDamage = 0.0f,
                     AttackType = AttackType.Piercing,
-                    cartridgeType = (Cart)gfm.cartridgeType,
-                    ExitVelocity = gfm.exitVelocity,
-                    ProjectileMass = gfm.projectileMass,
+                    cartridgeType = (Cart)fireInfo.cartridgeType,
+                    ExitVelocity = fireInfo.exitVelocity,
+                    ProjectileMass = fireInfo.projectileMass,
                     Tracer = false
                 };
 
-                if ((StressLevelZero.Handedness)gfm.handedness == StressLevelZero.Handedness.RIGHT)
+                if ((StressLevelZero.Handedness)fireInfo.handedness == StressLevelZero.Handedness.RIGHT)
                 {
-                    pr.rightGunScript.firePointTransform.position = gfm.firepointPos;
-                    pr.rightGunScript.firePointTransform.rotation = gfm.firepointRotation;
-                    pr.rightGunScript.muzzleVelocity = gfm.muzzleVelocity;
+                    pr.rightGunScript.firePointTransform.position = fireInfo.firepointPos;
+                    pr.rightGunScript.firePointTransform.rotation = fireInfo.firepointRotation;
+                    pr.rightGunScript.muzzleVelocity = fireInfo.muzzleVelocity;
                     pr.rightBulletObject.ammoVariables = ammoVariables;
                     pr.leftGunScript.PullCartridge();
                     pr.rightGunScript.Fire();
                 }
 
-                if ((StressLevelZero.Handedness)gfm.handedness == StressLevelZero.Handedness.LEFT)
+                if ((StressLevelZero.Handedness)fireInfo.handedness == StressLevelZero.Handedness.LEFT)
                 {
-                    pr.leftGunScript.firePointTransform.position = gfm.firepointPos;
-                    pr.leftGunScript.firePointTransform.rotation = gfm.firepointRotation;
-                    pr.leftGunScript.muzzleVelocity = gfm.muzzleVelocity;
+                    pr.leftGunScript.firePointTransform.position = fireInfo.firepointPos;
+                    pr.leftGunScript.firePointTransform.rotation = fireInfo.firepointRotation;
+                    pr.leftGunScript.muzzleVelocity = fireInfo.muzzleVelocity;
                     pr.leftBulletObject.ammoVariables = ammoVariables;
                     pr.leftGunScript.PullCartridge();
                     pr.leftGunScript.Fire();
@@ -50,16 +52,10 @@ namespace MultiplayerMod.MessageHandlers.Server
                 GunFireMessageOther gfmo = new GunFireMessageOther()
                 {
                     playerId = player.SmallID,
-                    handedness = gfm.handedness,
-                    firepointPos = gfm.firepointPos,
-                    firepointRotation = gfm.firepointRotation,
-                    ammoDamage = gfm.ammoDamage,
-                    projectileMass = gfm.projectileMass,
-                    exitVelocity = gfm.exitVelocity,
-                    muzzleVelocity = gfm.muzzleVelocity
+                    fireInfo = fireInfo
                 };
 
-                pr.faceAnimator.faceState = Representations.FaceAnimator.FaceState.Angry;
+                pr.faceAnimator.faceState = FaceAnimator.FaceState.Angry;
                 pr.faceAnimator.faceTime = 5;
                 players.SendMessageToAllExcept(gfmo, SendReliability.Reliable, connection.ConnectedTo);
             }

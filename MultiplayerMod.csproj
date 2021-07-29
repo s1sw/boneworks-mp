@@ -244,7 +244,9 @@
     <Compile Include="Source\Core\ObjectIDManager.cs" />
     <Compile Include="Source\Core\Peer.cs" />
     <Compile Include="Source\Core\Players.cs" />
+    <Compile Include="Source\MessageHandlers\Unified\PlayerDamageHandler.cs" />
     <Compile Include="Source\MessageHandlers\Unified\PoolSpawnHandler.cs" />
+    <Compile Include="Source\MonoBehaviours\SyncOnCollide.cs" />
     <Compile Include="Source\Settings\ClientSettings.cs" />
     <Compile Include="Source\Extras\RETools.cs" />
     <Compile Include="Source\Core\Client.cs" />

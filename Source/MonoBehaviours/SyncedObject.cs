@@ -8,6 +8,13 @@ using MultiplayerMod.Networking;
 
 namespace MultiplayerMod.MonoBehaviours
 {
+    public enum OwnershipPriorityLevel
+    {
+        None,
+        Touched,
+        Grabbed
+    }
+
     public class SyncedObject : MonoBehaviour
     {
         public SyncedObject(IntPtr ptr) : base(ptr) { }
@@ -15,7 +22,13 @@ namespace MultiplayerMod.MonoBehaviours
         public Quaternion lastSyncedRotation = Quaternion.identity;
         public ushort ID;
         public byte owner = 0;
+        public OwnershipPriorityLevel priorityLevel = OwnershipPriorityLevel.None;
         public Rigidbody rb;
+
+        public bool ShouldChangeOwnership(OwnershipPriorityLevel newPriorityLevel)
+        {
+            return (int)newPriorityLevel >= (int)priorityLevel;
+        }
 
         public bool NeedsSync()
         {

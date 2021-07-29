@@ -11,39 +11,40 @@ namespace MultiplayerMod.MessageHandlers.Client
         public override void HandleMessage(MessageType msgType, ITransportConnection connection, P2PMessage msg)
         {
             GunFireMessageOther gfmo = new GunFireMessageOther(msg);
+            GunFireInfo fireInfo = gfmo.fireInfo;
             PlayerRep pr = players[gfmo.playerId].PlayerRep;
 
             AmmoVariables ammoVariables = new AmmoVariables()
             {
-                AttackDamage = gfmo.ammoDamage,
+                AttackDamage = 0.0f,
                 AttackType = AttackType.Piercing,
-                cartridgeType = (Cart)gfmo.cartridgeType,
-                ExitVelocity = gfmo.exitVelocity,
-                ProjectileMass = gfmo.projectileMass,
+                cartridgeType = (Cart)fireInfo.cartridgeType,
+                ExitVelocity = fireInfo.exitVelocity,
+                ProjectileMass = fireInfo.projectileMass,
                 Tracer = false
             };
 
-            if ((StressLevelZero.Handedness)gfmo.handedness == StressLevelZero.Handedness.RIGHT)
+            if ((StressLevelZero.Handedness)fireInfo.handedness == StressLevelZero.Handedness.RIGHT)
             {
-                pr.rightGunScript.firePointTransform.position = gfmo.firepointPos;
-                pr.rightGunScript.firePointTransform.rotation = gfmo.firepointRotation;
-                pr.rightGunScript.muzzleVelocity = gfmo.muzzleVelocity;
+                pr.rightGunScript.firePointTransform.position = fireInfo.firepointPos;
+                pr.rightGunScript.firePointTransform.rotation = fireInfo.firepointRotation;
+                pr.rightGunScript.muzzleVelocity = fireInfo.muzzleVelocity;
                 pr.rightBulletObject.ammoVariables = ammoVariables;
                 pr.rightGunScript.PullCartridge();
                 pr.rightGunScript.Fire();
             }
 
-            if ((StressLevelZero.Handedness)gfmo.handedness == StressLevelZero.Handedness.LEFT)
+            if ((StressLevelZero.Handedness)fireInfo.handedness == StressLevelZero.Handedness.LEFT)
             {
-                pr.leftGunScript.firePointTransform.position = gfmo.firepointPos;
-                pr.leftGunScript.firePointTransform.rotation = gfmo.firepointRotation;
-                pr.leftGunScript.muzzleVelocity = gfmo.muzzleVelocity;
+                pr.leftGunScript.firePointTransform.position = fireInfo.firepointPos;
+                pr.leftGunScript.firePointTransform.rotation = fireInfo.firepointRotation;
+                pr.leftGunScript.muzzleVelocity = fireInfo.muzzleVelocity;
                 pr.leftBulletObject.ammoVariables = ammoVariables;
                 pr.leftGunScript.PullCartridge();
                 pr.leftGunScript.Fire();
             }
 
-            pr.faceAnimator.faceState = Representations.FaceAnimator.FaceState.Angry;
+            pr.faceAnimator.faceState = FaceAnimator.FaceState.Angry;
             pr.faceAnimator.faceTime = 5;
         }
     }
