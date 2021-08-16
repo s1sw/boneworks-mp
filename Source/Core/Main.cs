@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Facepunch.Steamworks;
 using MelonLoader;
 using ModThatIsNotMod.BoneMenu;
@@ -13,6 +14,7 @@ using StressLevelZero.Utilities;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using System.IO;
 
 namespace MultiplayerMod
 {
@@ -36,7 +38,7 @@ namespace MultiplayerMod
         public unsafe override void OnApplicationStart()
         {
             if (!SteamClient.IsValid)
-            SteamClient.Init(823500);
+                SteamClient.Init(823500);
 
 #if DEBUG
             MelonLogger.Warning("Debug build!");
@@ -57,10 +59,11 @@ namespace MultiplayerMod
             BWUtil.Hook();
 
             // Initialize Discord's RichPresence
-            //RichPresence.Initialise(701895326600265879);
-            //client.SetupRP();
+            RichPresence.Initialise(701895326600265879);
+            client.SetupRP();
 
             UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<SyncedObject>();
+            UnhollowerRuntimeLib.ClassInjector.RegisterTypeInIl2Cpp<SyncOnCollide>();
 
             menuCategory = MenuManager.CreateCategory("Boneworks Multiplayer", Color.white);
             menuCategory.CreateBoolElement("Show Nameplates", Color.white, false, 
