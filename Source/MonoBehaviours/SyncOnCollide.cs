@@ -15,6 +15,8 @@ namespace MultiplayerMod.MonoBehaviours
 
         public void OnCollisionEnter(Collision collision)
         {
+            if (!collision.rigidbody) return;
+
             SyncObjectCallback(collision.rigidbody.gameObject, OwnershipPriorityLevel.Touched);
         }
     }

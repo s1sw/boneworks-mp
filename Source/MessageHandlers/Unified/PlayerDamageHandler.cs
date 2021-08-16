@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace MultiplayerMod.MessageHandlers.Client
 {
-    [MessageHandler(MessageType.Join, PeerType.Both)]
+    [MessageHandler(MessageType.PlayerDamage, PeerType.Both)]
     class PlayerDamageHandler : MessageHandler
     {
         public override void HandleMessage(MessageType msgType, ITransportConnection connection, P2PMessage msg)
